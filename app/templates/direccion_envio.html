@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-N9LMPQBM');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direccion de Envio - Game Store</title>
+    <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
+    <link rel="stylesheet" href="/static/css/stylee.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N9LMPQBM"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <nav class="barra_lateral">
+        <a href="/"><img class="logo" src="/static/img/Icon_GS.png" alt="Logo"></a>
+        <ul>
+            <li><a class="enlace_barra_lateral" href="/"><i class="fa-solid fa-house"></i> Inicio</a></li>
+            <li>
+                <h3>Mis compras y deseos</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/favoritos"><i class="fa-solid fa-heart"></i> Favoritos</a></li>
+            <li><a class="enlace_barra_lateral" href="/pedidos"><i class="fa-solid fa-box"></i> Pedidos</a></li>
+            <li>
+                <h3>Categorías</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/juegos"><i class="fa-solid fa-ghost"></i> Juegos</a></li>
+            <li><a class="enlace_barra_lateral" href="/accesorios"><i class="fa-solid fa-headset"></i> Accesorios</a></li>
+            <li><a class="enlace_barra_lateral" href="/consolas"><i class="fa-solid fa-tv"></i> Consolas</a></li>
+            <li><a class="enlace_barra_lateral" href="/controles"><i class="fa-solid fa-gamepad"></i> Controles</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <header class="encabezado">
+            <section class="iconos">
+                <a class="icon carrito-link" href="/carrito">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="carrito-count">0</span>
+                </a>
+
+                <div class="user-menu-container">
+                    <button class="user-menu-btn" id="userMenuBtn">
+                        <i class="fa-solid fa-circle-user"></i>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-content">
+                            <div class="loading-menu">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </header>
+
+        <div class="principal" style="color: white;">
+            <div class="perfil-contenedor-centrado">
+                <h1 class="titulo-centrado">Direccion de Envio</h1>
+
+                <div class="perfil-card-centrado">
+                    <div class="perfil-layout">
+                        <div class="perfil-col">
+                            <h2 class="nombre-usuario">{{ usuario.nombre or usuario.nombre_usuario }}</h2>
+                            <p class="numero-cliente">No. Cliente #{{ usuario.id_usuario }}</p>
+
+                            <div class="separador"></div>
+
+                            <div class="datos-usuario">
+                                <div class="dato-fila">
+                                    <span class="dato-label">Usuario:</span>
+                                    <span class="dato-valor">{{ usuario.nombre_usuario }}</span>
+                                </div>
+                                <div class="dato-fila">
+                                    <span class="dato-label">Email:</span>
+                                    <span class="dato-valor">{{ usuario.correo }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="perfil-col">
+                            <form id="form-direccion" class="datos-usuario perfil-form">
+                                <div id="direccion-alert" class="direccion-alert" aria-live="polite"></div>
+                                <div class="direccion-grid">
+                                    <div class="dato-fila">
+                                        <span class="dato-label">Direccion:</span>
+                                        <input class="dato-input" type="text" id="direccion-envio" value="{{ usuario.direccion_envio or '' }}" disabled>
+                                    </div>
+                                    <div class="dato-fila">
+                                        <span class="dato-label">Ciudad:</span>
+                                        <input class="dato-input" type="text" id="ciudad" value="{{ usuario.ciudad or '' }}" disabled>
+                                    </div>
+                                    <div class="dato-fila">
+                                        <span class="dato-label">Estado:</span>
+                                        <input class="dato-input" type="text" id="estado" value="{{ usuario.estado or '' }}" disabled>
+                                    </div>
+                                    <div class="dato-fila">
+                                        <span class="dato-label">Codigo postal:</span>
+                                        <input class="dato-input" type="text" id="codigo-postal" value="{{ usuario.codigo_postal or '' }}" disabled>
+                                    </div>
+                                    <div class="dato-fila">
+                                        <span class="dato-label">Telefono:</span>
+                                        <input class="dato-input" type="text" id="telefono" value="{{ usuario.telefono or '' }}" disabled>
+                                    </div>
+                                </div>
+                                <div class="acciones-grid">
+                                    <div class="accion-par">
+                                        <button type="button" class="accion-item-simple" id="btn-editar-direccion">
+                                            <span class="accion-texto">Editar Direccion</span>
+                                        </button>
+                                        <button type="button" class="accion-item-simple" id="btn-cancelar-direccion" disabled>
+                                            <span class="accion-texto">Cancelar</span>
+                                        </button>
+                                        <button type="submit" class="accion-item-simple" id="btn-guardar-direccion" disabled>
+                                            <span class="accion-texto">Guardar Direccion</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="acciones-grid">
+                        <div class="accion-par">
+                            <div class="accion-item-simple" onclick="window.location.href='/perfil'">
+                                <span class="accion-texto">Volver a Mi Cuenta</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/user-menu.js"></script>
+    <script src="/static/js/carrito-sync.js"></script>
+    <script>
+        const formDireccion = document.getElementById('form-direccion');
+        const btnEditar = document.getElementById('btn-editar-direccion');
+        const btnGuardar = document.getElementById('btn-guardar-direccion');
+        const btnCancelar = document.getElementById('btn-cancelar-direccion');
+        const alerta = document.getElementById('direccion-alert');
+        const inputsDireccion = formDireccion.querySelectorAll('.dato-input');
+        let valoresIniciales = {};
+
+        function setEdicionActiva(activo) {
+            inputsDireccion.forEach(input => {
+                input.disabled = !activo;
+            });
+            btnGuardar.disabled = !activo;
+            btnEditar.disabled = activo;
+            btnCancelar.disabled = !activo;
+        }
+
+        function mostrarAlerta(mensaje, tipo) {
+            alerta.textContent = mensaje;
+            alerta.classList.remove('success', 'error');
+            if (tipo) {
+                alerta.classList.add(tipo);
+            }
+        }
+
+        function guardarValoresIniciales() {
+            valoresIniciales = {
+                direccion_envio: document.getElementById('direccion-envio').value,
+                ciudad: document.getElementById('ciudad').value,
+                estado: document.getElementById('estado').value,
+                codigo_postal: document.getElementById('codigo-postal').value,
+                telefono: document.getElementById('telefono').value
+            };
+        }
+
+        function restaurarValoresIniciales() {
+            document.getElementById('direccion-envio').value = valoresIniciales.direccion_envio || '';
+            document.getElementById('ciudad').value = valoresIniciales.ciudad || '';
+            document.getElementById('estado').value = valoresIniciales.estado || '';
+            document.getElementById('codigo-postal').value = valoresIniciales.codigo_postal || '';
+            document.getElementById('telefono').value = valoresIniciales.telefono || '';
+        }
+
+        guardarValoresIniciales();
+        setEdicionActiva(false);
+        mostrarAlerta('Tus datos de envio estan protegidos. Activa edicion para cambiar.', '');
+
+        btnEditar.addEventListener('click', () => {
+            guardarValoresIniciales();
+            setEdicionActiva(true);
+            inputsDireccion[0].focus();
+            mostrarAlerta('Edicion activa. No olvides guardar los cambios.', '');
+        });
+
+        btnCancelar.addEventListener('click', () => {
+            restaurarValoresIniciales();
+            setEdicionActiva(false);
+            mostrarAlerta('Cambios cancelados.', '');
+        });
+
+        formDireccion.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const payload = {
+                direccion_envio: document.getElementById('direccion-envio').value,
+                ciudad: document.getElementById('ciudad').value,
+                estado: document.getElementById('estado').value,
+                codigo_postal: document.getElementById('codigo-postal').value,
+                telefono: document.getElementById('telefono').value
+            };
+
+            const response = await fetch('/api/usuario/direccion', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                mostrarAlerta('Direccion guardada correctamente.', 'success');
+                setEdicionActiva(false);
+                guardarValoresIniciales();
+            } else {
+                mostrarAlerta(data.error || 'No se pudo guardar la direccion.', 'error');
+            }
+        });
+    </script>
+</body>
+
+</html>

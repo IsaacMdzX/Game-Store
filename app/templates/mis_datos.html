@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-N9LMPQBM');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Datos - Game Store</title>
+    <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
+    <link rel="stylesheet" href="/static/css/stylee.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N9LMPQBM"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <nav class="barra_lateral">
+        <a href="/"><img class="logo" src="/static/img/Icon_GS.png" alt="Logo"></a>
+        <ul>
+            <li><a class="enlace_barra_lateral" href="/"><i class="fa-solid fa-house"></i> Inicio</a></li>
+            <li>
+                <h3>Mis compras y deseos</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/favoritos"><i class="fa-solid fa-heart"></i> Favoritos</a></li>
+            <li><a class="enlace_barra_lateral" href="/pedidos"><i class="fa-solid fa-box"></i> Pedidos</a></li>
+            <li>
+                <h3>Categorías</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/juegos"><i class="fa-solid fa-ghost"></i> Juegos</a></li>
+            <li><a class="enlace_barra_lateral" href="/accesorios"><i class="fa-solid fa-headset"></i> Accesorios</a></li>
+            <li><a class="enlace_barra_lateral" href="/consolas"><i class="fa-solid fa-tv"></i> Consolas</a></li>
+            <li><a class="enlace_barra_lateral" href="/controles"><i class="fa-solid fa-gamepad"></i> Controles</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <header class="encabezado">
+            <section class="iconos">
+                <a class="icon carrito-link" href="/carrito">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="carrito-count">0</span>
+                </a>
+
+                <div class="user-menu-container">
+                    <button class="user-menu-btn" id="userMenuBtn">
+                        <i class="fa-solid fa-circle-user"></i>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-content">
+                            <div class="loading-menu">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </header>
+
+        <div class="principal" style="color: white;">
+            <div class="perfil-contenedor-centrado">
+                <h1 class="titulo-centrado">Mis Datos</h1>
+
+                <div class="perfil-card-centrado">
+                    <h2 class="nombre-usuario">{{ usuario.nombre or usuario.nombre_usuario }}</h2>
+                    <p class="numero-cliente">No. Cliente #{{ usuario.id_usuario }}</p>
+
+                    <div class="separador"></div>
+
+                    <div class="datos-usuario">
+                        <div class="dato-fila">
+                            <span class="dato-label">Usuario:</span>
+                            <span class="dato-valor">{{ usuario.nombre_usuario }}</span>
+                        </div>
+                        <div class="dato-fila">
+                            <span class="dato-label">Email:</span>
+                            <span class="dato-valor">{{ usuario.correo }}</span>
+                        </div>
+                        <div class="dato-fila">
+                            <span class="dato-label">Telefono:</span>
+                            <span class="dato-valor">{{ usuario.telefono or 'No registrado' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="separador"></div>
+
+                    <div class="acciones-grid">
+                        <div class="accion-par">
+                            <div class="accion-item-simple" onclick="window.location.href='/perfil'">
+                                <span class="accion-texto">Volver a Mi Cuenta</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/user-menu.js"></script>
+    <script src="/static/js/carrito-sync.js"></script>
+</body>
+
+</html>
