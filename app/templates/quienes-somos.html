@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Quiénes Somos - Game Store">
+    <meta name="theme-color" content="#58009A">
+    <title>Quiénes Somos - Game Store</title>
+    <link rel="stylesheet" href="/static/css/stylee.css">
+    <link rel="stylesheet" href="/static/css/responsive.css">
+    <link rel="stylesheet" href="/static/css/mobile-aesthetic.css">
+    <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="barra_lateral">
+        <a href="/"><img class="logo" src="/static/img/Icon_GS.png" alt="Logo"></a>
+        <ul>
+            <li><a class="enlace_barra_lateral_fijo" href="/"><i class="fa-solid fa-house"></i> Inicio</a></li>
+            <li>
+                <h3>Mis compras y deseos</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/favoritos"><i class="fa-solid fa-heart"></i> Favoritos</a></li>
+            <li><a class="enlace_barra_lateral" href="/pedidos"><i class="fa-solid fa-box"></i> Pedidos</a></li>
+            <li>
+                <h3>Categorías</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/juegos"><i class="fa-solid fa-ghost"></i> Juegos</a></li>
+            <li><a class="enlace_barra_lateral" href="/accesorios"><i class="fa-solid fa-headset"></i> Accesorios</a></li>
+            <li><a class="enlace_barra_lateral" href="/consolas"><i class="fa-solid fa-tv"></i> Consolas</a></li>
+            <li><a class="enlace_barra_lateral" href="/controles"><i class="fa-solid fa-gamepad"></i> Controles</a></li>
+            <li>
+                <h3>Empresa</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/quienes-somos"><i class="fa-solid fa-info-circle"></i> Quiénes Somos</a></li>
+            <li><a class="enlace_barra_lateral" href="/ubicacion"><i class="fa-solid fa-map-marker-alt"></i> Ubicación</a></li>
+            <li><a class="enlace_barra_lateral" href="/contactanos"><i class="fa-solid fa-envelope"></i> Contáctanos</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <header class="encabezado">
+            <section class="iconos">
+                <button class="btn_notificaciones" id="mostrarNotificaciones"><i class="fa-solid fa-bell"></i></button>
+                <a class="icon carrito-link" href="/carrito">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="carrito-count">0</span>
+                </a>
+                <div class="user-menu-container">
+                    <button class="user-menu-btn" id="userMenuBtn">
+                        <i class="fa-solid fa-circle-user"></i>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-content">
+                            <div class="loading-menu">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </header>
+
+        <div class="principal">
+            <div class="contenedor-informacion">
+                <div class="seccion-quienes-somos">
+                    <h1 class="titulo-seccion">Quiénes Somos</h1>
+
+                    <div class="card-informacion">
+                        <div class="contenido-info">
+                            <h2><i class="fa-solid fa-gamepad"></i> Bienvenido a Game Store</h2>
+                            <p>
+                                Somos una tienda especializada en videojuegos y accesorios para gamers.
+                                Con más de años de experiencia en el mercado, nos dedicamos a ofrecer
+                                los mejores productos de las marcas más reconocidas del mundo.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card-informacion">
+                        <div class="contenido-info">
+                            <h2><i class="fa-solid fa-star"></i> Nuestra Misión</h2>
+                            <p>
+                                Proporcionar a nuestros clientes una plataforma segura, confiable y de
+                                fácil uso para adquirir los mejores videojuegos, consolas y accesorios
+                                al mejor precio del mercado.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card-informacion">
+                        <div class="contenido-info">
+                            <h2><i class="fa-solid fa-target"></i> Nuestra Visión</h2>
+                            <p>
+                                Ser la tienda online de referencia en Latinoamérica para todos los
+                                gamers que buscan calidad, variedad y excelente atención al cliente.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card-informacion">
+                        <div class="contenido-info">
+                            <h2><i class="fa-solid fa-heart"></i> Nuestros Valores</h2>
+                            <ul class="lista-valores">
+                                <li><strong>Calidad:</strong> Productos originales y garantizados</li>
+                                <li><strong>Confianza:</strong> Transacciones seguras y protegidas</li>
+                                <li><strong>Servicio:</strong> Atención al cliente disponible para ti</li>
+                                <li><strong>Innovación:</strong> Siempre actualizados con lo más nuevo</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .contenedor-informacion {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .seccion-quienes-somos {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .titulo-seccion {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .card-informacion {
+            background: linear-gradient(135deg, var(--card-bg) 0%, #323246 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border-light);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-informacion:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 24px rgba(161, 0, 237, 0.2);
+        }
+
+        .contenido-info h2 {
+            color: var(--primary-light);
+            font-size: 20px;
+            margin: 0 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contenido-info h2 i {
+            color: var(--accent);
+        }
+
+        .contenido-info p {
+            color: var(--text-secondary);
+            font-size: 25px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .lista-valores {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .lista-valores li {
+            color: var(--text-secondary);
+            font-size: 22px;
+            padding: 8px 0;
+            line-height: 1.6;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lista-valores li::before {
+            content: '✓';
+            color: var(--success);
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .lista-valores strong {
+            color: var(--primary-light);
+        }
+
+        @media (max-width: 575px) {
+            .contenedor-informacion {
+                padding: 15px;
+            }
+
+            .titulo-seccion {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+
+            .card-informacion {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+
+            .contenido-info h2 {
+                font-size: 18px;
+            }
+
+            .contenido-info p {
+                font-size: 13px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <script src="/static/js/menu-system.js"></script>
+    <script src="/static/js/user-menu-loader.js"></script>
+    <script src="/static/js/menu-toggle.js"></script>
+    <script src="/static/js/carrito-dinamico.js"></script>
+</body>
+
+</html>

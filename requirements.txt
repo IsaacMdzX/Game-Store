@@ -20,4 +20,5 @@ PyPDF2==3.0.1
 python-docx==1.2.0
 gunicorn==21.2.0
 APScheduler==3.10.4
-mercadopago>=3.0.0
+mercadopago==2.3.0
+Flask-Mail==0.9.1

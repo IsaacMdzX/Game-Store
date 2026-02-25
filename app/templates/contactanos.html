@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Contáctanos - Game Store">
+    <meta name="theme-color" content="#58009A">
+    <title>Contáctanos - Game Store</title>
+    <link rel="stylesheet" href="/static/css/stylee.css">
+    <link rel="stylesheet" href="/static/css/responsive.css">
+    <link rel="stylesheet" href="/static/css/mobile-aesthetic.css">
+    <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+
+<body>
+    <nav class="barra_lateral">
+        <a href="/"><img class="logo" src="/static/img/Icon_GS.png" alt="Logo"></a>
+        <ul>
+            <li><a class="enlace_barra_lateral_fijo" href="/"><i class="fa-solid fa-house"></i> Inicio</a></li>
+            <li>
+                <h3>Mis compras y deseos</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/favoritos"><i class="fa-solid fa-heart"></i> Favoritos</a></li>
+            <li><a class="enlace_barra_lateral" href="/pedidos"><i class="fa-solid fa-box"></i> Pedidos</a></li>
+            <li>
+                <h3>Categorías</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/juegos"><i class="fa-solid fa-ghost"></i> Juegos</a></li>
+            <li><a class="enlace_barra_lateral" href="/accesorios"><i class="fa-solid fa-headset"></i> Accesorios</a></li>
+            <li><a class="enlace_barra_lateral" href="/consolas"><i class="fa-solid fa-tv"></i> Consolas</a></li>
+            <li><a class="enlace_barra_lateral" href="/controles"><i class="fa-solid fa-gamepad"></i> Controles</a></li>
+            <li>
+                <h3>Empresa</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/quienes-somos"><i class="fa-solid fa-info-circle"></i> Quiénes Somos</a></li>
+            <li><a class="enlace_barra_lateral" href="/ubicacion"><i class="fa-solid fa-map-marker-alt"></i> Ubicación</a></li>
+            <li><a class="enlace_barra_lateral" href="/contactanos"><i class="fa-solid fa-envelope"></i> Contáctanos</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <header class="encabezado">
+            <section class="iconos">
+                <button class="btn_notificaciones" id="mostrarNotificaciones"><i class="fa-solid fa-bell"></i></button>
+                <a class="icon carrito-link" href="/carrito">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="carrito-count">0</span>
+                </a>
+                <div class="user-menu-container">
+                    <button class="user-menu-btn" id="userMenuBtn">
+                        <i class="fa-solid fa-circle-user"></i>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-content">
+                            <div class="loading-menu">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </header>
+
+        <div class="principal">
+            <div class="contenedor-contacto">
+                <h1 class="titulo-seccion">Contáctanos</h1>
+
+                <div class="contenedor-contacto-info">
+                    <div class="formulario-contacto">
+                        <h2>Envíanos un Mensaje</h2>
+                        <form id="formContacto" class="form-contacto">
+                            <div class="grupo-formulario">
+                                <label for="nombre">Nombre Completo</label>
+                                <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre">
+                            </div>
+
+                            <div class="grupo-formulario">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required placeholder="tu@email.com">
+                            </div>
+
+                            <div class="grupo-formulario">
+                                <label for="asunto">Asunto</label>
+                                <input type="text" id="asunto" name="asunto" required placeholder="Asunto del mensaje">
+                            </div>
+
+                            <div class="grupo-formulario">
+                                <label for="mensaje">Mensaje</label>
+                                <textarea id="mensaje" name="mensaje" rows="6" required placeholder="Tu mensaje aquí..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn-enviar">
+                                <i class="fa-solid fa-paper-plane"></i> Enviar Mensaje
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="info-contacto">
+                        <div class="card-contacto">
+                            <div class="icono-contacto">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div class="texto-contacto">
+                                <h3>Teléfono</h3>
+                                <p><a href="tel:+1234567890">+52 56-58-56-20-97</a></p>
+                                <small>Lunes a Viernes: 9:00 AM - 6:00 PM</small>
+                            </div>
+                        </div>
+
+                        <div class="card-contacto">
+                            <div class="icono-contacto">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div class="texto-contacto">
+                                <h3>Email</h3>
+                                <p><a href="mailto:info@gamestore.com">game.store.contact.em@gmail.com</a></p>
+                                <small>Respuesta en 24 horas</small>
+                            </div>
+                        </div>
+
+                        <div class="card-contacto">
+                            <div class="icono-contacto">
+                                <i class="fa-solid fa-globe"></i>
+                            </div>
+                            <div class="texto-contacto">
+                                <h3>Redes Sociales</h3>
+                                <div class="redes-sociales">
+                                    <a href="https://www.facebook.com/gamestore" target="_blank" title="Facebook">
+                                        <i class="fa-brands fa-facebook-f"></i>
+                                    </a>
+                                    <a href="https://www.instagram.com/gamestore" target="_blank" title="Instagram">
+                                        <i class="fa-brands fa-instagram"></i>
+                                    </a>
+
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-contacto">
+                            <div class="icono-contacto">
+                                <i class="fa-solid fa-map-marker-alt"></i>
+                            </div>
+                            <div class="texto-contacto">
+                                <h3>Ubicación</h3>
+                                <p>Av Telecomunicaciones<br>Chinam Pac de Juárez, Iztapalapa<br>09208 Ciudad de México, CDMX<br>Instituto Tecnológico de Iztapalapa</p>
+                                <a href="/ubicacion" class="btn-ver-mapa">Ver en mapa</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .contenedor-contacto {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .titulo-seccion {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .contenedor-contacto-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .formulario-contacto h2 {
+            color: var(--primary-light);
+            font-size: 22px;
+            margin: 0 0 20px;
+        }
+
+        .form-contacto {
+            background: linear-gradient(135deg, var(--card-bg) 0%, #323246 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border-light);
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .grupo-formulario {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .grupo-formulario label {
+            font-size: 13px !important;
+            margin-bottom: 8px !important;
+        }
+
+        .grupo-formulario input,
+        .grupo-formulario textarea {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid var(--border-light) !important;
+            border-radius: 10px !important;
+            color: var(--text-primary) !important;
+            padding: 12px !important;
+            font-size: 14px !important;
+            font-family: inherit !important;
+        }
+
+        .grupo-formulario textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .grupo-formulario input::placeholder,
+        .grupo-formulario textarea::placeholder {
+            color: var(--text-secondary) !important;
+        }
+
+        .grupo-formulario input:focus,
+        .grupo-formulario textarea:focus {
+            outline: none !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 16px rgba(161, 0, 237, 0.3) !important;
+        }
+
+        .btn-enviar {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(161, 0, 237, 0.3);
+        }
+
+        .btn-enviar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(161, 0, 237, 0.5);
+        }
+
+        .btn-enviar:active {
+            transform: translateY(0);
+        }
+
+        .info-contacto {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card-contacto {
+            background: linear-gradient(135deg, var(--card-bg) 0%, #323246 100%);
+            border-radius: 14px;
+            border: 1px solid var(--border-light);
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-contacto:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+            box-shadow: 0 8px 20px rgba(161, 0, 237, 0.2);
+        }
+
+        .icono-contacto {
+            flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .texto-contacto h3 {
+            color: var(--primary-light);
+            font-size: 16px;
+            margin: 0 0 6px;
+        }
+
+        .texto-contacto p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin: 0 0 4px;
+            line-height: 1.5;
+        }
+
+        .texto-contacto small {
+            color: var(--text-secondary);
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .texto-contacto a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-size: 13px;
+        }
+
+        .texto-contacto a:hover {
+            color: var(--primary-light);
+            text-decoration: underline;
+        }
+
+        .redes-sociales {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .redes-sociales a {
+            width: 36px;
+            height: 36px;
+            background: var(--border-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent) !important;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none !important;
+        }
+
+        .redes-sociales a:hover {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white !important;
+            transform: translateY(-2px);
+        }
+
+        .btn-ver-mapa {
+            display: inline-block !important;
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
+            color: white !important;
+            padding: 6px 12px !important;
+            border-radius: 6px;
+            font-size: 12px !important;
+            margin-top: 8px !important;
+            text-decoration: none !important;
+            transition: all 0.3s ease;
+        }
+
+        .btn-ver-mapa:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 575px) {
+            .contenedor-contacto {
+                padding: 15px;
+            }
+
+            .titulo-seccion {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+
+            .contenedor-contacto-info {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .formulario-contacto h2 {
+                font-size: 18px;
+            }
+
+            .form-contacto {
+                padding: 16px;
+            }
+
+            .card-contacto {
+                padding: 14px;
+            }
+
+            .icono-contacto {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+
+            .texto-contacto h3 {
+                font-size: 14px;
+            }
+
+            .texto-contacto p {
+                font-size: 12px;
+            }
+
+            .redes-sociales a {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+        }
+    </style>
+
+    <script src="/static/js/menu-system.js"></script>
+    <script src="/static/js/user-menu-loader.js"></script>
+    <script src="/static/js/carrito-dinamico.js"></script>
+    <script>
+        // Manejar el envío del formulario
+        document.getElementById('formContacto').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const nombre = document.getElementById('nombre').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const asunto = document.getElementById('asunto').value.trim();
+            const mensaje = document.getElementById('mensaje').value.trim();
+
+            const btnEnviar = this.querySelector('button[type="submit"]');
+            const textoOriginal = btnEnviar.innerHTML;
+
+            try {
+                // Mostrar estado de carga
+                btnEnviar.disabled = true;
+                btnEnviar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+
+                // Enviar POST request al backend
+                const response = await fetch('/api/contacto', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        nombre: nombre,
+                        email: email,
+                        asunto: asunto,
+                        mensaje: mensaje
+                    })
+                });
+
+                const resultado = await response.json();
+
+                if (response.ok && resultado.success) {
+                    // Mostrar mensaje de éxito
+                    btnEnviar.innerHTML = '<i class="fa-solid fa-check-circle"></i> ¡Mensaje Enviado!';
+                    btnEnviar.style.background = 'linear-gradient(135deg, #00d97e 0%, #00f7a7 100%)';
+
+                    // Crear alerta de éxito
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success';
+                    alertDiv.innerHTML = `
+                        <i class="fa-solid fa-check-circle"></i>
+                        ${resultado.message}
+                    `;
+                    this.parentElement.insertBefore(alertDiv, this);
+
+                    // Limpiar formulario
+                    this.reset();
+
+                    // Revertir botón después de 3 segundos
+                    setTimeout(() => {
+                        btnEnviar.disabled = false;
+                        btnEnviar.innerHTML = textoOriginal;
+                        btnEnviar.style.background = '';
+                    }, 3000);
+                } else {
+                    // Error en la respuesta
+                    throw new Error(resultado.error || 'Error al enviar el mensaje');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+
+                // Crear alerta de error
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger';
+                alertDiv.innerHTML = `
+                    <i class="fa-solid fa-exclamation-circle"></i>
+                    ${error.message || 'Error al enviar el mensaje. Intenta de nuevo.'}
+                `;
+                this.parentElement.insertBefore(alertDiv, this);
+
+                // Revertir botón
+                btnEnviar.disabled = false;
+                btnEnviar.innerHTML = textoOriginal;
+            }
+        });
+    </script>
+    <script src="/static/js/menu-toggle.js"></script>
+</body>
+
+</html>

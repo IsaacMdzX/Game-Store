@@ -8,24 +8,32 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import os
 import atexit
 
+# Flask-Mail será importado después lazily para evitar problemas
+mail = None
+
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 
 #------------------------------------ Scheduler para mantener la BD activa
 scheduler = BackgroundScheduler()
+app_instance = None
 
 def keep_db_alive():
     """Ejecuta una query simple cada 4 minutos para mantener activa la BD de Neon"""
     try:
-        db.session.execute(db.text('SELECT 1'))
-        db.session.commit()
-        print("✅ Ping a BD ejecutado - Neon activa")
+        if app_instance:
+            with app_instance.app_context():
+                db.session.execute(db.text('SELECT 1'))
+                db.session.commit()
+                print("✅ Ping a BD ejecutado - Neon activa")
     except Exception as e:
         print(f"⚠️ Error en ping a BD: {e}")
 ###-------------------------------------------------------
 def create_app():
+    global app_instance
     app = Flask(__name__)
+    app_instance = app
     
     # Configuración según entorno
     env = os.environ.get('FLASK_ENV', 'development')
@@ -55,6 +63,17 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    
+    # Inicializar Flask-Mail si está disponible
+    global mail
+    try:
+        from flask_mail import Mail
+        mail = Mail()
+        mail.init_app(app)
+        print("✅ Flask-Mail inicializado")
+    except ImportError:
+        print("⚠️ Flask-Mail no está instalado. El sistema de contacto tendrá funcionalidad limitada")
+    
     login_manager.login_view = 'web.login'
     
     # Registrar blueprints
@@ -66,6 +85,7 @@ def create_app():
     from app.api.carrito import bp as carrito_api_bp
     from app.api.auth import bp as auth_bp
     from app.api.mercadopago import bp as mercadopago_bp
+    from app.api.contacto import bp as contacto_bp
     
     app.register_blueprint(web_bp)
     app.register_blueprint(carrito_bp)
@@ -73,15 +93,20 @@ def create_app():
     app.register_blueprint(carrito_api_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(mercadopago_bp)
+    app.register_blueprint(contacto_bp)
     
-    print("✅ Blueprints registrados: Web, Carrito, Productos, Auth, MercadoPago")
+    print("✅ Blueprints registrados: Web, Carrito, Productos, Auth, MercadoPago, Contacto")
     
     # Configurar user_loader para Flask-Login
     from app.models.usuario import Usuario 
     
     @login_manager.user_loader
     def load_user(user_id):
-        return Usuario.query.get(int(user_id))
+        try:
+            return Usuario.query.get(int(user_id))
+        except Exception as e:
+            print(f"⚠️ Error cargando usuario: {e}")
+            return None
     
     # Solo crear tablas si no existen (sin insertar datos)
     with app.app_context():
@@ -122,6 +147,19 @@ def create_app():
             
             # Asegurar que el scheduler se detenga cuando la app se cierre
             atexit.register(lambda: scheduler.shutdown())
+    
+    # Agregar headers para evitar caché de archivos estáticos (CSS, JS)
+    @app.after_request
+    def set_cache_headers(response):
+        # Para archivos estáticos (JS, CSS): no cachear
+        if response.mimetype in ['application/javascript', 'text/javascript', 'text/css']:
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, public, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+        else:
+            # Para HTML y otros: evitar caché de navegador
+            response.headers['Cache-Control'] = 'public, max-age=0'
+        return response
     
     return app
 

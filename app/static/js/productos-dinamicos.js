@@ -1,4 +1,7 @@
 const ProductosController = {
+    // Variables globales
+    productosGlobales: [], // Almacenar productos para búsqueda
+    
     // Inicializar el controlador
     init: function () {
         console.log('🎮 Inicializando ProductosController...');
@@ -90,6 +93,11 @@ const ProductosController = {
     mostrarProductos: function (productos) {
         try {
             console.log('🎨 Mostrando productos...');
+            
+            // Guardar productos para búsqueda global
+            this.productosGlobales = productos;
+            console.log(`💾 ${productos.length} productos almacenados para búsqueda`);
+            
             const container = document.getElementById('productos-container');
 
             if (!container) {
@@ -199,7 +207,7 @@ const ProductosController = {
         }
     },
 
-    // Función de búsqueda
+    // Función de búsqueda mejorada
     buscarProductos: function(termino) {
         if (!termino || termino.trim() === '') {
             this.cargarProductos();
@@ -207,11 +215,73 @@ const ProductosController = {
         }
         
         console.log(`🔍 Buscando: ${termino}`);
-        this.mostrarLoading();
         
-        // Aquí puedes implementar la búsqueda si tu API la soporta
-        // Por ahora recargamos todos y filtramos en el cliente
-        this.cargarProductos();
+        const terminoLower = termino.toLowerCase();
+        const productosContenedor = document.getElementById('productos-container');
+        
+        if (!productosContenedor) {
+            console.error('❌ No se encontró el contenedor de productos');
+            return;
+        }
+        
+        // Filtrar productos almacenados
+        const productosFiltrados = this.productosGlobales.filter(producto => {
+            const nombre = (producto.nombre || '').toLowerCase();
+            const descripcion = (producto.descripcion || '').toLowerCase();
+            const categoria = (producto.categoria || '').toLowerCase();
+            return nombre.includes(terminoLower) || 
+                   descripcion.includes(terminoLower) ||
+                   categoria.includes(terminoLower);
+        });
+        
+        console.log(`📊 ${productosFiltrados.length} productos encontrados`);
+        
+        if (productosFiltrados.length === 0) {
+            productosContenedor.innerHTML = `
+                <div class="no-products">
+                    <i class="fa-solid fa-search"></i>
+                    <h3>Sin resultados</h3>
+                    <p>No se encontraron productos que coincidan con "<strong>${termino}</strong>"</p>
+                </div>
+            `;
+        } else {
+            // Mostrar productos filtrados
+            productosContenedor.innerHTML = productosFiltrados.map(producto => `
+                <div class="producto" data-id="${producto.id}">
+                    <button class="favorito-btn" 
+                            data-product-id="${producto.id}">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                    
+                    <img src="${producto.imagen}" alt="${producto.nombre}" 
+                         onerror="this.src='/static/img/placeholder.jpg'">
+                    <h3>${producto.nombre}</h3>
+                    <p class="categoria">${producto.categoria}</p>
+                    <p class="descripcion">${producto.descripcion}</p>
+                    <p class="precio">$${typeof producto.precio === 'number' ? producto.precio.toFixed(2) : '0.00'}</p>
+                    
+                    ${producto.stock > 0 ? 
+                        `<button class="btn-agregar-carrito" 
+                                data-id="${producto.id}">
+                            <i class="fa-solid fa-cart-shopping"></i>Agregar al Carrito
+                        </button>` :
+                        `<button class="btn-sin-stock" disabled>
+                            <i class="fa-solid fa-times"></i>Sin Stock
+                        </button>`
+                    }
+                </div>
+            `).join('');
+            
+            // Agregar event listeners a los nuevos productos
+            this.agregarEventListeners();
+            
+            // Sincronizar favoritos
+            setTimeout(() => {
+                if (window.favoritosManager) {
+                    window.favoritosManager.marcarFavoritosExistentes();
+                }
+            }, 100);
+        }
     },
 
     // Filtrar productos por categoría

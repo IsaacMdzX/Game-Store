@@ -244,6 +244,18 @@ def compra_finalizada():
 def carrito():
     return render_template('Carrito.html')
 
+@web_bp.route('/quienes-somos')
+def quienes_somos():
+    return render_template('quienes-somos.html')
+
+@web_bp.route('/ubicacion')
+def ubicacion():
+    return render_template('ubicacion.html')
+
+@web_bp.route('/contactanos')
+def contactanos():
+    return render_template('contactanos.html')
+
 
 # ----------------------------------------- AUTENTICACIÓN Y SESIÓN ---------------------------------------- #
 

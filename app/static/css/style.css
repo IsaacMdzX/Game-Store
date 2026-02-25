@@ -4,6 +4,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: sans-serif;
+    font-size: 18px;
     background: linear-gradient(#58009A, #623684);
 
 
@@ -125,8 +126,17 @@ h1 {
 }
 
 .register-section {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     margin-top: 40px;
+}
+
+.buttons-container {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .register-btn {
@@ -142,12 +152,28 @@ h1 {
     box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.register-btn.back-btn {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
 }
 
 .register-btn:hover {
     background: linear-gradient(135deg, #db2777 0%, #c026d3 100%);
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(236, 72, 153, 0.5);
+}
+
+.register-btn.back-btn:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(108, 117, 125, 0.5);
 }
 
 .preguntaxd {

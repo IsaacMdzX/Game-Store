@@ -1,0 +1,881 @@
+/* ============================================
+   MEJORAS ESTÉTICAS PARA MÓVILES - GAME STORE
+   Diseño moderno, colorido y atractivo
+   ============================================ */
+
+/* VARIABLES DE COLOR */
+:root {
+    --primary: #a100ed;
+    --primary-light: #c644ff;
+    --primary-dark: #7a00ad;
+    --secondary: #ff006e;
+    --secondary-light: #ff4d8f;
+    --accent: #00d9ff;
+    --dark-bg: #1a1a2e;
+    --darker-bg: #0f0f1e;
+    --card-bg: #2a2a3e;
+    --border-light: #3a3a4e;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0c0;
+    --success: #00d97e;
+    --warning: #ffb400;
+    --danger: #ff4757;
+}
+
+/* ============================================
+   MEJORAS GLOBALES
+   ============================================ */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ============================================
+   HEADER MEJORADO
+   ============================================ */
+
+header {
+    background: linear-gradient(135deg, #58009A 0%, #1a0033 100%);
+    padding: 12px 15px !important;
+    box-shadow: 0 8px 24px rgba(161, 0, 237, 0.3);
+    border-bottom: 2px solid var(--primary-light);
+}
+
+.buscador input {
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 18px;
+    color: #333;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.buscador input:focus {
+    outline: none;
+    box-shadow: 0 6px 20px rgba(161, 0, 237, 0.3);
+    transform: translateY(-2px);
+}
+
+.buscador input::placeholder {
+    color: #999;
+}
+
+.btn_buscar {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 8px;
+    box-shadow: 0 4px 12px rgba(161, 0, 237, 0.3);
+}
+
+.btn_buscar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(161, 0, 237, 0.5);
+}
+
+.btn_buscar:active {
+    transform: scale(0.95);
+}
+
+/* ============================================
+   BARRA LATERAL MEJORADA
+   ============================================ */
+
+.barra_lateral {
+    background: linear-gradient(180deg, #58009A 0%, #2a004d 100%);
+    box-shadow: inset -12px 0 30px rgba(0, 0, 0, 0.4);
+    border-right: 3px solid var(--primary-light);
+}
+
+.barra_lateral.mobile-open {
+    box-shadow: inset -12px 0 30px rgba(0, 0, 0, 0.4), -8px 0 30px rgba(0, 0, 0, 0.7);
+}
+
+.logo {
+    filter: drop-shadow(0 4px 8px rgba(161, 0, 237, 0.4));
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+}
+
+nav li h3 {
+    color: var(--primary-light);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 20px 15px 8px;
+    padding: 0;
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+.enlace_barra_lateral,
+.enlace_barra_lateral_fijo {
+    background: transparent;
+    border-radius: 8px;
+    padding: 12px 15px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 3px solid transparent;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+}
+
+.enlace_barra_lateral:hover,
+.enlace_barra_lateral_fijo:hover {
+    background: linear-gradient(90deg, rgba(161, 0, 237, 0.3) 0%, rgba(161, 0, 237, 0.5) 50%, rgba(161, 0, 237, 0.3) 100%);
+    border-left-color: var(--accent);
+    filter: drop-shadow(0 2px 8px rgba(161, 0, 237, 0.3));
+    transform: translateX(3px);
+    padding-left: 18px;
+}
+
+.enlace_barra_lateral i {
+    transition: transform 0.3s ease;
+    margin-right: 8px;
+}
+
+.enlace_barra_lateral:hover i {
+    transform: rotateY(10deg);
+}
+
+/* ============================================
+   TARJETAS DE PRODUCTOS MEJORADAS
+   ============================================ */
+
+.contenedor-productos {
+    gap: 16px;
+    padding: 16px;
+}
+
+.producto {
+    background: linear-gradient(135deg, var(--card-bg) 0%, #323246 100%);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.producto::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.producto:hover::before {
+    opacity: 1;
+}
+
+.producto:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(161, 0, 237, 0.25);
+    border-color: var(--primary-light);
+}
+
+.producto img {
+    width: 100%;
+    height: auto;
+    min-height: 180px;
+    max-height: 280px;
+    object-fit: contain;
+    transition: transform 0.4s ease;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 12px;
+    display: block;
+}
+
+.producto:hover img {
+    transform: scale(1.05);
+}
+
+.info-producto {
+    padding: 14px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+}
+
+.titulo-producto {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 8px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.precio {
+    font-size: 18px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 6px 0;
+}
+
+.precio-original {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-decoration: line-through;
+    margin-bottom: 8px;
+}
+
+.descripcion-producto {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    flex-grow: 1;
+}
+
+.stock-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.stock-disponible {
+    background: rgba(0, 217, 126, 0.2);
+    color: var(--success);
+}
+
+.stock-agotado {
+    background: rgba(255, 71, 87, 0.2);
+    color: var(--danger);
+}
+
+.btn-producto {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(161, 0, 237, 0.3);
+}
+
+.btn-producto:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(161, 0, 237, 0.5);
+}
+
+.btn-producto:active {
+    transform: translateY(0);
+}
+
+.btn-agregar-favorito {
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
+    padding: 8px;
+    border-radius: 10px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 8px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.btn-agregar-favorito:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(255, 0, 110, 0.3);
+}
+
+/* ============================================
+   BOTONES MEJORADOS
+   ============================================ */
+
+.btn-primary,
+.btn_agregar,
+.btn-success {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(161, 0, 237, 0.3);
+    border: 2px solid transparent;
+}
+
+.btn-primary:hover,
+.btn_agregar:hover,
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(161, 0, 237, 0.5);
+    border-color: var(--accent);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 0, 110, 0.3);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger) 0%, #ff6b7a 100%);
+}
+
+.btn-danger:hover {
+    box-shadow: 0 8px 20px rgba(255, 71, 87, 0.3);
+}
+
+/* ============================================
+   FORMULAROS MEJORADOS
+   ============================================ */
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    color: var(--text-primary);
+    padding: 12px 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder,
+textarea::placeholder {
+    color: var(--text-secondary);
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 16px rgba(161, 0, 237, 0.3);
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* ============================================
+   TARJETAS GENÉRICAS MEJORADAS
+   ============================================ */
+
+.card,
+.pedido-card,
+.carrito-item {
+    background: linear-gradient(135deg, var(--card-bg) 0%, #323246 100%);
+    border-radius: 16px;
+    border: 1px solid var(--border-light);
+    padding: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.card:hover,
+.pedido-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    box-shadow: 0 8px 24px rgba(161, 0, 237, 0.2);
+}
+
+/* ============================================
+   CARRITO MEJORADO
+   ============================================ */
+
+.carrito-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    color: white;
+    box-shadow: 0 8px 24px rgba(161, 0, 237, 0.3);
+}
+
+.carrito-resumen {
+    background: linear-gradient(135deg, var(--card-bg) 0%, #323246 100%);
+    border-radius: 16px;
+    padding: 16px;
+    border: 2px solid var(--border-light);
+    transition: all 0.3s ease;
+}
+
+.resumen-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.resumen-item:last-child {
+    border-bottom: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 2px solid var(--primary);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--primary-light);
+}
+
+/* ============================================
+   USER MENU MEJORADO
+   ============================================ */
+
+.user-menu-container {
+    position: relative;
+}
+
+.user-menu-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 18px;
+    padding: 8px;
+    transition: all 0.3s ease;
+}
+
+.user-menu-btn:hover {
+    transform: scale(1.1);
+}
+
+.user-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: linear-gradient(135deg, var(--card-bg) 0%, #323246 100%);
+    border: 2px solid var(--primary-light);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(161, 0, 237, 0.3);
+    min-width: 260px;
+    margin-top: 8px;
+    display: none;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.user-dropdown.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+.dropdown-content {
+    padding: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.user-info,
+.user-info-empty,
+.user-info-error {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+.user-info i,
+.user-info-empty i,
+.user-info-error i {
+    font-size: 32px;
+    color: var(--primary-light);
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    font-size: 14px;
+}
+
+.user-email {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 2px 0 0;
+}
+
+.user-info-empty p,
+.user-info-error p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 4px;
+    transition: all 0.3s ease;
+    color: var(--text-primary);
+    text-decoration: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    width: 100%;
+    text-align: left;
+}
+
+.dropdown-item:hover {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    transform: translateX(4px);
+}
+
+.dropdown-item i {
+    width: 16px;
+    color: var(--accent);
+}
+
+.btn-logout {
+    background: rgba(255, 71, 87, 0.1);
+    color: var(--danger);
+    border-top: 1px solid var(--border-light);
+    margin-top: 8px;
+    padding-top: 12px;
+}
+
+.btn-logout:hover {
+    background: linear-gradient(135deg, var(--danger) 0%, #ff6b7a 100%) !important;
+    color: white;
+}
+
+.loading-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    color: var(--text-secondary);
+}
+
+.loading-menu i {
+    font-size: 16px;
+}
+
+/* ============================================
+   NOTIFICACIONES Y ALERTAS
+   ============================================ */
+
+.alert {
+    border-radius: 12px;
+    padding: 14px;
+    margin: 12px 0;
+    border-left: 4px solid;
+}
+
+.alert-success {
+    background: rgba(0, 217, 126, 0.1);
+    border-left-color: var(--success);
+    color: var(--success);
+}
+
+.alert-danger {
+    background: rgba(255, 71, 87, 0.1);
+    border-left-color: var(--danger);
+    color: var(--danger);
+}
+
+.alert-warning {
+    background: rgba(255, 180, 0, 0.1);
+    border-left-color: var(--warning);
+    color: var(--warning);
+}
+
+.alert-info {
+    background: rgba(0, 217, 255, 0.1);
+    border-left-color: var(--accent);
+    color: var(--accent);
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.producto {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.modal {
+    animation: slideUp 0.3s ease;
+}
+
+/* ============================================
+   MOBILE OPTIMIZACIONES
+   ============================================ */
+
+@media (max-width: 575px) {
+    header {
+        padding: 10px 12px !important;
+    }
+
+    .buscador input {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    .btn_buscar {
+        width: 36px;
+        height: 36px;
+        margin-left: 6px;
+    }
+
+    .contenedor-productos {
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .producto {
+        border-radius: 14px;
+    }
+
+    .info-producto {
+        padding: 12px;
+    }
+
+    .titulo-producto {
+        font-size: 13px;
+    }
+
+    .precio {
+        font-size: 16px;
+    }
+
+    .btn-producto,
+    .btn-agregar-favorito {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    select,
+    textarea {
+        padding: 10px 12px;
+        font-size: 16px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    .card,
+    .pedido-card {
+        border-radius: 14px;
+        padding: 12px;
+    }
+
+    .carrito-header {
+        padding: 16px;
+    }
+}
+
+/* ============================================
+   EFECTO GLASSMORPHISM
+   ============================================ */
+
+.glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADO
+   ============================================ */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--darker-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--primary-light) 0%, var(--accent) 100%);
+}
+
+/* ============================================
+   LOADING SPINNER MEJORADO
+   ============================================ */
+
+.spinner {
+    border: 3px solid var(--border-light);
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ============================================
+   BADGE Y LABELS
+   ============================================ */
+
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-secondary {
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
+}
+
+.badge-success {
+    background: linear-gradient(135deg, var(--success) 0%, #00f7a7 100%);
+}
+
+/* ============================================
+   FOOTER MEJORADO
+   ============================================ */
+
+footer {
+    background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+    border-top: 2px solid var(--border-light);
+    padding: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+footer p {
+    margin: 6px 0;
+}
+
+footer a {
+    color: var(--primary-light);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}

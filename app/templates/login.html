@@ -10,9 +10,14 @@
     })(window,document,'script','dataLayer','GTM-N9LMPQBM');</script>
     <!-- End Google Tag Manager -->
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Inicia sesión en Game Store">
+    <meta name="theme-color" content="#58009A">
     <title>Iniciar Sesión - Game Store</title>
     <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/responsive.css">
+    <link rel="stylesheet" href="/static/css/mobile-aesthetic.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
 
@@ -21,59 +26,57 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N9LMPQBM"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
-        <!-- Contenido Principal -->
-        <div class="main-content">
-            <div class="container">
-                <h1>Iniciar Sesión</h1>
+    <!-- Contenido Principal -->
+    <div class="main-content">
+        <div class="container">
+            <h1>Iniciar Sesión</h1>
 
-                <p class="description">Ingresa el nombre o correo electrónico registrado.</p>
+            <p class="description">Ingresa el nombre o correo electrónico registrado.</p>
 
-                <!-- AGREGAR ID AL FORMULARIO Y CONVERTIRLO EN FORM -->
-                <form id="login-form" class="form-section">
-                    <div class="form-line">
-                        <span class="label">Nombre de usuario o Correo electrónico</span>
-                        <!-- AGREGAR ID Y NAME -->
-                        <input type="text" id="login-input" name="login_input" class="input-field" 
-                               placeholder="Ingresa tu usuario o correo" required>
-                        <!-- AGREGAR SPAN PARA ERRORES -->
-                        <span class="error-message" id="login-input-error"></span>
-                    </div>
+            <form id="login-form" class="form-section">
+                <div class="form-line">
+                    <span class="label">Nombre de usuario o Correo electrónico</span>
+                    <input type="text" id="login-input" name="login_input" class="input-field"
+                           placeholder="Ingresa tu usuario o correo" required>
+                    <span class="error-message" id="login-input-error"></span>
+                </div>
 
-                    <div class="form-line">
-                        <span class="label">Contraseña</span>
-                        <!-- AGREGAR ID Y NAME -->
-                        <input type="password" id="login-password" name="password" class="input-field" 
-                               placeholder="Ingresa tu contraseña" required>
-                        <!-- AGREGAR SPAN PARA ERRORES -->
-                        <span class="error-message" id="password-error"></span>
-                    </div>
+                <div class="form-line">
+                    <span class="label">Contraseña</span>
+                    <input type="password" id="login-password" name="password" class="input-field"
+                           placeholder="Ingresa tu contraseña" required>
+                    <span class="error-message" id="password-error"></span>
+                </div>
 
-                    <div class="register-section">
-                        <!-- AGREGAR ID Y CAMBIAR A type="submit" -->
+                <div class="register-section">
+                    <div class="buttons-container">
                         <button type="submit" class="register-btn" id="login-btn">
                             <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
                         </button>
+                        <a href="/" class="register-btn back-btn">
+                            <i class="fa-solid fa-arrow-left"></i> Volver al Inicio
+                        </a>
                     </div>
-                </form>
-
-                <div class="sidebar-register-section">
-                    <p class="preguntaxd">¿No tienes cuenta?</p>
-                    <a class="sidebar-register-btn" href="/registro">Crear cuenta</a>
                 </div>
+            </form>
+
+            <div class="sidebar-register-section">
+                <p class="preguntaxd">¿No tienes cuenta?</p>
+                <a class="sidebar-register-btn" href="/registro">Crear cuenta</a>
             </div>
         </div>
+    </div>
 
 
-        <!-- BACKBONE MODULES -->
+    <!-- BACKBONE MODULES -->
     <script src="/static/js/models/producto.model.js"></script>
     <script src="/static/js/collections/productos.collection.js"></script>
     <script src="/static/js/views/producto.view.js"></script>
-    <script src="/static/js/user-menu.js"></script>
+    <script src="/static/js/menu-system.js"></script>
     <script src="/static/js/main.js"></script>
     <script src="/static/js/agregar-carrito.js"></script>
 
 
-    <!-- En la sección de scripts, después de user-menu.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.4.1/backbone-min.js"></script>
     <script src="/static/js/models/carrito.js"></script>
