@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-N9LMPQBM');</script>
+    <!-- End Google Tag Manager -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Detalle de pedido - Game Store">
+    <meta name="theme-color" content="#58009A">
+    <title>Detalle de Pedido - Game Store</title>
+    <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
+    <link rel="stylesheet" href="/static/css/stylee.css">
+    <link rel="stylesheet" href="/static/css/responsive.css">
+    <link rel="stylesheet" href="/static/css/mobile-aesthetic.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N9LMPQBM"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <nav class="barra_lateral">
+        <a href="/"><img class="logo" src="/static/img/Icon_GS.png" alt="Logo"></a>
+        <ul>
+            <li><a class="enlace_barra_lateral" href="/"><i class="fa-solid fa-house"></i> Inicio</a></li>
+            <li>
+                <h3>Mis compras y deseos</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/favoritos"><i class="fa-solid fa-heart"></i> Favoritos</a></li>
+            <li><a class="enlace_barra_lateral_fijo" href="/pedidos"><i class="fa-solid fa-box"></i> Pedidos</a></li>
+            <li><a class="enlace_barra_lateral" href="/perfil"><i class="fa-solid fa-user"></i> Mi Perfil</a></li>
+            <li>
+                <h3>Categorías</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/juegos"><i class="fa-solid fa-ghost"></i> Juegos</a></li>
+            <li><a class="enlace_barra_lateral" href="/accesorios"><i class="fa-solid fa-headset"></i> Accesorios</a></li>
+            <li><a class="enlace_barra_lateral" href="/consolas"><i class="fa-solid fa-tv"></i> Consolas</a></li>
+            <li><a class="enlace_barra_lateral" href="/controles"><i class="fa-solid fa-gamepad"></i> Controles</a></li>
+            <li>
+                <h3>Empresa</h3>
+            </li>
+            <li><a class="enlace_barra_lateral" href="/quienes-somos"><i class="fa-solid fa-info-circle"></i> Quiénes Somos</a></li>
+            <li><a class="enlace_barra_lateral" href="/ubicacion"><i class="fa-solid fa-map-marker-alt"></i> Ubicación</a></li>
+            <li><a class="enlace_barra_lateral" href="/contactanos"><i class="fa-solid fa-envelope"></i> Contáctanos</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <header class="encabezado">
+            <section class="buscador">
+                <input type="text" id="buscar" placeholder="Buscar producto">
+                <button class="btn_buscar" id="buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </section>
+
+            <section class="iconos">
+                <button class="btn_notificaciones" id="mostrarNotificaciones"><i class="fa-solid fa-bell"></i></button>
+                <a class="icon carrito-link" href="/carrito">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="carrito-count">0</span>
+                </a>
+
+                <div class="user-menu-container">
+                    <button class="user-menu-btn" id="userMenuBtn">
+                        <i class="fa-solid fa-circle-user"></i>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="dropdown-content">
+                            <div class="loading-menu">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Cargando...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </header>
+
+        <div class="principal" style="color: white;">
+            <h1>Detalle del Pedido #{{ pedido.id_pedido }}</h1>
+            <p class="header-subtitle">Aquí puedes ver todo lo que pediste</p>
+
+            <div class="pedido-resumen-card" style="margin-bottom: 20px;">
+                <p><strong>Fecha:</strong> {{ pedido.fecha_pedido }}</p>
+                <p><strong>Estado:</strong> {{ pedido.estado }}</p>
+                <p><strong>Método de pago:</strong> {{ pedido.metodo_pago }}</p>
+                <p><strong>ID de transacción:</strong> {{ pedido.id_transaccion }}</p>
+                <p><strong>Dirección de envío:</strong> {{ pedido.direccion_envio }}</p>
+                <p><strong>Total de productos:</strong> {{ pedido.total_items }}</p>
+                <p><strong>Total pagado:</strong> ${{ '%.2f'|format(pedido.total) }}</p>
+            </div>
+
+            <div class="lista-pedidos">
+                {% if pedido['items'] %}
+                    {% for item in pedido['items'] %}
+                        <div class="pedido-item">
+                            <div class="pedido-image-container">
+                                <img src="{{ item.imagen }}" alt="{{ item.producto_nombre }}" class="pedido-imagen">
+                            </div>
+                            <div class="pedido-info">
+                                <h3 class="product-title">{{ item.producto_nombre }}</h3>
+                                <p><strong>Cantidad:</strong> {{ item.cantidad }}</p>
+                                <p><strong>Precio unitario:</strong> ${{ '%.2f'|format(item.precio_unitario) }}</p>
+                                <p><strong>Subtotal:</strong> ${{ '%.2f'|format(item.subtotal) }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-pedidos">
+                        <i class="fa-solid fa-box-open"></i>
+                        <h2>Este pedido no tiene productos</h2>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a href="/pedidos" class="btn-seguir-comprando"><i class="fa-solid fa-arrow-left"></i> Volver a Mis Pedidos</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/user-menu-loader.js"></script>
+    <script src="/static/js/menu-system.js"></script>
+    <script src="/static/js/menu-toggle.js"></script>
+    <script src="/static/js/productos-dinamicos.js"></script>
+    <script src="/static/js/carrito-dinamico.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.4.1/backbone-min.js"></script>
+    <script src="/static/js/favoritos-backbone.js"></script>
+    <script src="/static/js/carrito-sync.js"></script>
+
+</body>
+
+</html>

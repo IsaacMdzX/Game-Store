@@ -4,20 +4,20 @@ var Login = Backbone.Model.extend({
         login_input: '',
         password: ''
     },
-    
+
     url: '/api/login',
-    
+
     validate: function(attrs) {
         var errors = [];
-        
+
         if (!attrs.login_input) {
             errors.push('Ingresa tu usuario o email');
         }
-        
+
         if (!attrs.password) {
             errors.push('Ingresa tu contraseña');
         }
-        
+
         return errors.length > 0 ? errors : undefined;
     }
 });
@@ -25,37 +25,38 @@ var Login = Backbone.Model.extend({
 // Vista del Formulario de Login
 var LoginView = Backbone.View.extend({
     el: '#login-form',
-    
+
     events: {
         'submit': 'iniciarSesion',
         'input #login-input': 'limpiarError',
-        'input #login-password': 'limpiarError'
+        'input #login-password': 'limpiarError',
+        'click #toggle-login-password-btn': 'togglePasswordVisibilityButton'
     },
-    
+
     initialize: function() {
         this.login = new Login();
         this.listenTo(this.login, 'invalid', this.mostrarErrores);
         this.listenTo(this.login, 'sync', this.loginExitoso);
         this.listenTo(this.login, 'error', this.loginFallido);
     },
-    
+
     iniciarSesion: function(e) {
         e.preventDefault();
-        
+
         var datos = {
-            login_input: this.$('#login-input').val(),
+            login_input: this.$('#login-input').val().trim(),
             password: this.$('#login-password').val()
         };
-        
+
         this.limpiarTodosErrores();
         this.login.set(datos);
-        
+
         if (this.login.isValid()) {
             this.mostrarCargando(true);
             this.login.save();
         }
     },
-    
+
 
     mostrarErrores: function(model, errors) {
         this.mostrarCargando(false);
@@ -63,18 +64,18 @@ var LoginView = Backbone.View.extend({
             this.mostrarErrorGeneral(error);
         }.bind(this));
     },
-    
+
     mostrarErrorGeneral: function(mensaje) {
         var $errorDiv = $('<div class="error-alerta">').text(mensaje);
         this.$('#login-btn').before($errorDiv);
-        
+
         setTimeout(function() {
             $errorDiv.fadeOut(function() {
                 $(this).remove();
             });
         }, 5000);
     },
-    
+
     loginExitoso: function(model, response) {
         this.mostrarCargando(false);
         this.mostrarExito('¡Sesión iniciada! Redirigiendo...');
@@ -82,21 +83,21 @@ var LoginView = Backbone.View.extend({
         if (window.userMenu) {
         window.userMenu.updateMenu();
     }
-        
+
         setTimeout(function() {
             // Redirigir a la página principal o perfil
             window.location.href = response.redirect_url || '/';
         }, 1500);
     },
-    
+
     loginFallido: function(model, response) {
         this.mostrarCargando(false);
-        var mensaje = response.responseJSON && response.responseJSON.error 
-                     ? response.responseJSON.error 
+        var mensaje = response.responseJSON && response.responseJSON.error
+                     ? response.responseJSON.error
                      : 'Error en el servidor. Intenta nuevamente.';
         this.mostrarErrorGeneral(mensaje);
     },
-    
+
     mostrarCargando: function(mostrar) {
         var $btn = this.$('#login-btn');
         if (mostrar) {
@@ -107,22 +108,50 @@ var LoginView = Backbone.View.extend({
             $btn.prop('disabled', false);
         }
     },
-    
+
     mostrarExito: function(mensaje) {
         var $exitoDiv = $('<div class="exito-alerta">').text(mensaje);
         this.$('#login-btn').before($exitoDiv);
     },
-    
+
     limpiarError: function(e) {
         var $input = $(e.target);
         $input.removeClass('error-input');
         $input.siblings('.error-message').text('');
     },
-    
+
     limpiarTodosErrores: function() {
         this.$('.error-alerta').remove();
         this.$('.error-input').removeClass('error-input');
         this.$('.error-message').text('');
+    },
+
+    togglePasswordVisibilityButton: function(e) {
+        e.preventDefault();
+        var $passwordInput = this.$('#login-password');
+        var mostrarPassword = $passwordInput.attr('type') === 'password';
+        $passwordInput.attr('type', mostrarPassword ? 'text' : 'password');
+
+        this.actualizarIconoPassword(mostrarPassword);
+    },
+
+    actualizarIconoPassword: function(visible) {
+        var $btn = this.$('#toggle-login-password-btn');
+        var $icon = this.$('#toggle-login-password-btn i');
+        if (!$icon.length) return;
+
+        $icon.removeClass('fa-eye fa-eye-slash');
+        $icon.addClass(visible ? 'fa-eye-slash' : 'fa-eye');
+
+        $btn.toggleClass('password-visible', visible);
+        $btn.addClass('icon-animating');
+        setTimeout(function() {
+            $btn.removeClass('icon-animating');
+        }, 240);
+
+        $btn
+            .attr('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña')
+            .attr('title', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
     }
 });
 

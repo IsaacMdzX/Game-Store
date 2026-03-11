@@ -10,7 +10,7 @@ class FavoritosManager {
         console.log('FavoritosManager inicializado');
         await this.checkAuth();
         this.setupEventListeners();
-        
+
         if (window.location.pathname === '/favoritos') {
             this.loadFavoritosPage();
         } else {
@@ -45,7 +45,10 @@ class FavoritosManager {
 
             // Evento para agregar al carrito desde favoritos
             const carritoBtn = e.target.closest('.btn-agregar-carrito');
-            if (carritoBtn) {
+            const isFavoritosPage = window.location.pathname === '/favoritos';
+            const inFavoritosContainer = e.target.closest('#favoritos-container');
+
+            if (carritoBtn && isFavoritosPage && inFavoritosContainer) {
                 e.preventDefault();
                 const productId = carritoBtn.getAttribute('data-id');
                 if (productId) {
@@ -57,7 +60,7 @@ class FavoritosManager {
 
     async verificarAutenticacion() {
         if (this.isAuthenticated) return true;
-        
+
         try {
             const response = await fetch('/api/user-info');
             const data = await response.json();
@@ -71,18 +74,18 @@ class FavoritosManager {
 
     async toggleFavorito(productId, button) {
         const autenticado = await this.verificarAutenticacion();
-        
+
         if (!autenticado) {
             this.showNotification('Inicia sesion para poder agregar productos a favoritos', 'error');
-            
+
             return;
         }
 
         const isFavorito = button.classList.contains('active');
-        
+
         try {
             button.disabled = true;
-            
+
             if (isFavorito) {
                 await this.removeFavorito(productId, button);
             } else {
@@ -111,12 +114,12 @@ class FavoritosManager {
             if (data.success) {
                 this.favoritos.add(parseInt(productId));
                 this.updateFavoritoButtons(productId, true);
-                
+
                 // Solo mostrar notificación si no estamos en la página de favoritos
                 if (window.location.pathname !== '/favoritos') {
                     this.showNotification('Producto agregado a favoritos', 'success');
                 }
-                
+
                 // Si estamos en favoritos, recargar la página
                 if (window.location.pathname === '/favoritos') {
                     this.loadFavoritosPage();
@@ -140,12 +143,12 @@ class FavoritosManager {
             if (data.success) {
                 this.favoritos.delete(parseInt(productId));
                 this.updateFavoritoButtons(productId, false);
-                
+
                 // Solo mostrar notificación si no estamos en la página de favoritos
                 if (window.location.pathname !== '/favoritos') {
                     this.showNotification('Producto eliminado de favoritos', 'success');
                 }
-                
+
                 // Si estamos en favoritos, recargar la página
                 if (window.location.pathname === '/favoritos') {
                     this.loadFavoritosPage();
@@ -212,15 +215,15 @@ class FavoritosManager {
                 <button class="favorito-btn active" data-product-id="${favorito.producto.id}">
                     <i class="fa-solid fa-heart"></i>
                 </button>
-                
-                <img src="${favorito.producto.imagen || '/static/img/placeholder.jpg'}" 
-                     alt="${favorito.producto.nombre}" 
+
+                <img src="${favorito.producto.imagen || '/static/img/placeholder.jpg'}"
+                     alt="${favorito.producto.nombre}"
                      onerror="this.src='/static/img/placeholder.jpg'">
                 <h3>${favorito.producto.nombre}</h3>
                 <p class="categoria">${favorito.producto.categoria}</p>
                 <p class="descripcion">${favorito.producto.descripcion}</p>
                 <p class="precio">$${favorito.producto.precio.toFixed(2)}</p>
-                <button class="btn-agregar-carrito" 
+                <button class="btn-agregar-carrito"
                         data-id="${favorito.producto.id}"
                         ${favorito.producto.stock === 0 ? 'disabled' : ''}>
                     ${favorito.producto.stock === 0 ? 'Sin Stock' : '<i class="fa-solid fa-cart-shopping"></i> Agregar al Carrito'}
@@ -228,20 +231,11 @@ class FavoritosManager {
             </div>
         `).join('');
 
-        this.setupCarritoEventListeners();
+        // Los eventos de carrito ya se manejan en setupEventListeners
     }
 
     setupCarritoEventListeners() {
-        document.addEventListener('click', (e) => {
-            const carritoBtn = e.target.closest('.btn-agregar-carrito');
-            if (carritoBtn) {
-                e.preventDefault();
-                const productId = carritoBtn.getAttribute('data-id');
-                if (productId) {
-                    this.agregarAlCarritoDesdeFavoritos(productId, carritoBtn);
-                }
-            }
-        });
+        // Método mantenido por compatibilidad; no registra listeners para evitar duplicados
     }
 
 async agregarAlCarritoDesdeFavoritos(productId, button) {
@@ -250,13 +244,13 @@ async agregarAlCarritoDesdeFavoritos(productId, button) {
         console.log('⏳ Botón ya en proceso, ignorando click');
         return;
     }
-    
+
     try {
         // Deshabilitar botón temporalmente
         button.disabled = true;
         const originalText = button.innerHTML;
         button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> AGREGANDO...';
-        
+
         console.log(`🛒 Agregando producto ${productId} al carrito desde favoritos`);
 
         const response = await fetch('/api/carrito/agregar', {
@@ -275,12 +269,12 @@ async agregarAlCarritoDesdeFavoritos(productId, button) {
 
         if (data.success) {
             this.showNotification(data.message, 'success');
-            
+
             // Actualizar contador del carrito
             if (window.carritoSimple) {
                 window.carritoSimple.actualizarContadorCarrito();
             }
-            
+
             // Si estamos en la página del carrito, recargar
             if (window.carritoDinamico && document.getElementById('carrito-container')) {
                 await window.carritoDinamico.cargarCarrito();
@@ -295,7 +289,7 @@ async agregarAlCarritoDesdeFavoritos(productId, button) {
     } finally {
         // ✅ GARANTIZAR QUE EL BOTÓN SIEMPRE SE RESTAURE
         button.disabled = false;
-        
+
         // Restaurar texto original basado en stock
         const tieneStock = !button.hasAttribute('data-sin-stock');
         if (tieneStock) {
@@ -327,7 +321,7 @@ async agregarAlCarritoDesdeFavoritos(productId, button) {
         favoritos.forEach(favorito => {
             const productId = favorito.producto.id;
             const buttons = document.querySelectorAll(`.favorito-btn[data-product-id="${productId}"]`);
-            
+
             buttons.forEach(button => {
                 button.classList.add('active');
                 button.innerHTML = '<i class="fa-solid fa-heart"></i>';
@@ -337,7 +331,7 @@ async agregarAlCarritoDesdeFavoritos(productId, button) {
 
     marcarFavoritosExistentes() {
         if (!this.isAuthenticated) return;
-        
+
         fetch('/api/favoritos')
             .then(response => response.json())
             .then(data => {
@@ -406,7 +400,7 @@ async agregarAlCarritoDesdeFavoritos(productId, button) {
                     <span>${message}</span>
                 </div>
             `;
-            
+
             document.body.appendChild(notification);
             setTimeout(() => {
                 if (notification.parentNode) {

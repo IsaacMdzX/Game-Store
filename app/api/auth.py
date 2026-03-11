@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, session
+from flask import Blueprint, jsonify, session, current_app
 from app.models.usuario import Usuario
 
 bp = Blueprint('auth', __name__)
@@ -13,13 +13,13 @@ def usuario_actual():
         # Si no hay user_id en sesión, usuario no autenticado
         if 'user_id' not in session:
             return jsonify({'error': 'No autenticado'}), 401
-        
+
         # OPTIMIZACIÓN: Usar datos de la sesión que ya están disponibles
         # Esto evita un query a la BD cada vez
         user_id = session.get('user_id')
         username = session.get('username')
         user_role = session.get('user_role')
-        
+
         # Si tenemos al menos username y role en la sesión, devolver eso
         if username and user_role is not None:
             return jsonify({
@@ -28,25 +28,25 @@ def usuario_actual():
                 'email': '',  # No necesitamos el email para el menú
                 'role': user_role
             }), 200
-        
+
         # Si falta algo en la sesión, consultamos la BD (caso raro)
         usuario = Usuario.query.get(user_id)
         if not usuario:
             # Limpiar sesión si usuario no existe
             session.clear()
             return jsonify({'error': 'Usuario no encontrado'}), 404
-        
+
         # Actualizar sesión con datos faltantes
         session['username'] = usuario.nombre_usuario
         session['user_role'] = usuario.rol_id
-        
+
         return jsonify({
             'id': usuario.id_usuario,
             'username': usuario.nombre_usuario,
             'email': usuario.correo,
             'role': usuario.rol_id
         }), 200
-        
+
     except Exception as e:
         print(f"Error en usuario_actual: {e}")
         return jsonify({'error': 'Error interno del servidor'}), 500
@@ -55,7 +55,15 @@ def usuario_actual():
 def logout():
     try:
         session.clear()
-        return jsonify({'success': True}), 200
+        response = jsonify({'success': True})
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0, private'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        response.delete_cookie(
+            current_app.config.get('SESSION_COOKIE_NAME', 'session'),
+            path='/'
+        )
+        return response, 200
     except Exception as e:
         print(f"Error en logout: {e}")
         return jsonify({'error': 'Error al cerrar sesión'}), 500

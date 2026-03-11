@@ -6,28 +6,6 @@
     margin-bottom: 30px;
 }
 
-.filtro-pedidos {
-    background: transparent;
-    border: 2px solid #a100ed;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 10px;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.filtro-pedidos:hover {
-    background-color: #a100ed;
-    box-shadow: 0 0 15px rgba(161, 0, 237, 0.5);
-}
-
-.filtro-pedidos i {
-    font-size: 16px;
-}
-
 .lista-pedidos {
     display: flex;
     flex-direction: column;
@@ -493,6 +471,7 @@ body.menu-open {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    cursor: pointer;
 }
 
 .producto:hover {
@@ -534,6 +513,20 @@ body.menu-open {
     /* Reducido espacio */
 }
 
+.producto-detalle {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.28s ease, opacity 0.22s ease, margin 0.22s ease;
+    margin: 0;
+}
+
+.producto.expanded .producto-detalle {
+    max-height: 160px;
+    opacity: 1;
+    margin: 4px 0;
+}
+
 .producto .descripcion {
     color: #a0a0a0;
     font-size: 14px;
@@ -548,6 +541,12 @@ body.menu-open {
     flex-grow: 1;
     margin: 5px 0;
     /* Añadido para controlar espacio */
+}
+
+.producto .btn-agregar-carrito,
+.producto .favorito-btn,
+.producto .btn-sin-stock {
+    cursor: pointer;
 }
 
 .producto .precio {
@@ -1080,26 +1079,6 @@ body.menu-open {
     margin-bottom: 32px;
 }
 
-.filtro-pedidos {
-    padding: 12px 24px;
-    background: #2a2a2a;
-    color: white;
-    border: 2px solid #3a3a3a;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.filtro-pedidos:hover {
-    background: #3a3a3a;
-    border-color: #8b5cf6;
-}
-
 /* Lista de pedidos */
 .lista-pedidos {
     display: flex;
@@ -1509,6 +1488,23 @@ body.menu-open {
     margin: 12px 0;
     padding: 8px 12px;
     border-radius: 6px;
+
+.producto-indicador-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: rgba(196, 181, 253, 0.55);
+    font-size: 9px;
+    margin: 1px 0 7px;
+    transition: color 0.25s ease, opacity 0.25s ease;
+    opacity: 0.62;
+    pointer-events: none;
+}
+
+.producto.expanded .producto-indicador-info {
+    color: rgba(233, 213, 255, 0.82);
+    opacity: 0.82;
+}
 }
 
 .btn-agregar-carrito {
@@ -3138,27 +3134,27 @@ main .encabezado .carrito-count {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .search-container {
         min-width: auto;
     }
-    
+
     .filtros-categorias {
         flex-direction: column;
     }
-    
+
     .filtro-select {
         min-width: auto;
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .producto-acciones {
         flex-direction: column;
     }
-    
+
     .stats-container {
         grid-template-columns: 1fr 1fr;
     }
@@ -3168,11 +3164,11 @@ main .encabezado .carrito-count {
     .stats-container {
         grid-template-columns: 1fr;
     }
-    
+
     #tabla-productos {
         font-size: 12px;
     }
-    
+
     #tabla-productos th,
     #tabla-productos td {
         padding: 10px 12px;
@@ -3276,7 +3272,16 @@ main .encabezado .carrito-count {
     justify-content: space-between; /* Esto separa los elementos a los extremos */
     align-items: center;
     padding: 20px 30px;
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 850;
+    transition: box-shadow 0.22s ease, background 0.22s ease;
+}
+
+.encabezado.header-scrolled {
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+    background: linear-gradient(rgba(72, 72, 72, 0.96), rgba(45, 45, 45, 0.96));
+    backdrop-filter: blur(10px);
 }
 
 /* ---------------------- ICONOS ALINEADOS A LA DERECHA ---------------------- */
@@ -3371,23 +3376,23 @@ main .encabezado .carrito-count {
         flex-direction: column;
         gap: 15px;
     }
-    
+
     .iconos {
         margin-left: 0;
         justify-content: center;
         width: 100%;
     }
-    
+
     .buscador {
         width: 100%;
         justify-content: center;
     }
-    
+
     .buscador input {
         width: 100%;
         max-width: 400px;
     }
-    
+
     .user-dropdown {
         right: auto;
         left: 50%;
@@ -3446,7 +3451,7 @@ main .encabezado .carrito-count {
     #tabla-usuarios .producto-acciones {
         flex-direction: column;
     }
-    
+
     #tabla-usuarios .btn-editar,
     #tabla-usuarios .btn-activar,
     #tabla-usuarios .btn-desactivar,
@@ -3552,6 +3557,196 @@ main .encabezado .carrito-count {
     color: #a0a0a0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+/* Dashboard - gráficos compactos */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.chart-card {
+    background: #2a2a2a;
+    border: 2px solid #3a3a3a;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.chart-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.chart-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #f4f4f5;
+    letter-spacing: 0.2px;
+}
+
+.chart-select {
+    background: #1a1a1a;
+    color: #fff;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+.chart-card canvas {
+    width: min(100%, 250px) !important;
+    height: auto !important;
+    max-height: 250px !important;
+    margin: 0 auto;
+}
+
+.chart-legend {
+    width: 100%;
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.chart-legend-item {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: #e5e7eb;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 6px 8px;
+}
+
+.chart-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+.chart-legend-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #f4f4f5;
+}
+
+.chart-legend-value {
+    font-weight: 700;
+    color: #d8b4fe;
+    white-space: nowrap;
+}
+
+.activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    margin-bottom: 26px;
+}
+
+.activity-card {
+    background: linear-gradient(180deg, #2c2c31 0%, #252529 100%);
+    border: 1px solid rgba(168, 85, 247, 0.22);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.activity-card:hover {
+    border-color: rgba(216, 180, 254, 0.55);
+    transform: translateY(-1px);
+}
+
+.activity-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(168, 85, 247, 0.16);
+    color: #e9d5ff;
+    flex-shrink: 0;
+}
+
+.activity-content {
+    min-width: 0;
+}
+
+.activity-title {
+    color: #f9fafb;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.activity-description {
+    color: #d1d5db;
+    font-size: 13px;
+    line-height: 1.35;
+    margin-bottom: 3px;
+    word-break: break-word;
+}
+
+.activity-time {
+    color: #c084fc;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.table-container {
+    background: linear-gradient(180deg, #2b2b30 0%, #242429 100%);
+    border: 1px solid rgba(168, 85, 247, 0.24);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-top: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+.table-container th {
+    background: rgba(0, 0, 0, 0.28);
+    color: #d1d5db;
+}
+
+.table-container td {
+    color: #f3f4f6;
+}
+
+.table-container tr:hover {
+    background: rgba(168, 85, 247, 0.12);
+}
+
+@media (max-width: 768px) {
+    .chart-card canvas {
+        width: min(100%, 220px) !important;
+        max-height: 220px !important;
+    }
+
+    .chart-legend-item {
+        grid-template-columns: 10px minmax(0, 1fr);
+        row-gap: 4px;
+    }
+
+    .chart-legend-value {
+        grid-column: 2;
+    }
 }
 /* ============================================
    ESTILOS ESPECÍFICOS PARA TABLA DE USUARIOS
@@ -3748,23 +3943,23 @@ main .encabezado .carrito-count {
         border-radius: 8px;
         margin: 10px;
     }
-    
+
     #tabla-usuarios th,
     #tabla-usuarios td {
         padding: 12px 8px;
         font-size: 12px;
     }
-    
+
     .producto-acciones {
         flex-direction: column;
         gap: 4px;
     }
-    
+
     .btn-editar, .btn-activar, .btn-desactivar, .btn-eliminar {
         font-size: 10px;
         padding: 4px 8px;
     }
-    
+
     .estado-badge {
         font-size: 10px;
         padding: 4px 8px;
@@ -4264,41 +4459,41 @@ tr:last-child td {
         align-items: stretch;
         padding: 15px;
     }
-    
+
     .search-container {
         min-width: auto;
     }
-    
+
     .filtro-select {
         min-width: auto;
     }
-    
+
     .section-header {
         flex-direction: column;
         gap: 10px;
         align-items: flex-start;
     }
-    
+
     .table-container {
         border-radius: 8px;
         margin: 10px;
         overflow-x: auto;
     }
-    
+
     table {
         min-width: 800px;
     }
-    
+
     .action-buttons {
         flex-direction: column;
         gap: 4px;
     }
-    
+
     .btn-icon {
         width: 28px;
         height: 28px;
     }
-    
+
     .modal-content {
         width: 95%;
         margin: 5% auto;
@@ -4310,17 +4505,17 @@ tr:last-child td {
         padding: 12px 8px;
         font-size: 12px;
     }
-    
+
     .status-badge {
         font-size: 10px;
         padding: 4px 8px;
         min-width: 80px;
     }
-    
+
     .modal-body {
         padding: 15px;
     }
-    
+
     .detail-section {
         margin-bottom: 20px;
     }
@@ -4919,7 +5114,7 @@ tr:last-child td {
     .acciones-compra {
         flex-direction: column;
     }
-    
+
     .carrito-item {
         grid-template-columns: 80px 1fr;
         gap: 1rem;

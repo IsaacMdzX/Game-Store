@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv()
-from flask import Flask
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -34,7 +34,7 @@ def create_app():
     global app_instance
     app = Flask(__name__)
     app_instance = app
-    
+
     # Configuración según entorno
     env = os.environ.get('FLASK_ENV', 'development')
     if env == 'production':
@@ -47,10 +47,13 @@ def create_app():
         )
     else:
         app.config.from_object('app.config.DevelopmentConfig')
-    
+
     # Asegurar la clave secreta
     if not app.config.get('SECRET_KEY'):
         app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-secret-key-for-dev')
+
+    # Cache global para archivos estáticos
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 60 * 60 * 24 * 7  # 7 días
 
     # Ajuste para SQLite: evitar sslmode en connect_args
     db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
@@ -58,12 +61,12 @@ def create_app():
         engine_options = dict(app.config.get('SQLALCHEMY_ENGINE_OPTIONS') or {})
         engine_options.pop('connect_args', None)
         app.config['SQLALCHEMY_ENGINE_OPTIONS'] = engine_options
-    
+
     # Inicializar extensiones
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    
+
     # Inicializar Flask-Mail si está disponible
     global mail
     try:
@@ -73,20 +76,20 @@ def create_app():
         print("✅ Flask-Mail inicializado")
     except ImportError:
         print("⚠️ Flask-Mail no está instalado. El sistema de contacto tendrá funcionalidad limitada")
-    
+
     login_manager.login_view = 'web.login'
-    
+
     # Registrar blueprints
     from app.routes.web import web_bp
     from app.carrito.routes import carrito_bp
-    
+
     # Registrar nuevos blueprints para API
     from app.api.productos import bp as productos_bp
     from app.api.carrito import bp as carrito_api_bp
     from app.api.auth import bp as auth_bp
     from app.api.mercadopago import bp as mercadopago_bp
     from app.api.contacto import bp as contacto_bp
-    
+
     app.register_blueprint(web_bp)
     app.register_blueprint(carrito_bp)
     app.register_blueprint(productos_bp)
@@ -94,12 +97,12 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(mercadopago_bp)
     app.register_blueprint(contacto_bp)
-    
+
     print("✅ Blueprints registrados: Web, Carrito, Productos, Auth, MercadoPago, Contacto")
-    
+
     # Configurar user_loader para Flask-Login
-    from app.models.usuario import Usuario 
-    
+    from app.models.usuario import Usuario
+
     @login_manager.user_loader
     def load_user(user_id):
         try:
@@ -107,7 +110,7 @@ def create_app():
         except Exception as e:
             print(f"⚠️ Error cargando usuario: {e}")
             return None
-    
+
     # Solo crear tablas si no existen (sin insertar datos)
     with app.app_context():
         try:
@@ -129,7 +132,7 @@ def create_app():
                 print("✅ Categorías por defecto creadas")
         except Exception as e:
             print(f" Error creando tablas: {e}")
-    
+
     # Iniciar scheduler para mantener BD activa (solo si no está corriendo)
     if not scheduler.running:
         with app.app_context():
@@ -144,23 +147,24 @@ def create_app():
             )
             scheduler.start()
             print("✅ Scheduler iniciado - BD Neon se mantendrá activa")
-            
+
             # Asegurar que el scheduler se detenga cuando la app se cierre
             atexit.register(lambda: scheduler.shutdown())
-    
-    # Agregar headers para evitar caché de archivos estáticos (CSS, JS)
+
+    # Agregar headers de caché eficientes
     @app.after_request
     def set_cache_headers(response):
-        # Para archivos estáticos (JS, CSS): no cachear
-        if response.mimetype in ['application/javascript', 'text/javascript', 'text/css']:
-            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, public, max-age=0'
+        # Cache largo para estáticos (CSS/JS/imagenes/fuentes)
+        if request.path.startswith('/static/'):
+            response.headers['Cache-Control'] = 'public, max-age=604800, immutable'
+        else:
+            # Respuestas dinámicas/sensibles: no almacenar en navegador ni proxies
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0, private'
             response.headers['Pragma'] = 'no-cache'
             response.headers['Expires'] = '0'
-        else:
-            # Para HTML y otros: evitar caché de navegador
-            response.headers['Cache-Control'] = 'public, max-age=0'
+            response.headers['Vary'] = 'Cookie'
         return response
-    
+
     return app
 
 if __name__ == '__main__':

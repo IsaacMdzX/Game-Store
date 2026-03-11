@@ -12,7 +12,7 @@ class CarritoDinamico {
         await this.cargarCarrito();
         this.actualizarVistaCarrito();
         this.initEventListeners();
-        
+
         // Precargar PayPal SDK
         this.preloadPayPalSDK();
     }
@@ -66,11 +66,11 @@ class CarritoDinamico {
                 <div class="carrito-header">
                     <h3>Tu Carrito (${this.carritoData.count} productos)</h3>
                 </div>
-                
+
                 <div class="carrito-items">
                     ${this.carritoData.items.map(item => this.crearItemHTML(item)).join('')}
                 </div>
-                
+
                 <div class="carrito-resumen">
                     ${this.crearResumenHTML()}
                 </div>
@@ -82,31 +82,31 @@ class CarritoDinamico {
         return `
             <div class="carrito-item" data-item-id="${item.id}">
                 <div class="item-imagen">
-                    <img src="${item.imagen || '/static/img/placeholder.jpg'}" 
+                    <img src="${item.imagen || '/static/img/placeholder.jpg'}"
                          alt="${item.nombre}"
                          onerror="this.src='/static/img/placeholder.jpg'">
                 </div>
-                
+
                 <div class="item-info">
                     <h4 class="item-nombre">${item.nombre}</h4>
                     <p class="item-precio-unitario">$${item.precio_unitario.toFixed(2)} c/u</p>
                 </div>
-                
+
                 <div class="item-cantidad">
                     <button class="btn-cantidad btn-menos" data-item-id="${item.id}">
                         <i class="fa-solid fa-minus"></i>
                     </button>
                     <span class="cantidad-value">${item.cantidad}</span>
-                    <button class="btn-cantidad btn-mas" data-item-id="${item.id}" 
+                    <button class="btn-cantidad btn-mas" data-item-id="${item.id}"
                             ${item.cantidad >= item.stock ? 'disabled' : ''}>
                         <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
-                
+
                 <div class="item-total">
                     <span class="total-price">$${item.total.toFixed(2)}</span>
                 </div>
-                
+
                 <div class="item-acciones">
                     <button class="btn-eliminar" data-item-id="${item.id}" title="Eliminar">
                         <i class="fa-solid fa-trash"></i>
@@ -120,21 +120,21 @@ class CarritoDinamico {
         return `
             <div class="resumen-card">
                 <h4>Resumen del Pedido</h4>
-                
+
                 <div class="resumen-linea">
                     <span>Subtotal:</span>
                     <span>$${this.carritoData.subtotal.toFixed(2)}</span>
                 </div>
-                
+
                 <div class="resumen-linea total">
                     <strong>Total:</strong>
                     <strong>$${this.carritoData.total.toFixed(2)}</strong>
                 </div>
-                
+
                 <button class="btn-pagar" id="btnPagar">
                     <i class="fa-brands fa-paypal"></i> Pagar con PayPal
                 </button>
-                
+
                 <a href="/" class="btn-seguir-comprando">
                     <i class="fa-solid fa-arrow-left"></i> Seguir comprando
                 </a>
@@ -192,7 +192,7 @@ class CarritoDinamico {
             if (data.success) {
                 await this.cargarCarrito();
                 this.actualizarVistaCarrito();
-                
+
                 if (window.carritoSimple) {
                     window.carritoSimple.actualizarContadorCarrito();
                 }
@@ -220,11 +220,11 @@ class CarritoDinamico {
             if (data.success) {
                 await this.cargarCarrito();
                 this.actualizarVistaCarrito();
-                
+
                 if (window.carritoSimple) {
                     window.carritoSimple.actualizarContadorCarrito();
                 }
-                
+
                 this.mostrarNotificacion('Producto eliminado del carrito', 'success');
             } else {
                 this.mostrarNotificacion(data.error, 'error');
@@ -255,9 +255,9 @@ class CarritoDinamico {
             if (data.success) {
                 console.log('✅ Producto agregado/actualizado en carrito:', data);
                 this.mostrarNotificacion(data.message, 'success');
-                
+
                 this.actualizarContadorCarrito(data.carrito_count);
-                
+
                 if (document.getElementById('carrito-container')) {
                     await this.cargarCarrito();
                     this.actualizarVistaCarrito();
@@ -274,11 +274,11 @@ class CarritoDinamico {
 
     actualizarContadorCarrito(count) {
         console.log('🔄 Actualizando contador del carrito:', count);
-        
+
         if (window.actualizarContadorCarrito) {
             window.actualizarContadorCarrito(count);
         }
-        
+
         const contadores = document.querySelectorAll('.carrito-count, .cart-count, #carrito-contador');
         contadores.forEach(contador => {
             contador.textContent = count;
@@ -288,7 +288,7 @@ class CarritoDinamico {
             contador.style.right = '-8px';
             contador.style.zIndex = '1001';
         });
-        
+
         if (window.carritoSync) {
             window.carritoSync.notificarActualizacion();
         } else {
@@ -319,7 +319,7 @@ class CarritoDinamico {
                     </button>
                     <h2>Finalizar Compra</h2>
                 </div>
-                
+
                 <div class="pago-contenido">
                     <div class="resumen-pedido-pago">
                         <h3>Resumen de tu Pedido</h3>
@@ -337,19 +337,13 @@ class CarritoDinamico {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="metodo-pago-seccion">
                         <h3>Método de Pago</h3>
-                        
+
                         <div class="paypal-buttons-container" id="paypal-button-container">
                             <div class="loading-paypal">
                                 <i class="fa-solid fa-spinner fa-spin"></i> Inicializando PayPal...
-                            </div>
-                        </div>
-
-                        <div class="mp-buttons-container" id="mercadopago-button-container">
-                            <div class="loading-mp">
-                                <i class="fa-solid fa-spinner fa-spin"></i> Inicializando Mercado Pago...
                             </div>
                         </div>
                     </div>
@@ -375,96 +369,8 @@ class CarritoDinamico {
         document.getElementById('btnVolverCarrito').addEventListener('click', () => {
             this.actualizarVistaCarrito();
         });
-        
+
         this.inicializarPayPal();
-        this.inicializarMercadoPago();
-    }
-
-    // ------------------ Mercado Pago ------------------
-    async inicializarMercadoPago() {
-        console.log('🔄 Inicializando Mercado Pago...');
-        try {
-            // Crear preference para este carrito
-            const pref = await this.crearPreferenceMercadoPago();
-            this.renderMercadoPagoButton(pref);
-        } catch (err) {
-            console.error('❌ Error inicializando Mercado Pago:', err);
-            const container = document.getElementById('mercadopago-button-container');
-            if (container) {
-                container.innerHTML = `<div class="paypal-error"><h4>Error cargando Mercado Pago</h4><p>${err.message || err}</p></div>`;
-            }
-        }
-    }
-
-    async crearPreferenceMercadoPago() {
-        // 1) Crear pedido pendiente en el servidor (igual que PayPal flow)
-        const crearResp = await fetch('/api/pedidos/crear-mercadopago', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        if (!crearResp.ok) {
-            const txt = await crearResp.text();
-            throw new Error('Error creando pedido en el servidor: ' + txt);
-        }
-
-        const crearData = await crearResp.json();
-        if (!crearData.success) {
-            throw new Error(crearData.error || 'Error creando pedido');
-        }
-
-        const pedidoId = crearData.pedido_id;
-        this.pedidoPendienteId = pedidoId;
-
-        // 2) Construir items a partir del carrito y solicitar preference incluyendo pedido_id
-        const items = this.carritoData.items.map(i => ({
-            title: i.nombre,
-            quantity: i.cantidad,
-            unit_price: parseFloat(i.precio_unitario)
-        }));
-
-        const body = { items, pedido_id: pedidoId };
-
-        const resp = await fetch('/api/mercadopago/preference', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-
-        if (!resp.ok) {
-            const txt = await resp.text();
-            throw new Error('Error creando preference: ' + txt);
-        }
-
-        const data = await resp.json();
-        // Esperamos init_point en la respuesta
-        return data;
-    }
-
-    renderMercadoPagoButton(prefResponse) {
-        console.log('🎨 Renderizando botón Mercado Pago', prefResponse);
-        const container = document.getElementById('mercadopago-button-container');
-        if (!container) return;
-
-        container.innerHTML = '';
-
-        const init_point = prefResponse.init_point || prefResponse.init_point_url || prefResponse.init_point || null;
-        // Algunos campos pueden variar según la SDK; probar init_point y sandbox_init_point
-        const url = init_point || prefResponse.sandbox_init_point || prefResponse['sandbox_init_point'];
-
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-primary';
-        btn.innerHTML = `<i class="fa-brands fa-cc-visa"></i> Pagar con Mercado Pago`;
-        btn.addEventListener('click', () => {
-            if (!url) {
-                alert('No se pudo obtener la URL de checkout de Mercado Pago');
-                return;
-            }
-            // Abrir checkout de Mercado Pago en la misma ventana para que los back_urls funcionen correctamente
-            window.location.href = url;
-        });
-
-        container.appendChild(btn);
     }
 
     // Precargar PayPal SDK al inicio - CONFIGURADO PARA SANDBOX
@@ -474,35 +380,35 @@ class CarritoDinamico {
         }
 
         console.log('📥 Precargando PayPal SDK (Sandbox)...');
-        
+
         // ✅ CLIENT ID COMPLETO DE SANDBOX
         const CLIENT_ID_SANDBOX = 'AYTSE0ArUGWvO29fpicACxOAmMPpVmlF30LzJg7dptoX6DDySJJ_CrFlnOdhqmcFT7modd8eTVydWZvb';
-        
+
         const script = document.createElement('script');
         // ✅ URL CORRECTA DE SANDBOX
         script.src = `https://www.sandbox.paypal.com/sdk/js?client-id=${CLIENT_ID_SANDBOX}&currency=USD&intent=capture`;
-        
+
         script.onload = () => {
             console.log('✅ PayPal SDK (Sandbox) precargado exitosamente');
             this.paypalSDKCargado = true;
         };
-        
+
         script.onerror = (error) => {
             console.error('❌ Error precargando PayPal SDK (Sandbox):', error);
             this.mostrarNotificacion('Error al cargar PayPal. Verifica tu conexión.', 'error');
         };
-        
+
         document.body.appendChild(script);
     }
 
     async inicializarPayPal() {
         console.log('🔄 Inicializando PayPal (Sandbox)...');
-        
+
         try {
             // Esperar a que PayPal esté disponible
             await this.waitForPayPal();
             await this.crearPedidoPayPal();
-            
+
         } catch (error) {
             console.error('❌ Error inicializando PayPal:', error);
             this.mostrarErrorPayPal('Error al inicializar PayPal: ' + error.message);
@@ -520,17 +426,17 @@ class CarritoDinamico {
             console.log('⏳ Esperando a que PayPal SDK esté disponible...');
             let attempts = 0;
             const maxAttempts = 40;
-            
+
             const checkPayPal = setInterval(() => {
                 attempts++;
-                
+
                 if (window.paypal) {
                     clearInterval(checkPayPal);
                     console.log('✅ PayPal SDK disponible después de ' + (attempts * 500) + 'ms');
                     resolve();
                     return;
                 }
-                
+
                 if (attempts >= maxAttempts) {
                     clearInterval(checkPayPal);
                     reject(new Error('Timeout: PayPal SDK no se cargó después de 20 segundos'));
@@ -543,7 +449,7 @@ class CarritoDinamico {
     async crearPedidoPayPal() {
         try {
             console.log('📦 Creando pedido en sistema para PayPal...');
-            
+
             const response = await fetch('/api/pedidos/crear-paypal', {
                 method: 'POST',
                 headers: {
@@ -560,7 +466,7 @@ class CarritoDinamico {
             }
 
             const data = await response.json();
-            
+
             if (data.success) {
                 this.pedidoPendienteId = data.pedido_id;
                 console.log('✅ Pedido creado:', this.pedidoPendienteId);
@@ -578,22 +484,22 @@ class CarritoDinamico {
 
     renderPayPalButtons() {
         console.log('🎨 Renderizando botones PayPal para pedido:', this.pedidoPendienteId);
-        
+
         if (!window.paypal) {
             console.error('❌ PayPal SDK no disponible');
             this.mostrarErrorPayPal('PayPal SDK no se cargó correctamente');
             return;
         }
-        
+
         const container = document.getElementById('paypal-button-container');
         if (!container) {
             console.error('❌ Contenedor PayPal no encontrado');
             return;
         }
-        
+
         try {
             container.innerHTML = '';
-            
+
             this.paypalButtons = paypal.Buttons({
                 style: {
                     layout: 'vertical',
@@ -620,23 +526,23 @@ class CarritoDinamico {
                 // ✅ CORRECCIÓN: Enfoque simplificado para evitar "Target window is closed"
                 onApprove: async (data, actions) => {
                     console.log('✅ Orden PayPal aprobada:', data);
-                    
+
                     // Mostrar mensaje de procesamiento
                     container.innerHTML = '<div class="processing-payment"><i class="fa-solid fa-spinner fa-spin"></i> Procesando pago...</div>';
-                    
+
                     try {
                         // ✅ ENFOQUE CORREGIDO: No usar actions.order.capture() directamente
                         // En su lugar, obtener los detalles de la orden y procesar en el backend
                         console.log('📋 Obteniendo detalles de la orden...');
-                        
+
                         // Simular procesamiento exitoso (para testing)
                         console.log('🎉 Pago procesado exitosamente (Sandbox)');
-                        
+
                         // Redirigir directamente a página de éxito
                         setTimeout(() => {
                             window.location.href = `/pago-exitoso?pedido_id=${this.pedidoPendienteId}&paypal_order_id=${data.orderID}`;
                         }, 2000);
-                        
+
                     } catch (error) {
                         console.error('❌ Error en onApprove:', error);
                         this.mostrarNotificacion('Error al procesar el pago: ' + error.message, 'error');
@@ -647,11 +553,11 @@ class CarritoDinamico {
                 onError: (err) => {
                     console.error('❌ Error PayPal:', err);
                     let errorMsg = 'Error en el proceso de PayPal';
-                    
+
                     if (err && err.message) {
                         errorMsg += ': ' + err.message;
                     }
-                    
+
                     this.mostrarNotificacion(errorMsg, 'error');
                     this.mostrarErrorPayPal(errorMsg);
                 },
@@ -672,7 +578,7 @@ class CarritoDinamico {
                 console.error('❌ Error renderizando botones PayPal:', error);
                 this.mostrarErrorPayPal('Error al crear botones de PayPal: ' + error.message);
             });
-            
+
         } catch (error) {
             console.error('❌ Error en renderPayPalButtons:', error);
             this.mostrarErrorPayPal('Error inesperado: ' + error.message);
@@ -712,22 +618,22 @@ class CarritoDinamico {
             window.carritoSimple.mostrarNotificacion(mensaje, tipo);
             return;
         }
-        
+
         const notification = document.createElement('div');
         notification.className = `notification-custom ${tipo}`;
-        
+
         let icon = 'info';
         if (tipo === 'success') icon = 'check';
         if (tipo === 'error') icon = 'exclamation-triangle';
         if (tipo === 'warning') icon = 'exclamation';
-        
+
         notification.innerHTML = `
             <div class="notification-content">
                 <i class="fa-solid fa-${icon}"></i>
                 <span>${mensaje}</span>
             </div>
         `;
-        
+
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -743,14 +649,14 @@ class CarritoDinamico {
             transition: all 0.3s ease;
             max-width: 400px;
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.style.opacity = '1';
             notification.style.transform = 'translateY(0)';
         }, 10);
-        
+
         setTimeout(() => {
             notification.style.opacity = '0';
             notification.style.transform = 'translateY(-20px)';

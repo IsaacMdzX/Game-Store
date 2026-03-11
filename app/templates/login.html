@@ -35,17 +35,22 @@
 
             <form id="login-form" class="form-section">
                 <div class="form-line">
-                    <span class="label">Nombre de usuario o Correo electrónico</span>
+                      <label class="label" for="login-input">Nombre de usuario o Correo electrónico</label>
                     <input type="text" id="login-input" name="login_input" class="input-field"
-                           placeholder="Ingresa tu usuario o correo" required>
-                    <span class="error-message" id="login-input-error"></span>
+                          placeholder="Ingresa tu usuario o correo" required aria-describedby="login-input-error">
+                      <span class="error-message" id="login-input-error" aria-live="polite"></span>
                 </div>
 
                 <div class="form-line">
-                    <span class="label">Contraseña</span>
-                    <input type="password" id="login-password" name="password" class="input-field"
-                           placeholder="Ingresa tu contraseña" required>
-                    <span class="error-message" id="password-error"></span>
+                      <label class="label" for="login-password">Contraseña</label>
+                    <div class="password-field-wrapper">
+                        <input type="password" id="login-password" name="password" class="input-field"
+                              placeholder="Ingresa tu contraseña" required aria-describedby="password-error">
+                        <button type="button" id="toggle-login-password-btn" class="toggle-password-btn" aria-label="Mostrar contraseña" title="Mostrar contraseña">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                      <span class="error-message" id="password-error" aria-live="polite"></span>
                 </div>
 
                 <div class="register-section">

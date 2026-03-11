@@ -1,7 +1,7 @@
 const ProductosController = {
     // Variables globales
     productosGlobales: [], // Almacenar productos para búsqueda
-    
+
     // Inicializar el controlador
     init: function () {
         console.log('🎮 Inicializando ProductosController...');
@@ -79,13 +79,13 @@ const ProductosController = {
     obtenerCategoriaActual: function () {
         const path = window.location.pathname;
         console.log(`📍 Ruta actual: ${path}`);
-        
+
         if (path.includes('/juegos')) return 'Juegos';
         if (path.includes('/consolas')) return 'Consolas';
         if (path.includes('/controles')) return 'Controles';
         if (path.includes('/accesorios')) return 'Accesorios';
         if (path.includes('/')) return null;
-        
+
         console.log('ℹ️ No se detectó categoría específica, cargando todos los productos');
         return null;
     },
@@ -93,11 +93,11 @@ const ProductosController = {
     mostrarProductos: function (productos) {
         try {
             console.log('🎨 Mostrando productos...');
-            
+
             // Guardar productos para búsqueda global
             this.productosGlobales = productos;
             console.log(`💾 ${productos.length} productos almacenados para búsqueda`);
-            
+
             const container = document.getElementById('productos-container');
 
             if (!container) {
@@ -119,20 +119,25 @@ const ProductosController = {
             // Generar HTML para cada producto
             container.innerHTML = productos.map(producto => `
                 <div class="producto" data-id="${producto.id}">
-                    <button class="favorito-btn" 
+                    <button class="favorito-btn"
                             data-product-id="${producto.id}">
                         <i class="fa-regular fa-heart"></i>
                     </button>
-                    
-                    <img src="${producto.imagen}" alt="${producto.nombre}" 
-                         onerror="this.src='/static/img/placeholder.jpg'">
+
+                    <img src="${producto.imagen}" alt="${producto.nombre}" loading="lazy" decoding="async"
+                        onerror="this.src='/static/img/placeholder.jpg'">
                     <h3>${producto.nombre}</h3>
-                    <p class="categoria">${producto.categoria}</p>
-                    <p class="descripcion">${producto.descripcion}</p>
+                    <div class="producto-detalle">
+                        <p class="categoria">${producto.categoria}</p>
+                        <p class="descripcion">${producto.descripcion || 'Sin descripción disponible.'}</p>
+                    </div>
                     <p class="precio">$${typeof producto.precio === 'number' ? producto.precio.toFixed(2) : '0.00'}</p>
-                    
-                    ${producto.stock > 0 ? 
-                        `<button class="btn-agregar-carrito" 
+                    <div class="producto-indicador-info" aria-hidden="true">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+
+                    ${producto.stock > 0 ?
+                        `<button class="btn-agregar-carrito"
                                 data-id="${producto.id}">
                             <i class="fa-solid fa-cart-shopping"></i>Agregar al Carrito
                         </button>` :
@@ -172,28 +177,79 @@ const ProductosController = {
                 this.agregarAlCarrito(productoId, boton);
             });
         });
+
+        const tarjetas = document.querySelectorAll('.producto');
+        tarjetas.forEach(tarjeta => {
+            if (tarjeta.dataset.expandableReady === 'true') return;
+
+            tarjeta.dataset.expandableReady = 'true';
+            tarjeta.setAttribute('role', 'button');
+            tarjeta.setAttribute('tabindex', '0');
+            tarjeta.setAttribute('aria-expanded', 'false');
+
+            const toggleDetalle = () => {
+                const willExpand = !tarjeta.classList.contains('expanded');
+
+                const actualizarIndicador = (elementoTarjeta, expandida) => {
+                    const icono = elementoTarjeta.querySelector('.producto-indicador-info i');
+                    if (!icono) return;
+                    icono.classList.remove('fa-chevron-down', 'fa-chevron-up');
+                    icono.classList.add(expandida ? 'fa-chevron-up' : 'fa-chevron-down');
+                };
+
+                document.querySelectorAll('.producto.expanded').forEach(otraTarjeta => {
+                    if (otraTarjeta !== tarjeta) {
+                        otraTarjeta.classList.remove('expanded');
+                        otraTarjeta.setAttribute('aria-expanded', 'false');
+                        actualizarIndicador(otraTarjeta, false);
+                    }
+                });
+
+                if (willExpand) {
+                    tarjeta.classList.add('expanded');
+                    tarjeta.setAttribute('aria-expanded', 'true');
+                    actualizarIndicador(tarjeta, true);
+                } else {
+                    tarjeta.classList.remove('expanded');
+                    tarjeta.setAttribute('aria-expanded', 'false');
+                    actualizarIndicador(tarjeta, false);
+                }
+            };
+
+            tarjeta.addEventListener('click', (e) => {
+                if (e.target.closest('button')) return;
+                toggleDetalle();
+            });
+
+            tarjeta.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleDetalle();
+                }
+            });
+        });
     },
 
     // Agregar event listeners globales - FUNCIÓN QUE FALTABA
     agregarEventListenersGlobales: function () {
         console.log('🌍 Agregando event listeners globales...');
-        
+
         // Buscador global si existe
         const buscador = document.getElementById('btn-buscar');
         const buscarInput = document.getElementById('buscar-input');
-        
+
         if (buscador && buscarInput) {
             buscador.addEventListener('click', () => {
                 this.buscarProductos(buscarInput.value);
             });
-            
+
             buscarInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     this.buscarProductos(buscarInput.value);
                 }
             });
         }
-        
+
         // Filtros de categoría si existen
         const filtrosCategoria = document.querySelectorAll('.filtro-categoria');
         if (filtrosCategoria.length > 0) {
@@ -213,29 +269,29 @@ const ProductosController = {
             this.cargarProductos();
             return;
         }
-        
+
         console.log(`🔍 Buscando: ${termino}`);
-        
+
         const terminoLower = termino.toLowerCase();
         const productosContenedor = document.getElementById('productos-container');
-        
+
         if (!productosContenedor) {
             console.error('❌ No se encontró el contenedor de productos');
             return;
         }
-        
+
         // Filtrar productos almacenados
         const productosFiltrados = this.productosGlobales.filter(producto => {
             const nombre = (producto.nombre || '').toLowerCase();
             const descripcion = (producto.descripcion || '').toLowerCase();
             const categoria = (producto.categoria || '').toLowerCase();
-            return nombre.includes(terminoLower) || 
+            return nombre.includes(terminoLower) ||
                    descripcion.includes(terminoLower) ||
                    categoria.includes(terminoLower);
         });
-        
+
         console.log(`📊 ${productosFiltrados.length} productos encontrados`);
-        
+
         if (productosFiltrados.length === 0) {
             productosContenedor.innerHTML = `
                 <div class="no-products">
@@ -248,20 +304,25 @@ const ProductosController = {
             // Mostrar productos filtrados
             productosContenedor.innerHTML = productosFiltrados.map(producto => `
                 <div class="producto" data-id="${producto.id}">
-                    <button class="favorito-btn" 
+                    <button class="favorito-btn"
                             data-product-id="${producto.id}">
                         <i class="fa-regular fa-heart"></i>
                     </button>
-                    
-                    <img src="${producto.imagen}" alt="${producto.nombre}" 
-                         onerror="this.src='/static/img/placeholder.jpg'">
+
+                    <img src="${producto.imagen}" alt="${producto.nombre}" loading="lazy" decoding="async"
+                        onerror="this.src='/static/img/placeholder.jpg'">
                     <h3>${producto.nombre}</h3>
-                    <p class="categoria">${producto.categoria}</p>
-                    <p class="descripcion">${producto.descripcion}</p>
+                    <div class="producto-detalle">
+                        <p class="categoria">${producto.categoria}</p>
+                        <p class="descripcion">${producto.descripcion || 'Sin descripción disponible.'}</p>
+                    </div>
                     <p class="precio">$${typeof producto.precio === 'number' ? producto.precio.toFixed(2) : '0.00'}</p>
-                    
-                    ${producto.stock > 0 ? 
-                        `<button class="btn-agregar-carrito" 
+                    <div class="producto-indicador-info" aria-hidden="true">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+
+                    ${producto.stock > 0 ?
+                        `<button class="btn-agregar-carrito"
                                 data-id="${producto.id}">
                             <i class="fa-solid fa-cart-shopping"></i>Agregar al Carrito
                         </button>` :
@@ -271,10 +332,10 @@ const ProductosController = {
                     }
                 </div>
             `).join('');
-            
+
             // Agregar event listeners a los nuevos productos
             this.agregarEventListeners();
-            
+
             // Sincronizar favoritos
             setTimeout(() => {
                 if (window.favoritosManager) {
@@ -312,7 +373,7 @@ const ProductosController = {
     // Agregar producto al carrito - CORREGIDO
     agregarAlCarrito: function (productoId, button) {
         console.log(`🛒 Intentando agregar producto ${productoId} al carrito`);
-        
+
         // Verificar autenticación de manera más robusta
         this.verificarAutenticacion()
             .then(autenticado => {
@@ -353,7 +414,7 @@ const ProductosController = {
                 })
                 .then(data => {
                     console.log('📨 Respuesta del servidor:', data);
-                    
+
                     if (button) {
                         button.disabled = false;
                         const tieneStock = data.success && !data.error?.includes('Stock insuficiente');
@@ -364,7 +425,7 @@ const ProductosController = {
                             button.disabled = true;
                         }
                     }
-                    
+
                     if (data.success) {
                         this.mostrarNotificacion(data.message || 'Producto agregado al carrito');
                         this.actualizarContadorCarrito(data.carrito_count);
@@ -375,7 +436,7 @@ const ProductosController = {
                 .catch(error => {
                     console.error('❌ Error agregando al carrito:', error);
                     this.mostrarNotificacion('Error de conexión al servidor', 'error');
-                    
+
                     if (button) {
                         button.disabled = false;
                         button.innerHTML = '<i class="fa-solid fa-cart-shopping"></i> AGREGAR AL CARRITO';
@@ -396,7 +457,7 @@ const ProductosController = {
                 resolve(true);
                 return;
             }
-            
+
             // Si no, hacer una llamada a la API para verificar
             fetch('/api/user-info')
                 .then(response => response.json())

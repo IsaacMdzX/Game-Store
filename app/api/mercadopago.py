@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, session
 import mercadopago
 
 bp = Blueprint('mercadopago_api', __name__)
@@ -30,6 +30,9 @@ def create_preference():
     Opcional: `back_urls` dict con success/failure/pending.
     """
     try:
+        if 'user_id' not in session:
+            return jsonify({'error': 'No autenticado'}), 401
+
         payload = request.get_json(force=True)
         items = payload.get('items')
         if not items or not isinstance(items, list):

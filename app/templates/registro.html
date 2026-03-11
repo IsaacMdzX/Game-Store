@@ -26,39 +26,48 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N9LMPQBM"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
-        <div class="principal">
-            <div class="main-content">
-                <div class="container">
+    <div class="main-content">
+        <div class="container">
                     <h1>Crear una Cuenta</h1>
                     <p class="description">¡Vamos a crear tu cuenta!</p>
 
                     <form id="registro-form" class="form-section">
                         <div class="form-line">
-                            <span class="label">Nombre De Usuario:</span>
-                            <input type="text" id="username" name="username" class="input-field" 
-                                   placeholder="Ingresa tu nombre de usuario" required>
-                            <span class="error-message" id="username-error"></span>
+                            <label class="label" for="username">Nombre De Usuario:</label>
+                            <input type="text" id="username" name="username" class="input-field"
+                                placeholder="Ingresa tu nombre de usuario" required aria-describedby="username-error">
+                            <span class="error-message" id="username-error" aria-live="polite"></span>
                         </div>
 
                         <div class="form-line">
-                            <span class="label">Email:</span>
-                            <input type="email" id="email" name="email" class="input-field" 
-                                   placeholder="Ingresa tu correo electrónico" required>
-                            <span class="error-message" id="email-error"></span>
+                            <label class="label" for="email">Email:</label>
+                            <input type="email" id="email" name="email" class="input-field"
+                                placeholder="Ingresa tu correo electrónico" required aria-describedby="email-error">
+                            <span class="error-message" id="email-error" aria-live="polite"></span>
                         </div>
 
                         <div class="form-line">
-                            <span class="label">Contraseña:</span>
-                            <input type="password" id="password" name="password" class="input-field" 
-                                   placeholder="Crea una contraseña segura" required>
-                            <span class="error-message" id="password-error"></span>
+                            <label class="label" for="password">Contraseña:</label>
+                            <div class="password-field-wrapper">
+                                <input type="password" id="password" name="password" class="input-field"
+                                    placeholder="Crea una contraseña segura" required aria-describedby="password-error">
+                                <button type="button" id="toggle-registro-password-btn" class="toggle-password-btn" aria-label="Mostrar contraseña" title="Mostrar contraseña">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                            <span class="error-message" id="password-error" aria-live="polite"></span>
                         </div>
 
                         <div class="form-line">
-                            <span class="label">Confirmar Contraseña:</span>
-                            <input type="password" id="confirm-password" name="confirm_password" class="input-field" 
-                                   placeholder="Confirma tu contraseña" required>
-                            <span class="error-message" id="confirm-error"></span>
+                            <label class="label" for="confirm-password">Confirmar Contraseña:</label>
+                            <div class="password-field-wrapper">
+                                <input type="password" id="confirm-password" name="confirm_password" class="input-field"
+                                    placeholder="Confirma tu contraseña" required aria-describedby="confirm-error">
+                                <button type="button" id="toggle-confirm-password-btn" class="toggle-password-btn" aria-label="Mostrar confirmación de contraseña" title="Mostrar confirmación de contraseña">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                            <span class="error-message" id="confirm-error" aria-live="polite"></span>
                         </div>
 
                         <div class="register-section">
@@ -77,16 +86,15 @@
                         <p class="preguntaxd">¿Ya tienes cuenta?</p>
                         <a class="sidebar-register-btn" href="/login">Iniciar Sesión</a>
                     </div>
-                </div>
-            </div>
         </div>
+    </div>
 
     <script src="/static/js/menu-system.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.1/underscore-min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.4.0/backbone-min.js"></script>
     <script src="/static/js/registro.js"></script>
-    
+
 </body>
 
 </html>

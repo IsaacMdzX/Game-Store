@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify, request, redirect, url_for
+from flask import Blueprint, render_template, jsonify, request, redirect, url_for, make_response, current_app
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
@@ -10,8 +10,9 @@ from app.models.usuario import Usuario
 from app.models.models import Carrito, CarritoItem, Producto, Categoria
 from app.models.role import Role
 from app.models.favorito import Favorito
-from app.models.analytics import AdminActivity
+from app.models.analytics import AdminActivity, InventarioMovimiento, Pago
 from sqlalchemy import func
+from sqlalchemy.orm import selectinload
 
 web_bp = Blueprint('web', __name__)
 
@@ -20,15 +21,8 @@ web_bp = Blueprint('web', __name__)
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        print(f"🎯 login_required EJECUTÁNDOSE para: {request.path}")
-        print(f"🔍 Session data: {dict(session)}")
-        print(f"🔍 user_id en session: {'user_id' in session}")
-        
         if 'user_id' not in session:
-            print("❌ REDIRIGIENDO a login - usuario NO autenticado")
             return redirect(url_for('web.login'))
-        
-        print("✅ Acceso PERMITIDO - usuario autenticado")
         return f(*args, **kwargs)
     return decorated_function
 
@@ -37,10 +31,10 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             return redirect(url_for('web.login'))
-        
+
         if session.get('user_role') != 1:  # 1 = Administrador
             return jsonify({'error': 'Acceso denegado. Se requieren privilegios de administrador'}), 403
-        
+
         return f(*args, **kwargs)
     return decorated_function
 
@@ -185,7 +179,28 @@ def perfil_direccion():
 @web_bp.route('/pedidos')
 @login_required
 def pedidos():
-    pedidos_usuario = Pedido.query.filter_by(usuario_id=session['user_id']) \
+    def normalizar_imagen_producto(imagen):
+        if not imagen:
+            return '/static/img/Imagenes/usuario.png.png'
+
+        imagen = str(imagen).strip()
+        if not imagen:
+            return '/static/img/Imagenes/usuario.png.png'
+
+        if imagen.startswith(('http://', 'https://', '/')):
+            return imagen
+
+        if imagen.startswith('static/'):
+            return f"/{imagen}"
+
+        if imagen.startswith('img/'):
+            return f"/static/{imagen}"
+
+        return f"/static/img/Imagenes/{imagen}"
+
+    pedidos_usuario = Pedido.query.options(
+        selectinload(Pedido.items).selectinload(PedidoItem.producto)
+    ).filter_by(usuario_id=session['user_id']) \
         .order_by(Pedido.fecha_pedido.desc()).all()
 
     estado_map = {
@@ -196,26 +211,48 @@ def pedidos():
     }
 
     pedidos_data = []
+    pedidos_signatures = set()
     for pedido in pedidos_usuario:
         items = list(pedido.items or [])
         first_item = items[0] if items else None
         producto = first_item.producto if first_item else None
 
+        signature_items = tuple(sorted(
+            (
+                item.producto_id,
+                item.cantidad,
+                float(item.precio_unitario) if item.precio_unitario else 0,
+            )
+            for item in items
+        ))
+        pedido_signature = (
+            pedido.usuario_id,
+            pedido.estado,
+            float(pedido.total) if pedido.total else 0,
+            pedido.fecha_pedido.strftime('%Y-%m-%d %H:%M') if pedido.fecha_pedido else None,
+            signature_items,
+        )
+        if pedido_signature in pedidos_signatures:
+            continue
+        pedidos_signatures.add(pedido_signature)
+
         producto_nombre = producto.nombre if producto else f"Pedido #{pedido.id_pedido}"
         productos_extra = max(len(items) - 1, 0)
 
-        imagen = None
-        if producto and producto.imagen:
-            imagen = producto.imagen
-            if not imagen.startswith('/'):
-                imagen = f"/static/img/Imagenes/{imagen}"
-        if not imagen:
-            imagen = '/static/img/Imagenes/usuario.png.png'
+        imagen = normalizar_imagen_producto(producto.imagen if producto else None)
 
         fecha_compra = pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') if pedido.fecha_pedido else 'No disponible'
         fecha_entrega = 'Por confirmar'
 
         estado_info = estado_map.get(pedido.estado, {'label': pedido.estado, 'class': 'procesando'})
+
+        miniaturas = []
+        for item in items[:3]:
+            item_producto = item.producto
+            miniaturas.append({
+                'producto_nombre': item_producto.nombre if item_producto else 'Producto no disponible',
+                'imagen': normalizar_imagen_producto(item_producto.imagen if item_producto else None)
+            })
 
         pedidos_data.append({
             'id_pedido': pedido.id_pedido,
@@ -225,10 +262,81 @@ def pedidos():
             'fecha_compra': fecha_compra,
             'fecha_entrega': fecha_entrega,
             'estado_label': estado_info['label'],
-            'estado_clase': estado_info['class']
+            'estado_clase': estado_info['class'],
+            'miniaturas': miniaturas,
+            'miniaturas_extra': max(len(items) - 3, 0)
         })
 
     return render_template('pedidos.html', pedidos=pedidos_data)
+
+
+@web_bp.route('/pedidos/<int:pedido_id>')
+@login_required
+def detalle_pedido(pedido_id):
+    def normalizar_imagen_producto(imagen):
+        if not imagen:
+            return '/static/img/Imagenes/usuario.png.png'
+
+        imagen = str(imagen).strip()
+        if not imagen:
+            return '/static/img/Imagenes/usuario.png.png'
+
+        if imagen.startswith(('http://', 'https://', '/')):
+            return imagen
+
+        if imagen.startswith('static/'):
+            return f"/{imagen}"
+
+        if imagen.startswith('img/'):
+            return f"/static/{imagen}"
+
+        return f"/static/img/Imagenes/{imagen}"
+
+    pedido = Pedido.query.options(
+        selectinload(Pedido.items).selectinload(PedidoItem.producto)
+    ).filter_by(id_pedido=pedido_id, usuario_id=session['user_id']).first()
+    if not pedido:
+        return redirect(url_for('web.pedidos'))
+
+    estado_map = {
+        'completado': 'Entregado',
+        'pendiente': 'Procesando',
+        'procesando': 'En camino',
+        'cancelado': 'Cancelado'
+    }
+
+    items = []
+    total_items = 0
+    for item in pedido.items:
+        producto = item.producto
+        subtotal = float(item.precio_unitario) * item.cantidad if item.precio_unitario else 0
+        imagen = normalizar_imagen_producto(producto.imagen if producto else None)
+
+        items.append({
+            'producto_nombre': producto.nombre if producto else 'Producto no disponible',
+            'cantidad': item.cantidad,
+            'precio_unitario': float(item.precio_unitario) if item.precio_unitario else 0,
+            'subtotal': subtotal,
+            'imagen': imagen
+        })
+        total_items += item.cantidad
+
+    pedido_data = {
+        'id_pedido': pedido.id_pedido,
+        'fecha_pedido': pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') if pedido.fecha_pedido else 'No disponible',
+        'estado': estado_map.get(pedido.estado, pedido.estado),
+        'metodo_pago': (pedido.metodo_pago or 'paypal').capitalize(),
+        'direccion_envio': pedido.direccion_envio or 'No especificada',
+        'id_transaccion': (
+            pedido.id_transaccion_mercadopago if (pedido.metodo_pago or '').lower() == 'mercadopago'
+            else pedido.id_transaccion_paypal
+        ) or 'No disponible',
+        'total': float(pedido.total) if pedido.total else 0,
+        'total_items': total_items,
+        'items': items
+    }
+
+    return render_template('pedido_detalle.html', pedido=pedido_data)
 
 @web_bp.route('/pagar')
 @login_required
@@ -277,39 +385,42 @@ def pago_cancelado():
 def api_login():
     try:
         data = request.get_json()
-        
+
         if not data:
             return jsonify({'error': 'Datos no proporcionados'}), 400
-        
-        login_input = data.get('login_input')
+
+        login_input = (data.get('login_input') or '').strip()
         password = data.get('password')
-        
+
         if not login_input:
             return jsonify({'error': 'Ingresa tu usuario o email'}), 400
-        
+
         if not password:
             return jsonify({'error': 'Ingresa tu contraseña'}), 400
-        
-        # Buscar usuario
+
+        login_input_normalizado = login_input.lower()
+
+        # Buscar usuario (normalizado para tolerar espacios y mayúsculas/minúsculas)
         usuario = Usuario.query.filter(
-            (Usuario.nombre_usuario == login_input) | (Usuario.correo == login_input)
+            (func.lower(func.trim(Usuario.nombre_usuario)) == login_input_normalizado) |
+            (func.lower(func.trim(Usuario.correo)) == login_input_normalizado)
         ).first()
-        
+
         if not usuario:
             return jsonify({'error': 'Usuario o contraseña incorrectos'}), 401
-        
+
         # Verificar contraseña
         if not check_password_hash(usuario.password, password):
             return jsonify({'error': 'Usuario o contraseña incorrectos'}), 401
-        
+
         # Crear sesión
         session.clear()
         session['user_id'] = usuario.id_usuario
         session['username'] = usuario.nombre_usuario
         session['user_role'] = usuario.rol_id
-        
+
         print(f"LOGIN EXITOSO: {usuario.nombre_usuario} (Rol: {usuario.rol_id})")
-        
+
         # Redirigir según rol
         if usuario.rol_id == 1:  # Administrador
             redirect_url = '/admin'
@@ -317,9 +428,9 @@ def api_login():
         else:  # Usuario normal
             redirect_url = '/'
             message = 'Login exitoso'
-        
+
         return jsonify({
-            'success': True, 
+            'success': True,
             'message': message,
             'redirect_url': redirect_url,
             'user': {
@@ -329,7 +440,7 @@ def api_login():
                 'role': usuario.rol_id
             }
         }), 200
-        
+
     except Exception as e:
         print(f"Error en login: {e}")
         return jsonify({'error': 'Error interno del servidor'}), 500
@@ -337,7 +448,15 @@ def api_login():
 @web_bp.route('/logout')
 def logout():
     session.clear()
-    return redirect('/')
+    response = make_response(redirect(url_for('web.login')))
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0, private'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    response.delete_cookie(
+        current_app.config.get('SESSION_COOKIE_NAME', 'session'),
+        path='/'
+    )
+    return response
 
 @web_bp.route('/api/user-info')
 def user_info():
@@ -410,35 +529,35 @@ def api_actualizar_direccion():
 def api_registro():
     try:
         data = request.get_json()
-        
+
         if not data:
             return jsonify({'error': 'Datos no proporcionados'}), 400
-        
-        username = data.get('username')
-        email = data.get('email')
+
+        username = (data.get('username') or '').strip()
+        email = (data.get('email') or '').strip().lower()
         password = data.get('password')
         confirm_password = data.get('confirm_password')
-        
+
         # Validaciones
         if not username or len(username) < 6:
             return jsonify({'error': 'El nombre de usuario debe tener al menos 6 caracteres'}), 400
-        
+
         if not email or '@' not in email:
             return jsonify({'error': 'Email inválido'}), 400
-        
+
         if not password or len(password) < 8:
             return jsonify({'error': 'La contraseña debe tener al menos 8 caracteres'}), 400
-        
+
         if password != confirm_password:
             return jsonify({'error': 'Las contraseñas no coinciden'}), 400
-        
+
         # Verificar si ya existe
-        if Usuario.query.filter_by(nombre_usuario=username).first():
+        if Usuario.query.filter(func.lower(func.trim(Usuario.nombre_usuario)) == username.lower()).first():
             return jsonify({'error': 'Este usuario ya existe'}), 400
-            
-        if Usuario.query.filter_by(correo=email).first():
+
+        if Usuario.query.filter(func.lower(func.trim(Usuario.correo)) == email).first():
             return jsonify({'error': 'Este email ya está registrado'}), 400
-        
+
         # Crear usuario normal
         nuevo_usuario = Usuario(
             nombre_usuario=username,
@@ -446,17 +565,17 @@ def api_registro():
             password=generate_password_hash(password),
             rol_id=2  # Cliente
         )
-        
+
         db.session.add(nuevo_usuario)
         db.session.commit()
-        
+
         print(f"USUARIO GUARDADO EN BD: {username}, Email: {email}")
-        
+
         return jsonify({
-            'success': True, 
+            'success': True,
             'message': 'Usuario registrado exitosamente'
         }), 201
-        
+
     except Exception as e:
         db.session.rollback()
         print(f"Error en registro: {e}")
@@ -466,35 +585,35 @@ def api_registro():
 def api_registro_admin():
     try:
         data = request.get_json()
-        
+
         if not data:
             return jsonify({'error': 'Datos no proporcionados'}), 400
-        
-        username = data.get('username')
-        email = data.get('email')
+
+        username = (data.get('username') or '').strip()
+        email = (data.get('email') or '').strip().lower()
         password = data.get('password')
         confirm_password = data.get('confirm_password')
-        
+
         # Validaciones
         if not username or len(username) < 6:
             return jsonify({'error': 'El nombre de usuario debe tener al menos 6 caracteres'}), 400
-        
+
         if not email or '@' not in email:
             return jsonify({'error': 'Email inválido'}), 400
-        
+
         if not password or len(password) < 8:
             return jsonify({'error': 'La contraseña debe tener al menos 8 caracteres'}), 400
-        
+
         if password != confirm_password:
             return jsonify({'error': 'Las contraseñas no coinciden'}), 400
-        
+
         # Verificar si ya existe
-        if Usuario.query.filter_by(nombre_usuario=username).first():
+        if Usuario.query.filter(func.lower(func.trim(Usuario.nombre_usuario)) == username.lower()).first():
             return jsonify({'error': 'Este usuario ya existe'}), 400
-            
-        if Usuario.query.filter_by(correo=email).first():
+
+        if Usuario.query.filter(func.lower(func.trim(Usuario.correo)) == email).first():
             return jsonify({'error': 'Este email ya está registrado'}), 400
-        
+
         # Crear administrador
         nuevo_admin = Usuario(
             nombre_usuario=username,
@@ -502,17 +621,17 @@ def api_registro_admin():
             password=generate_password_hash(password),
             rol_id=1  # Administrador
         )
-        
+
         db.session.add(nuevo_admin)
         db.session.commit()
-        
+
         print(f"ADMINISTRADOR GUARDADO EN BD: {username}, Email: {email}")
-        
+
         return jsonify({
-            'success': True, 
+            'success': True,
             'message': 'Administrador registrado exitosamente'
         }), 201
-        
+
     except Exception as e:
         db.session.rollback()
         print(f"Error en registro admin: {e}")
@@ -525,7 +644,7 @@ def api_productos():
     try:
         # Obtener parámetro de categoría si existe
         categoria_nombre = request.args.get('categoria')
-        
+
         # ✅ SOLO MOSTRAR PRODUCTOS ACTIVOS Y CON STOCK > 0
         if categoria_nombre:
             productos = Producto.query.join(Categoria).filter(
@@ -541,7 +660,7 @@ def api_productos():
                 Producto.stock > 0  # ✅ SOLO productos con stock
             ).all()
             print(f"📦 Todos los productos activos con stock, encontrados: {len(productos)} productos")
-        
+
         productos_data = []
         for producto in productos:
             productos_data.append({
@@ -554,13 +673,13 @@ def api_productos():
                 'categoria': producto.categoria.nombre if producto.categoria else 'Sin categoría',
                 'categoria_id': producto.categoria_id
             })
-        
+
         return jsonify({
             'success': True,
             'productos': productos_data,
             'filtro_aplicado': categoria_nombre if categoria_nombre else 'todos'
         })
-        
+
     except Exception as e:
         print(f"❌ Error obteniendo productos: {e}")
         import traceback
@@ -606,7 +725,7 @@ def api_productos_por_categoria(categoria_id):
             Producto.activo == True,
             Producto.stock > 0  # ✅ SOLO productos con stock
         ).all()
-        
+
         productos_data = []
         for producto in productos:
             productos_data.append({
@@ -618,12 +737,12 @@ def api_productos_por_categoria(categoria_id):
                 'imagen': producto.imagen,
                 'categoria_id': producto.categoria_id
             })
-        
+
         return jsonify({
             'success': True,
             'productos': productos_data
         })
-        
+
     except Exception as e:
         print(f"❌ Error obteniendo productos por categoría: {e}")
         return jsonify({'success': False, 'error': 'Error al obtener productos'}), 500
@@ -636,15 +755,15 @@ def api_carrito_cantidad():
     try:
         if 'user_id' not in session:
             return jsonify({'count': 0})
-        
+
         carrito = Carrito.query.filter_by(
-            usuario_id=session['user_id'], 
+            usuario_id=session['user_id'],
             activo=True
         ).first()
-        
+
         count = len(carrito.items) if carrito else 0
         return jsonify({'count': count})
-        
+
     except Exception as e:
         print(f"Error obteniendo cantidad del carrito: {e}")
         return jsonify({'count': 0})
@@ -653,13 +772,13 @@ def api_carrito_cantidad():
 def agregar_al_carrito():
     try:
         print(f"🎯 INICIANDO agregar_al_carrito - User: {session.get('user_id')}")
-        
+
         if 'user_id' not in session:
             return jsonify({'success': False, 'error': 'Inicia sesion para poder agregar productos al carrito'}), 401
 
         data = request.get_json()
         print(f"📦 Datos recibidos: {data}")
-        
+
         if not data:
             return jsonify({'success': False, 'error': 'Datos no proporcionados'}), 400
 
@@ -675,13 +794,13 @@ def agregar_al_carrito():
 
         print(f"🔍 Buscando producto {producto_id}")
         producto = Producto.query.filter_by(id_producto=producto_id, activo=True).first()
-        
+
         if not producto:
             return jsonify({'success': False, 'error': 'Producto no encontrado'}), 404
 
         # Buscar carrito activo del usuario
         carrito = Carrito.query.filter_by(
-            usuario_id=session['user_id'], 
+            usuario_id=session['user_id'],
             activo=True
         ).first()
 
@@ -705,11 +824,11 @@ def agregar_al_carrito():
             # Si ya existe, aumentar la cantidad
             nueva_cantidad = item_existente.cantidad + cantidad
             print(f"📈 Actualizando cantidad: {item_existente.cantidad} + {cantidad} = {nueva_cantidad}")
-            
+
             # Verificar stock disponible
             if nueva_cantidad > producto.stock:
                 return jsonify({'success': False, 'error': f'Stock insuficiente. Solo quedan {producto.stock} unidades'}), 400
-            
+
             item_existente.cantidad = nueva_cantidad
             mensaje = f'Cantidad actualizada: ahora tienes {nueva_cantidad} unidades'
             accion = 'actualizado'
@@ -728,19 +847,19 @@ def agregar_al_carrito():
 
         db.session.commit()
         print(f"✅ Commit exitoso - {accion}")
-        
+
         # Obtener el conteo actualizado
         carrito_actualizado = Carrito.query.filter_by(
-            usuario_id=session['user_id'], 
+            usuario_id=session['user_id'],
             activo=True
         ).first()
-        
+
         count = len(carrito_actualizado.items) if carrito_actualizado else 0
-        
+
         print(f"🎉 Carrito {accion} exitosamente. Total items: {count}")
-        
+
         return jsonify({
-            'success': True, 
+            'success': True,
             'message': mensaje,
             'carrito_count': count,
             'accion': accion
@@ -760,7 +879,7 @@ def api_carrito_detalles():
             return jsonify({'success': False, 'error': 'No autenticado'}), 401
 
         carrito = Carrito.query.filter_by(
-            usuario_id=session['user_id'], 
+            usuario_id=session['user_id'],
             activo=True
         ).first()
 
@@ -777,11 +896,11 @@ def api_carrito_detalles():
 
         items_data = []
         subtotal = 0
-        
+
         for item in carrito.items:
             item_total = float(item.precio_unitario) * item.cantidad
             subtotal += item_total
-            
+
             items_data.append({
                 'id': item.id_item,
                 'producto_id': item.producto.id_producto,
@@ -817,15 +936,15 @@ def actualizar_cantidad_carrito(item_id):
         nueva_cantidad = data.get('cantidad', 1)
 
         item = CarritoItem.query.get(item_id)
-        
+
         if not item:
             return jsonify({'success': False, 'error': 'Item no encontrado'}), 404
 
         carrito = Carrito.query.filter_by(
-            usuario_id=session['user_id'], 
+            usuario_id=session['user_id'],
             activo=True
         ).first()
-        
+
         if not carrito or item.carrito_id != carrito.id_carrito:
             return jsonify({'success': False, 'error': 'No autorizado'}), 403
 
@@ -853,21 +972,21 @@ def eliminar_item_carrito(item_id):
             return jsonify({'success': False, 'error': 'No autenticado'}), 401
 
         item = CarritoItem.query.get(item_id)
-        
+
         if not item:
             return jsonify({'success': False, 'error': 'Item no encontrado'}), 404
 
         carrito = Carrito.query.filter_by(
-            usuario_id=session['user_id'], 
+            usuario_id=session['user_id'],
             activo=True
         ).first()
-        
+
         if not carrito or item.carrito_id != carrito.id_carrito:
             return jsonify({'success': False, 'error': 'No autorizado'}), 403
 
         db.session.delete(item)
         db.session.commit()
-        
+
         return jsonify({'success': True, 'message': 'Producto eliminado del carrito'})
 
     except Exception as e:
@@ -881,7 +1000,7 @@ def limpiar_duplicados_carrito():
     """Limpiar productos duplicados del carrito"""
     try:
         carrito = Carrito.query.filter_by(
-            usuario_id=session['user_id'], 
+            usuario_id=session['user_id'],
             activo=True
         ).first()
 
@@ -891,7 +1010,7 @@ def limpiar_duplicados_carrito():
         # Encontrar duplicados
         items_por_producto = {}
         items_a_eliminar = []
-        
+
         for item in carrito.items:
             if item.producto_id in items_por_producto:
                 # Ya existe un item para este producto, marcar para eliminar
@@ -908,7 +1027,7 @@ def limpiar_duplicados_carrito():
         if items_a_eliminar:
             db.session.commit()
             return jsonify({
-                'success': True, 
+                'success': True,
                 'message': f'Se limpiaron {len(items_a_eliminar)} productos duplicados',
                 'duplicados_eliminados': len(items_a_eliminar)
             })
@@ -928,15 +1047,15 @@ def api_favoritos():
     try:
         if 'user_id' not in session:
             return jsonify({'success': False, 'error': 'Debes iniciar sesión para ver favoritos'}), 401
-        
+
         usuario_id = session['user_id']
-        
+
         # Obtener favoritos con información del producto y categoría
         favoritos = Favorito.query.filter_by(usuario_id=usuario_id)\
             .join(Producto)\
             .join(Categoria)\
             .all()
-        
+
         favoritos_data = []
         for favorito in favoritos:
             producto = favorito.producto
@@ -954,13 +1073,13 @@ def api_favoritos():
                     'categoria_id': producto.categoria_id
                 }
             })
-        
+
         return jsonify({
             'success': True,
             'favoritos': favoritos_data,
             'count': len(favoritos)
         })
-        
+
     except Exception as e:
         print(f"Error obteniendo favoritos: {e}")
         import traceback
@@ -1076,10 +1195,10 @@ def api_admin_productos():
         # Aplicar filtros
         if search:
             query = query.filter(Producto.nombre.ilike(f'%{search}%'))
-        
+
         if categoria_id:
             query = query.filter(Producto.categoria_id == categoria_id)
-        
+
         if estado:
             if estado == 'activo':
                 query = query.filter(Producto.activo == True)
@@ -1107,7 +1226,7 @@ def api_admin_productos():
             'success': True,
             'productos': productos_data
         })
-        
+
     except Exception as e:
         print(f"Error obteniendo productos admin: {e}")
         return jsonify({'success': False, 'error': 'Error al obtener productos'}), 500
@@ -1117,7 +1236,7 @@ def api_admin_productos():
 def api_categorias():
     try:
         categorias = Categoria.query.all()
-        
+
         categorias_data = [{
             'id': cat.id_categoria,
             'nombre': cat.nombre,
@@ -1128,7 +1247,7 @@ def api_categorias():
             'success': True,
             'categorias': categorias_data
         })
-        
+
     except Exception as e:
         print(f"Error obteniendo categorías: {e}")
         return jsonify({'success': False, 'error': 'Error al obtener categorías'}), 500
@@ -1138,14 +1257,14 @@ def api_categorias():
 def api_admin_agregar_producto():
     try:
         data = request.get_json()
-        
+
         # Validaciones básicas
         if not data.get('nombre'):
             return jsonify({'success': False, 'error': 'El nombre es requerido'}), 400
-        
+
         if not data.get('precio') or float(data.get('precio')) <= 0:
             return jsonify({'success': False, 'error': 'El precio debe ser mayor a 0'}), 400
-        
+
         if data.get('stock') is None or int(data.get('stock')) < 0:
             return jsonify({'success': False, 'error': 'El stock no puede ser negativo'}), 400
 
@@ -1183,7 +1302,7 @@ def api_admin_editar_producto():
     try:
         data = request.get_json()
         producto_id = data.get('id')
-        
+
         if not producto_id:
             return jsonify({'success': False, 'error': 'ID de producto requerido'}), 400
 
@@ -1202,14 +1321,14 @@ def api_admin_editar_producto():
         if 'stock' in data:
             nuevo_stock = int(data['stock'])
             producto.stock = nuevo_stock
-            
+
             # ✅ DESHABILITAR SI EL NUEVO STOCK ES 0
             if nuevo_stock == 0:
                 producto.activo = False
             # ✅ HABILITAR SI HABÍA STOCK 0 Y AHORA TIENE STOCK
             elif nuevo_stock > 0 and stock_anterior == 0:
                 producto.activo = True
-                
+
         if 'imagen' in data:
             producto.imagen = data['imagen']
         if 'categoria_id' in data:
@@ -1218,7 +1337,7 @@ def api_admin_editar_producto():
             # Si el admin manualmente activa un producto con stock 0, prevenir
             if data['activo'] and producto.stock == 0:
                 return jsonify({
-                    'success': False, 
+                    'success': False,
                     'error': 'No se puede activar un producto con stock 0'
                 }), 400
             producto.activo = data['activo']
@@ -1307,12 +1426,12 @@ def api_procesar_pedido():
         metodo_pago = data.get('metodo_pago', 'paypal')
         detalles_paypal = data.get('detalles_paypal', {})
         detalles_mercadopago = data.get('detalles_mercadopago', {})
-        
+
         print(f"🎯 Procesando pedido para usuario {session['user_id']}")
 
         # Obtener el carrito activo del usuario
         carrito = Carrito.query.filter_by(
-            usuario_id=session['user_id'], 
+            usuario_id=session['user_id'],
             activo=True
         ).first()
 
@@ -1322,22 +1441,22 @@ def api_procesar_pedido():
         # Verificar stock y calcular total
         total_pedido = 0
         items_pedido = []
-        
+
         for item in carrito.items:
             producto = Producto.query.get(item.producto_id)
-            
+
             if not producto or not producto.activo:
                 return jsonify({
-                    'success': False, 
+                    'success': False,
                     'error': f'El producto {producto.nombre if producto else "desconocido"} no está disponible'
                 }), 400
-            
+
             if producto.stock < item.cantidad:
                 return jsonify({
-                    'success': False, 
+                    'success': False,
                     'error': f'Stock insuficiente para {producto.nombre}. Disponible: {producto.stock}, Solicitado: {item.cantidad}'
                 }), 400
-            
+
             # Calcular total del item
             item_total = float(item.precio_unitario) * item.cantidad
             total_pedido += item_total
@@ -1358,7 +1477,7 @@ def api_procesar_pedido():
             id_transaccion_paypal=detalles_paypal.get('id', ''),  # Guardar ID de transacción PayPal
             id_transaccion_mercadopago=detalles_mercadopago.get('id', '')  # Guardar ID de transacción Mercado Pago
         )
-        
+
         db.session.add(nuevo_pedido)
         db.session.flush()  # Para obtener el ID del pedido
 
@@ -1366,7 +1485,7 @@ def api_procesar_pedido():
         for item_data in items_pedido:
             producto = item_data['producto']
             item_carrito = item_data['item_carrito']
-            
+
             # Crear item del pedido
             pedido_item = PedidoItem(
                 pedido_id=nuevo_pedido.id_pedido,
@@ -1375,10 +1494,10 @@ def api_procesar_pedido():
                 precio_unitario=item_carrito.precio_unitario
             )
             db.session.add(pedido_item)
-            
+
             # Actualizar stock del producto
             producto.stock -= item_carrito.cantidad
-            
+
             # Deshabilitar producto si stock llega a 0
             if producto.stock == 0:
                 producto.activo = False
@@ -1387,7 +1506,7 @@ def api_procesar_pedido():
         # Limpiar el carrito
         for item in carrito.items:
             db.session.delete(item)
-        
+
         carrito.activo = False
 
         db.session.commit()
@@ -1415,23 +1534,18 @@ def api_procesar_pedido():
         return jsonify({'success': False, 'error': 'Error al procesar la compra'}), 500
 
 
-@web_bp.route('/api/pedidos/crear-mercadopago', methods=['POST'])
+@web_bp.route('/api/pedidos/crear-paypal', methods=['POST'])
 @login_required
-def api_crear_pedido_mercadopago():
-    """Crear un pedido en estado 'pendiente' para ser asociado a una preference de Mercado Pago.
-
-    No reduce stock ni limpia el carrito; eso se hace cuando la transacción sea confirmada por el webhook.
-    """
+def api_crear_pedido_paypal():
+    """Crear un pedido en estado 'pendiente' para el flujo de PayPal."""
     try:
         if 'user_id' not in session:
             return jsonify({'success': False, 'error': 'No autenticado'}), 401
 
-        # Obtener el carrito activo del usuario
         carrito = Carrito.query.filter_by(usuario_id=session['user_id'], activo=True).first()
         if not carrito or not carrito.items:
             return jsonify({'success': False, 'error': 'Carrito vacío'}), 400
 
-        # Calcular total y crear pedido en estado pendiente
         total_pedido = 0
         for item in carrito.items:
             total_pedido += float(item.precio_unitario) * item.cantidad
@@ -1440,12 +1554,11 @@ def api_crear_pedido_mercadopago():
             usuario_id=session['user_id'],
             total=total_pedido,
             estado='pendiente',
-            metodo_pago='mercadopago'
+            metodo_pago='paypal'
         )
         db.session.add(nuevo_pedido)
         db.session.flush()
 
-        # Crear items del pedido (no tocar stock)
         for item in carrito.items:
             pedido_item = PedidoItem(
                 pedido_id=nuevo_pedido.id_pedido,
@@ -1461,10 +1574,171 @@ def api_crear_pedido_mercadopago():
 
     except Exception as e:
         db.session.rollback()
-        print(f"Error creando pedido Mercado Pago: {e}")
+        print(f"Error creando pedido PayPal: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify({'success': False, 'error': 'Error creando pedido'}), 500
+        return jsonify({'success': False, 'error': 'Error creando pedido PayPal'}), 500
+
+
+@web_bp.route('/api/pedidos/detalles/<int:pedido_id>')
+@login_required
+def api_detalle_pedido_usuario(pedido_id):
+    """Obtener detalle básico de un pedido del usuario autenticado."""
+    try:
+        def normalizar_imagen_producto(imagen):
+            if not imagen:
+                return '/static/img/Imagenes/usuario.png.png'
+
+            imagen = str(imagen).strip()
+            if not imagen:
+                return '/static/img/Imagenes/usuario.png.png'
+
+            if imagen.startswith(('http://', 'https://', '/')):
+                return imagen
+
+            if imagen.startswith('static/'):
+                return f"/{imagen}"
+
+            if imagen.startswith('img/'):
+                return f"/static/{imagen}"
+
+            return f"/static/img/Imagenes/{imagen}"
+
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'error': 'No autenticado'}), 401
+
+        pedido = Pedido.query.options(
+            selectinload(Pedido.items).selectinload(PedidoItem.producto)
+        ).filter_by(
+            id_pedido=pedido_id,
+            usuario_id=session['user_id']
+        ).first()
+
+        if not pedido:
+            return jsonify({'success': False, 'error': 'Pedido no encontrado'}), 404
+
+        estado_map = {
+            'completado': 'Entregado',
+            'pendiente': 'Procesando',
+            'procesando': 'En camino',
+            'cancelado': 'Cancelado'
+        }
+
+        items_data = []
+        total_items = 0
+        for item in pedido.items:
+            producto = item.producto
+            subtotal = float(item.precio_unitario * item.cantidad) if item.precio_unitario else 0
+            items_data.append({
+                'producto_nombre': producto.nombre if producto else 'Producto no disponible',
+                'cantidad': item.cantidad,
+                'precio_unitario': float(item.precio_unitario) if item.precio_unitario else 0,
+                'subtotal': subtotal,
+                'imagen': normalizar_imagen_producto(producto.imagen if producto else None)
+            })
+            total_items += item.cantidad
+
+        metodo_pago = (pedido.metodo_pago or 'paypal').capitalize()
+        id_transaccion = (
+            pedido.id_transaccion_mercadopago if (pedido.metodo_pago or '').lower() == 'mercadopago'
+            else pedido.id_transaccion_paypal
+        ) or 'No disponible'
+
+        return jsonify({
+            'success': True,
+            'pedido': {
+                'id_pedido': pedido.id_pedido,
+                'total': float(pedido.total) if pedido.total else 0,
+                'estado': estado_map.get(pedido.estado, pedido.estado),
+                'fecha_pedido': pedido.fecha_pedido.isoformat() if pedido.fecha_pedido else None,
+                'metodo_pago': metodo_pago,
+                'direccion_envio': pedido.direccion_envio or 'No especificada',
+                'id_transaccion': id_transaccion,
+                'total_items': total_items,
+                'items': items_data
+            }
+        })
+
+    except Exception as e:
+        print(f"Error obteniendo detalle de pedido usuario: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': 'Error al obtener detalle del pedido'}), 500
+
+
+@web_bp.route('/api/pedidos/confirmar-exito', methods=['POST'])
+@login_required
+def api_confirmar_pedido_exitoso():
+    """Confirmar pago exitoso y vaciar carrito automáticamente."""
+    try:
+        data = request.get_json() or {}
+        pedido_id = data.get('pedido_id')
+        proveedor = (data.get('proveedor') or 'paypal').lower()
+        transaccion_id = (data.get('transaccion_id') or '').strip()
+
+        if not pedido_id:
+            return jsonify({'success': False, 'error': 'pedido_id requerido'}), 400
+
+        pedido = Pedido.query.filter_by(id_pedido=pedido_id, usuario_id=session['user_id']).first()
+        if not pedido:
+            return jsonify({'success': False, 'error': 'Pedido no encontrado'}), 404
+
+        if pedido.estado == 'cancelado':
+            return jsonify({'success': False, 'error': 'Pedido cancelado'}), 400
+
+        if pedido.estado in ('procesando', 'completado'):
+            return jsonify({'success': True, 'message': 'Pedido ya confirmado', 'already_confirmed': True})
+
+        for item in pedido.items:
+            producto = Producto.query.get(item.producto_id)
+            if not producto:
+                return jsonify({'success': False, 'error': 'Producto no encontrado en pedido'}), 400
+            if (producto.stock or 0) < (item.cantidad or 0):
+                return jsonify({
+                    'success': False,
+                    'error': f'Stock insuficiente para {producto.nombre}. Disponible: {producto.stock}, Solicitado: {item.cantidad}'
+                }), 400
+
+        for item in pedido.items:
+            producto = Producto.query.get(item.producto_id)
+            producto.stock = (producto.stock or 0) - (item.cantidad or 0)
+            if producto.stock <= 0:
+                producto.stock = 0
+                producto.activo = False
+
+        if proveedor == 'mercadopago' and transaccion_id and not pedido.id_transaccion_mercadopago:
+            pedido.id_transaccion_mercadopago = transaccion_id
+        if proveedor == 'paypal' and transaccion_id and not pedido.id_transaccion_paypal:
+            pedido.id_transaccion_paypal = transaccion_id
+
+        pedido.estado = 'procesando'
+
+        carrito = Carrito.query.filter_by(usuario_id=session['user_id'], activo=True).first()
+        if carrito:
+            for item in list(carrito.items):
+                db.session.delete(item)
+            carrito.activo = False
+
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': 'Pedido confirmado y carrito vaciado'})
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error confirmando pedido exitoso: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': 'Error al confirmar pedido'}), 500
+
+
+@web_bp.route('/api/pedidos/crear-mercadopago', methods=['POST'])
+@login_required
+def api_crear_pedido_mercadopago():
+    """Mercado Pago deshabilitado temporalmente."""
+    return jsonify({
+        'success': False,
+        'error': 'Mercado Pago está deshabilitado temporalmente. Usa PayPal para completar tu compra.'
+    }), 410
 
 # ----------------------------------------- API USUARIOS ADMIN ---------------------------------------- #
 
@@ -1487,10 +1761,10 @@ def api_admin_usuarios():
                 (Usuario.nombre_usuario.ilike(f'%{search}%')) |
                 (Usuario.correo.ilike(f'%{search}%'))
             )
-        
+
         if rol_id:
             query = query.filter(Usuario.rol_id == rol_id)
-        
+
         if estado:
             if estado == 'activo':
                 query = query.filter(Usuario.activo == True)
@@ -1517,7 +1791,7 @@ def api_admin_usuarios():
             'usuarios': usuarios_data,
             'total': len(usuarios_data)
         })
-        
+
     except Exception as e:
         print(f"Error obteniendo usuarios admin: {e}")
         import traceback
@@ -1531,7 +1805,7 @@ def api_admin_editar_usuario():
     try:
         data = request.get_json()
         usuario_id = data.get('id')
-        
+
         if not usuario_id:
             return jsonify({'success': False, 'error': 'ID de usuario requerido'}), 400
 
@@ -1588,10 +1862,10 @@ def api_admin_agregar_usuario():
     """Agregar nuevo usuario desde administración"""
     try:
         data = request.get_json()
-        
+
         if not data:
             return jsonify({'success': False, 'error': 'Datos no proporcionados'}), 400
-        
+
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
@@ -1601,17 +1875,17 @@ def api_admin_agregar_usuario():
         # Validaciones
         if not username or len(username) < 6:
             return jsonify({'success': False, 'error': 'El nombre de usuario debe tener al menos 6 caracteres'}), 400
-        
+
         if not email or '@' not in email:
             return jsonify({'success': False, 'error': 'Email inválido'}), 400
-        
+
         if not password or len(password) < 8:
             return jsonify({'success': False, 'error': 'La contraseña debe tener al menos 8 caracteres'}), 400
 
         # Verificar si ya existe
         if Usuario.query.filter_by(nombre_usuario=username).first():
             return jsonify({'success': False, 'error': 'Este usuario ya existe'}), 400
-            
+
         if Usuario.query.filter_by(correo=email).first():
             return jsonify({'success': False, 'error': 'Este email ya está registrado'}), 400
 
@@ -1623,18 +1897,18 @@ def api_admin_agregar_usuario():
             rol_id=rol_id,
             activo=activo
         )
-        
+
         db.session.add(nuevo_usuario)
         db.session.commit()
-        
+
         print(f"USUARIO ADMIN CREADO: {username}, Email: {email}, Rol: {rol_id}")
-        
+
         return jsonify({
-            'success': True, 
+            'success': True,
             'message': 'Usuario creado exitosamente',
             'usuario_id': nuevo_usuario.id_usuario
         }), 201
-        
+
     except Exception as e:
         db.session.rollback()
         print(f"Error creando usuario admin: {e}")
@@ -1643,7 +1917,7 @@ def api_admin_agregar_usuario():
 @web_bp.route('/api/admin/usuarios/eliminar/<int:usuario_id>', methods=['DELETE'])
 @admin_required
 def api_admin_eliminar_usuario(usuario_id):
-    """Eliminar usuario desde administración"""
+    """Eliminación física segura de usuario desde administración."""
     try:
         usuario = Usuario.query.get(usuario_id)
         if not usuario:
@@ -1652,6 +1926,49 @@ def api_admin_eliminar_usuario(usuario_id):
         # Verificar que no se elimine a sí mismo
         if usuario.id_usuario == session['user_id']:
             return jsonify({'success': False, 'error': 'No puedes eliminar tu propio usuario'}), 400
+
+        # Si el usuario tiene pedidos, se reasignan a una cuenta sistema para preservar historial
+        pedidos_count = Pedido.query.filter_by(usuario_id=usuario.id_usuario).count()
+        if pedidos_count > 0:
+            usuario_sistema = Usuario.query.filter_by(
+                correo='usuario.eliminado@local.invalid'
+            ).first()
+
+            if not usuario_sistema:
+                rol_base = Role.query.filter(Role.nombre.ilike('%cliente%')).first() or Role.query.order_by(Role.id_rol.asc()).first()
+                if not rol_base:
+                    return jsonify({'success': False, 'error': 'No se encontró un rol válido para reasignar pedidos'}), 500
+
+                usuario_sistema = Usuario(
+                    nombre='Usuario Eliminado',
+                    correo='usuario.eliminado@local.invalid',
+                    nombre_usuario='usuario_eliminado_sistema',
+                    password=generate_password_hash('sistema_no_login_2026'),
+                    rol_id=rol_base.id_rol,
+                    activo=False
+                )
+                db.session.add(usuario_sistema)
+                db.session.flush()
+
+            Pedido.query.filter_by(usuario_id=usuario.id_usuario).update(
+                {Pedido.usuario_id: usuario_sistema.id_usuario},
+                synchronize_session=False
+            )
+
+        # Limpiar referencias del usuario en tablas auxiliares
+        carritos = Carrito.query.filter_by(usuario_id=usuario.id_usuario).all()
+        for carrito in carritos:
+            db.session.delete(carrito)
+
+        Favorito.query.filter_by(usuario_id=usuario.id_usuario).delete(synchronize_session=False)
+        AdminActivity.query.filter_by(usuario_id=usuario.id_usuario).update(
+            {AdminActivity.usuario_id: None},
+            synchronize_session=False
+        )
+        InventarioMovimiento.query.filter_by(usuario_id=usuario.id_usuario).update(
+            {InventarioMovimiento.usuario_id: None},
+            synchronize_session=False
+        )
 
         db.session.delete(usuario)
         db.session.commit()
@@ -1672,7 +1989,7 @@ def api_admin_roles():
     """Obtener todos los roles"""
     try:
         roles = Role.query.all()
-        
+
         roles_data = [{
             'id_rol': rol.id_rol,
             'nombre': rol.nombre,
@@ -1682,7 +1999,7 @@ def api_admin_roles():
             'success': True,
             'roles': roles_data
         })
-        
+
     except Exception as e:
         print(f"Error obteniendo roles: {e}")
         import traceback
@@ -1699,16 +2016,16 @@ def api_admin_pedidos():
         from app.models.pedido import Pedido, PedidoItem
         from app.models.usuario import Usuario
         from app.models.models import Producto
-        
+
         # Obtener parámetros de filtro
         search = request.args.get('search', '')
         estado = request.args.get('estado', '')
         fecha_inicio = request.args.get('fecha_inicio', '')
         fecha_fin = request.args.get('fecha_fin', '')
-        
+
         # Consulta base con joins
         query = Pedido.query.join(Usuario).join(PedidoItem).join(Producto)
-        
+
         # Aplicar filtros
         if search:
             query = query.filter(
@@ -1717,19 +2034,19 @@ def api_admin_pedidos():
                 (Producto.nombre.ilike(f'%{search}%')) |
                 (Pedido.id_pedido.ilike(f'%{search}%'))
             )
-        
+
         if estado:
             query = query.filter(Pedido.estado == estado)
-        
+
         if fecha_inicio:
             query = query.filter(Pedido.fecha_pedido >= fecha_inicio)
-        
+
         if fecha_fin:
             query = query.filter(Pedido.fecha_pedido <= fecha_fin)
-        
+
         # Ordenar por fecha más reciente primero
         pedidos = query.order_by(Pedido.fecha_pedido.desc()).all()
-        
+
         # Procesar datos para el frontend
         pedidos_data = []
         for pedido in pedidos:
@@ -1742,7 +2059,7 @@ def api_admin_pedidos():
                     'precio_unitario': float(item.precio_unitario) if item.precio_unitario else 0,
                     'total_item': float(item.precio_unitario * item.cantidad) if item.precio_unitario else 0
                 })
-            
+
             pedidos_data.append({
                 'id_pedido': pedido.id_pedido,
                 'numero_pedido': f"#ORD-{pedido.id_pedido:03d}",
@@ -1756,7 +2073,7 @@ def api_admin_pedidos():
                 'fecha_iso': pedido.fecha_pedido.isoformat() if pedido.fecha_pedido else '',
                 'direccion_envio': pedido.direccion_envio or 'No especificada'
             })
-        
+
         return jsonify({
             'success': True,
             'pedidos': pedidos_data,
@@ -1768,7 +2085,7 @@ def api_admin_pedidos():
                 'fecha_fin': fecha_fin
             }
         })
-        
+
     except Exception as e:
         print(f"Error obteniendo pedidos admin: {e}")
         import traceback
@@ -1781,32 +2098,32 @@ def api_admin_cambiar_estado_pedido():
     """Cambiar estado de un pedido"""
     try:
         from app.models.pedido import Pedido
-        
+
         data = request.get_json()
         pedido_id = data.get('pedido_id')
         nuevo_estado = data.get('estado')
-        
+
         if not pedido_id or not nuevo_estado:
             return jsonify({'success': False, 'error': 'Datos incompletos'}), 400
-        
+
         pedido = Pedido.query.get(pedido_id)
         if not pedido:
             return jsonify({'success': False, 'error': 'Pedido no encontrado'}), 404
-        
+
         # Validar estado
         estados_validos = ['pendiente', 'procesando', 'completado', 'cancelado']
         if nuevo_estado not in estados_validos:
             return jsonify({'success': False, 'error': 'Estado no válido'}), 400
-        
+
         pedido.estado = nuevo_estado
         db.session.commit()
-        
+
         return jsonify({
             'success': True,
             'message': f'Estado del pedido actualizado a {nuevo_estado}',
             'nuevo_estado': nuevo_estado
         })
-        
+
     except Exception as e:
         db.session.rollback()
         print(f"Error cambiando estado de pedido: {e}")
@@ -1820,11 +2137,11 @@ def api_admin_detalle_pedido(pedido_id):
         from app.models.pedido import Pedido, PedidoItem
         from app.models.usuario import Usuario
         from app.models.models import Producto
-        
+
         pedido = Pedido.query.get(pedido_id)
         if not pedido:
             return jsonify({'success': False, 'error': 'Pedido no encontrado'}), 404
-        
+
         # Datos del pedido
         pedido_data = {
             'id_pedido': pedido.id_pedido,
@@ -1840,7 +2157,7 @@ def api_admin_detalle_pedido(pedido_id):
             'estado': pedido.estado,
             'direccion_envio': pedido.direccion_envio
         }
-        
+
         # Items del pedido
         items_data = []
         for item in pedido.items:
@@ -1852,14 +2169,14 @@ def api_admin_detalle_pedido(pedido_id):
                 'total': float(item.precio_unitario * item.cantidad) if item.precio_unitario else 0,
                 'imagen': item.producto.imagen if item.producto else ''
             })
-        
+
         pedido_data['items'] = items_data
-        
+
         return jsonify({
             'success': True,
             'pedido': pedido_data
         })
-        
+
     except Exception as e:
         print(f"Error obteniendo detalle de pedido: {e}")
         return jsonify({'success': False, 'error': 'Error al obtener detalle'}), 500
@@ -2093,17 +2410,17 @@ def deshabilitar_productos_sin_stock():
             Producto.stock == 0,
             Producto.activo == True
         ).all()
-        
+
         for producto in productos_sin_stock:
             producto.activo = False
             print(f"Producto deshabilitado por stock 0: {producto.nombre}")
-        
+
         if productos_sin_stock:
             db.session.commit()
             print(f"Se deshabilitaron {len(productos_sin_stock)} productos sin stock")
-            
+
         return len(productos_sin_stock)
-        
+
     except Exception as e:
         print(f"Error deshabilitando productos sin stock: {e}")
         db.session.rollback()
@@ -2115,12 +2432,12 @@ def api_limpiar_stock_cero():
     """Endpoint para que el admin pueda limpiar manualmente productos sin stock"""
     try:
         cantidad_deshabilitados = deshabilitar_productos_sin_stock()
-        
+
         return jsonify({
             'success': True,
             'message': f'Se deshabilitaron {cantidad_deshabilitados} productos sin stock'
         })
-        
+
     except Exception as e:
         print(f"Error en limpieza de stock: {e}")
         return jsonify({'success': False, 'error': 'Error en limpieza de stock'}), 500
@@ -2160,6 +2477,7 @@ def api_validar_producto():
 # ----------------------------------------- RUTAS DE DEBUG ---------------------------------------- #
 
 @web_bp.route('/debug/database')
+@admin_required
 def debug_database():
     """Ruta para debuggear el estado de la base de datos"""
     try:
@@ -2167,7 +2485,7 @@ def debug_database():
         productos = Producto.query.all()
         usuarios = Usuario.query.all()
         roles = Role.query.all()
-        
+
         debug_info = {
             'categorias_count': len(categorias),
             'categorias': [{'id': c.id_categoria, 'nombre': c.nombre} for c in categorias],
@@ -2178,13 +2496,14 @@ def debug_database():
             'roles_count': len(roles),
             'roles': [{'id': r.id_rol, 'nombre': r.nombre} for r in roles]
         }
-        
+
         return jsonify(debug_info)
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @web_bp.route('/debug/session')
+@admin_required
 def debug_session():
     """Ruta para debuggear la sesión"""
     return jsonify({
@@ -2194,18 +2513,18 @@ def debug_session():
     })
 
 @web_bp.route('/debug/favoritos')
-@login_required
+@admin_required
 def debug_favoritos():
     """Ruta para debuggear favoritos"""
     try:
         usuario_id = session['user_id']
-        
+
         # Contar favoritos del usuario
         count = Favorito.query.filter_by(usuario_id=usuario_id).count()
-        
+
         # Obtener algunos favoritos de ejemplo
         favoritos = Favorito.query.filter_by(usuario_id=usuario_id).limit(5).all()
-        
+
         favoritos_data = []
         for fav in favoritos:
             favoritos_data.append({
@@ -2214,7 +2533,7 @@ def debug_favoritos():
                 'producto_id': fav.producto_id,
                 'fecha_agregado': fav.fecha_agregado.isoformat() if fav.fecha_agregado else None
             })
-        
+
         return jsonify({
             'usuario_actual': usuario_id,
             'total_favoritos': count,
@@ -2222,7 +2541,7 @@ def debug_favoritos():
             'tabla_existe': True,
             'estructura': 'id_favorito, usuario_id, producto_id, fecha_agregado'
         })
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -2234,16 +2553,16 @@ def api_crear_pedidos_prueba():
         from app.models.pedido import Pedido, PedidoItem
         from app.models.usuario import Usuario
         from app.models.models import Producto
-        
+
         # Crear algunos pedidos de prueba
         usuarios = Usuario.query.limit(3).all()
         productos = Producto.query.limit(5).all()
-        
+
         if not usuarios or not productos:
             return jsonify({'success': False, 'error': 'Necesitas usuarios y productos para crear pedidos de prueba'}), 400
-        
+
         estados = ['pendiente', 'procesando', 'completado', 'cancelado']
-        
+
         for i in range(5):
             usuario = usuarios[i % len(usuarios)]
             pedido = Pedido(
@@ -2254,7 +2573,7 @@ def api_crear_pedidos_prueba():
             )
             db.session.add(pedido)
             db.session.flush()
-            
+
             # Agregar items al pedido
             total_pedido = 0
             for j in range(2):
@@ -2263,7 +2582,7 @@ def api_crear_pedidos_prueba():
                 precio = float(producto.precio) if producto.precio else 50.00
                 total_item = precio * cantidad
                 total_pedido += total_item
-                
+
                 item = PedidoItem(
                     pedido_id=pedido.id_pedido,
                     producto_id=producto.id_producto,
@@ -2271,15 +2590,15 @@ def api_crear_pedidos_prueba():
                     precio_unitario=precio
                 )
                 db.session.add(item)
-            
+
             pedido.total = total_pedido
             db.session.commit()
-        
+
         return jsonify({
             'success': True,
             'message': '5 pedidos de prueba creados exitosamente'
         })
-        
+
     except Exception as e:
         db.session.rollback()
         print(f"Error creando pedidos de prueba: {e}")

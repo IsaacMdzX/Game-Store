@@ -44,33 +44,42 @@ class AdminInventario {
         try {
             let url = '/api/admin/productos';
             const params = new URLSearchParams();
-            
+
             if (filtros.search) params.append('search', filtros.search);
             if (filtros.categoria) params.append('categoria', filtros.categoria);
             if (filtros.estado) params.append('estado', filtros.estado);
-            
+
             if (params.toString()) {
                 url += '?' + params.toString();
             }
 
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                throw new Error(`Respuesta inválida (${response.status})`);
+            }
+
             const data = await response.json();
-            
+
             if (data.success) {
                 this.productos = data.productos;
                 this.mostrarProductos();
                 this.actualizarEstadisticas();
                 console.log(`✅ ${this.productos.length} productos cargados`);
+            } else {
+                throw new Error(data.error || 'Error al cargar productos');
             }
         } catch (error) {
             console.error('❌ Error cargando productos:', error);
-            this.mostrarNotificacion('Error al cargar los productos', 'error');
+            this.mostrarNotificacion(error.message || 'Error al cargar los productos', 'error');
         }
     }
 
     mostrarProductos() {
         const tbody = document.getElementById('productos-body');
-        
+
         if (this.productos.length === 0) {
             tbody.innerHTML = `
                 <tr>
@@ -86,7 +95,7 @@ class AdminInventario {
         tbody.innerHTML = this.productos.map(producto => `
             <tr data-id="${producto.id}">
                 <td class="producto-imagen">
-                    <img src="${producto.imagen || '/static/img/placeholder.jpg'}" 
+                    <img src="${producto.imagen || '/static/img/placeholder.jpg'}"
                          alt="${producto.nombre}"
                          onerror="this.src='/static/img/placeholder.jpg'">
                 </td>
@@ -112,7 +121,7 @@ class AdminInventario {
                     <button class="btn-editar" onclick="adminInventario.editarProducto(${producto.id})">
                         <i class="fa-solid fa-edit"></i> Editar
                     </button>
-                    <button class="btn-${producto.activo ? 'desactivar' : 'activar'}" 
+                    <button class="btn-${producto.activo ? 'desactivar' : 'activar'}"
                             onclick="adminInventario.toggleEstado(${producto.id}, ${!producto.activo})">
                         <i class="fa-solid fa-${producto.activo ? 'eye-slash' : 'eye'}"></i>
                         ${producto.activo ? 'Desactivar' : 'Activar'}
@@ -166,12 +175,12 @@ class AdminInventario {
 
     initEventListeners() {
         console.log('🔄 Inicializando event listeners...');
-        
+
         setTimeout(() => {
             // Botón agregar producto
             const btnAgregar = document.getElementById('btn-agregar-producto');
             console.log('🔘 Botón agregar producto encontrado:', btnAgregar);
-            
+
             if (btnAgregar) {
                 btnAgregar.addEventListener('click', () => {
                     console.log('🎯 Click en agregar producto');
@@ -182,7 +191,7 @@ class AdminInventario {
             // Buscador
             const searchBtn = document.getElementById('search-btn-admin');
             const searchInput = document.getElementById('search-admin');
-            
+
             if (searchBtn && searchInput) {
                 searchBtn.addEventListener('click', () => {
                     this.aplicarFiltros();
@@ -198,13 +207,13 @@ class AdminInventario {
             // Filtros
             const filtroCategoria = document.getElementById('filtro-categoria');
             const filtroEstado = document.getElementById('filtro-estado');
-            
+
             if (filtroCategoria) {
                 filtroCategoria.addEventListener('change', () => {
                     this.aplicarFiltros();
                 });
             }
-            
+
             if (filtroEstado) {
                 filtroEstado.addEventListener('change', () => {
                     this.aplicarFiltros();
@@ -215,19 +224,19 @@ class AdminInventario {
             const modalCerrar = document.getElementById('modal-cerrar');
             const btnCancelar = document.getElementById('btn-cancelar');
             const formProducto = document.getElementById('form-producto');
-            
+
             if (modalCerrar) {
                 modalCerrar.addEventListener('click', () => {
                     this.ocultarModal();
                 });
             }
-            
+
             if (btnCancelar) {
                 btnCancelar.addEventListener('click', () => {
                     this.ocultarModal();
                 });
             }
-            
+
             if (formProducto) {
                 formProducto.addEventListener('submit', (e) => {
                     e.preventDefault();
@@ -259,7 +268,7 @@ class AdminInventario {
         const modal = document.getElementById('modal-producto');
         const titulo = document.getElementById('modal-titulo');
         const form = document.getElementById('form-producto');
-        
+
         if (producto) {
             titulo.textContent = 'Editar Producto';
             this.cargarDatosFormulario(producto);
@@ -269,7 +278,7 @@ class AdminInventario {
             document.getElementById('producto-id').value = '';
             this.limpiarErroresFormulario();
         }
-        
+
         modal.style.display = 'block';
     }
 
@@ -349,12 +358,12 @@ async guardarProducto() {
 
         if (data.success) {
             let mensaje = formData.id ? '✅ Producto actualizado correctamente' : '✅ Producto agregado correctamente';
-            
+
             // ✅ AGREGAR INFORMACIÓN SOBRE ESTADO
             if (formData.stock === 0) {
                 mensaje += ' (Producto deshabilitado por stock 0)';
             }
-            
+
             this.mostrarNotificacion(mensaje, 'success');
             this.ocultarModal();
             await this.cargarProductos();
@@ -380,7 +389,7 @@ async guardarProducto() {
         try {
             const response = await fetch(`/api/admin/productos/validar?nombre=${encodeURIComponent(nombre)}&categoria_id=${categoriaId}`);
             const data = await response.json();
-            
+
             return data.existe;
         } catch (error) {
             console.error('❌ Error validando producto:', error);
@@ -392,7 +401,7 @@ async guardarProducto() {
         try {
             const response = await fetch(`/api/admin/productos/validar?nombre=${encodeURIComponent(nombre)}&categoria_id=${categoriaId}&excluir_id=${productoId}`);
             const data = await response.json();
-            
+
             return data.existe;
         } catch (error) {
             console.error('❌ Error validando duplicado:', error);
@@ -404,21 +413,21 @@ async guardarProducto() {
         const nombre = document.getElementById('producto-nombre').value.trim();
         const categoriaId = document.getElementById('producto-categoria').value;
         const productoId = document.getElementById('producto-id').value;
-        
+
         if (!nombre || !categoriaId) {
             this.limpiarErrorCampo('producto-nombre');
             return;
         }
-        
+
         try {
             let url = `/api/admin/productos/validar?nombre=${encodeURIComponent(nombre)}&categoria_id=${categoriaId}`;
             if (productoId) {
                 url += `&excluir_id=${productoId}`;
             }
-            
+
             const response = await fetch(url);
             const data = await response.json();
-            
+
             if (data.existe) {
                 this.mostrarErrorCampo('producto-nombre', 'Ya existe un producto con este nombre en la categoría seleccionada');
             } else {
@@ -432,23 +441,23 @@ async guardarProducto() {
     mostrarErrorCampo(campoId, mensaje) {
         const campo = document.getElementById(campoId);
         campo.style.borderColor = '#e74c3c';
-        
+
         this.limpiarErrorCampo(campoId);
-        
+
         const errorDiv = document.createElement('div');
         errorDiv.className = 'error-message';
         errorDiv.style.color = '#e74c3c';
         errorDiv.style.fontSize = '12px';
         errorDiv.style.marginTop = '5px';
         errorDiv.textContent = mensaje;
-        
+
         campo.parentNode.appendChild(errorDiv);
     }
 
     limpiarErrorCampo(campoId) {
         const campo = document.getElementById(campoId);
         campo.style.borderColor = '';
-        
+
         const errorMsg = campo.parentNode.querySelector('.error-message');
         if (errorMsg) {
             errorMsg.remove();
@@ -534,7 +543,7 @@ async guardarProducto() {
                 <span>${mensaje}</span>
             </div>
         `;
-        
+
         document.body.appendChild(notificacion);
         setTimeout(() => {
             if (notificacion.parentNode) {

@@ -88,13 +88,13 @@
             </div>
             <h2>¡Pago Exitoso!</h2>
             <p>Tu pago ha sido procesado correctamente</p>
-            
+
             <div class="detalles-pedido" id="detallesPedido">
                 <div class="loading-pedido">
                     <i class="fa-solid fa-spinner fa-spin"></i> Cargando detalles del pedido...
                 </div>
             </div>
-            
+
             <div class="detalles-compra">
                 <p id="pasarelaPagoLinea"><i class="fa-solid fa-check"></i> Pago confirmado</p>
                 <p><i class="fa-solid fa-check"></i> Pedido procesado</p>
@@ -116,32 +116,55 @@
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const pedidoId = urlParams.get('pedido_id');
-            // Detectar parámetros de Mercado Pago (collection_id, payment_id, preference_id)
-            const mpPaymentId = urlParams.get('payment_id') || urlParams.get('collection_id') || urlParams.get('collection_id');
-            const mpPref = urlParams.get('preference_id');
+            const paypalOrderId = urlParams.get('paypal_order_id') || urlParams.get('paypalId');
 
             // Actualizar línea que indica la pasarela de pago
             const pasarelaLinea = document.getElementById('pasarelaPagoLinea');
-            if (mpPaymentId) {
-                pasarelaLinea.innerHTML = '<i class="fa-solid fa-check"></i> Pago confirmado por Mercado Pago';
-            } else if (urlParams.get('paypal_order_id') || urlParams.get('paypalId')) {
+            if (paypalOrderId) {
                 pasarelaLinea.innerHTML = '<i class="fa-solid fa-check"></i> Pago confirmado por PayPal';
             } else {
                 pasarelaLinea.innerHTML = '<i class="fa-solid fa-check"></i> Pago confirmado';
             }
-            
-            if (pedidoId) {
-                cargarDetallesPedido(pedidoId);
+
+            if (pedidoId && /^\d+$/.test(pedidoId)) {
+                confirmarYMostrarPedido(pedidoId, urlParams);
+            } else {
+                const container = document.getElementById('detallesPedido');
+                if (container) {
+                    container.innerHTML = '<p>Tu pedido fue confirmado. En unos segundos aparecerá en "Mis pedidos".</p>';
+                }
             }
         });
+
+        async function confirmarYMostrarPedido(pedidoId, urlParams) {
+            const paypalOrderId = urlParams.get('paypal_order_id') || urlParams.get('paypalId');
+            const proveedor = 'paypal';
+            const transaccionId = paypalOrderId || '';
+
+            try {
+                await fetch('/api/pedidos/confirmar-exito', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pedido_id: parseInt(pedidoId, 10),
+                        proveedor,
+                        transaccion_id: transaccionId
+                    })
+                });
+            } catch (error) {
+                console.warn('No se pudo confirmar automáticamente el pedido:', error);
+            }
+
+            cargarDetallesPedido(pedidoId);
+        }
 
         async function cargarDetallesPedido(pedidoId) {
             try {
                 const response = await fetch(`/api/pedidos/detalles/${pedidoId}`);
-                const data = await response.json();
-                
+                const data = await response.json().catch(() => ({ success: false }));
+
                 const container = document.getElementById('detallesPedido');
-                
+
                 if (data.success) {
                     container.innerHTML = `
                         <div class="info-pedido">
@@ -156,7 +179,7 @@
                 }
             } catch (error) {
                 console.error('Error cargando detalles del pedido:', error);
-                document.getElementById('detallesPedido').innerHTML = 
+                document.getElementById('detallesPedido').innerHTML =
                     `<p class="error">Error al cargar detalles del pedido</p>`;
             }
         }

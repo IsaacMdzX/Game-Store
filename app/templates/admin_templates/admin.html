@@ -54,7 +54,7 @@
             </section>
         </header>
 
-        <main class="principal">
+        <section class="principal" aria-label="Contenido principal del dashboard">
             <div>
                 <h1>Dashboard</h1>
                 <p style="color: #a0a0a0; font-size: 16px;">Panel de control y analíticas en tiempo real</p>
@@ -100,6 +100,7 @@
                         </select>
                     </div>
                     <canvas id="salesChart"></canvas>
+                    <div id="salesLegend" class="chart-legend" aria-label="Leyenda de ventas"></div>
                 </div>
 
                 <div class="chart-card">
@@ -107,6 +108,7 @@
                         <h3>Productos Más Vendidos</h3>
                     </div>
                     <canvas id="topProductsChart"></canvas>
+                    <div id="topProductsLegend" class="chart-legend" aria-label="Leyenda de productos"></div>
                 </div>
             </div>
 
@@ -144,7 +146,7 @@
                     </tbody>
                 </table>
             </div>
-        </main>
+        </section>
         </div>
 
         <script src="/static/js/menu-system.js"></script>

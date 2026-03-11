@@ -9,13 +9,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalCerrar = document.getElementById('modal-cerrar');
     const btnGuardarUsuario = document.getElementById('btn-guardar-usuario');
     const modalTitulo = document.getElementById('modal-titulo');
-    
+
     // Filtros
     const searchInput = document.getElementById('search-usuarios');
     const searchBtn = document.getElementById('search-btn-usuarios');
     const filtroRol = document.getElementById('filtro-rol');
     const filtroEstado = document.getElementById('filtro-estado');
-    
+
     // Estadísticas
     const totalUsuarios = document.getElementById('total-usuarios');
     const usuariosActivos = document.getElementById('usuarios-activos');
@@ -39,10 +39,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Modal
         btnAgregarUsuario.addEventListener('click', () => abrirModal());
         modalCerrar.addEventListener('click', () => cerrarModal());
-        
+
         // Formulario
         formUsuario.addEventListener('submit', guardarUsuario);
-        
+
         // Filtros
         searchBtn.addEventListener('click', aplicarFiltros);
         searchInput.addEventListener('keypress', (e) => {
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         filtroRol.addEventListener('change', aplicarFiltros);
         filtroEstado.addEventListener('change', aplicarFiltros);
-        
+
         // Cerrar modal al hacer clic fuera
         modalUsuario.addEventListener('click', (e) => {
             if (e.target === modalUsuario) cerrarModal();
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch('/api/admin/roles');
             const data = await response.json();
-            
+
             if (data.success) {
                 roles = data.roles;
                 actualizarSelectRoles();
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="btn-editar" onclick="editarUsuario(${usuario.id})">
                             <i class="fa-solid fa-edit"></i> Editar
                         </button>
-                        ${usuario.activo ? 
+                        ${usuario.activo ?
                             `<button class="btn-desactivar" onclick="cambiarEstadoUsuario(${usuario.id}, false)">
                                 <i class="fa-solid fa-user-slash"></i> Desactivar
                             </button>` :
@@ -182,15 +182,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const esEdicion = usuario !== null;
 
         modalTitulo.textContent = esEdicion ? 'Editar Usuario' : 'Agregar Usuario';
-        
+
         // Limpiar formulario
         formUsuario.reset();
         document.getElementById('usuario-id').value = '';
-        
+
         // Configurar campos específicos para edición
         const passwordField = document.getElementById('usuario-password');
         const passwordLabel = document.getElementById('label-password');
-        
+
         if (esEdicion) {
             // Llenar datos del usuario
             document.getElementById('usuario-id').value = usuario.id;
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('usuario-email').value = usuario.email;
             document.getElementById('usuario-rol').value = usuario.rol_id;
             document.getElementById('usuario-activo').checked = usuario.activo;
-            
+
             // Cambiar etiqueta de contraseña para edición
             passwordLabel.textContent = 'Nueva Contraseña (opcional)';
             passwordField.required = false;
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function guardarUsuario(e) {
         e.preventDefault();
-        
+
         const usuarioId = document.getElementById('usuario-id').value;
         const username = document.getElementById('usuario-username').value.trim();
         const email = document.getElementById('usuario-email').value.trim();
@@ -339,13 +339,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const usuario = usuarios.find(u => u.id === id);
         if (!usuario) return;
 
-        const confirmar = confirm(`¿Estás seguro de que quieres eliminar al usuario ${usuario.username}? Esta acción no se puede deshacer.`);
+        const confirmar = confirm(`¿Estás seguro de que quieres eliminar definitivamente al usuario ${usuario.username}?`);
 
         if (!confirmar) return;
 
         try {
             const response = await fetch(`/api/admin/usuarios/eliminar/${id}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
 
             const data = await response.json();
@@ -354,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 mostrarNotificacion(data.message, 'success');
                 await cargarUsuarios();
             } else {
-                throw new Error(data.error || 'Error al eliminar usuario');
+                throw new Error(data.error || 'Error al eliminar definitivamente el usuario');
             }
         } catch (error) {
             console.error('Error eliminando usuario:', error);
@@ -368,7 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function formatearFecha(fechaString) {
         if (!fechaString) return 'N/A';
-        
+
         const fecha = new Date(fechaString);
         return fecha.toLocaleDateString('es-ES', {
             year: 'numeric',

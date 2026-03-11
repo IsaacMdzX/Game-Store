@@ -19,6 +19,44 @@
     <link rel="stylesheet" href="/static/css/responsive.css">
     <link rel="stylesheet" href="/static/css/mobile-aesthetic.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        .pedido-miniaturas {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .pedido-miniatura {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: #1f1f1f;
+        }
+
+        .pedido-miniaturas-extra {
+            font-size: 12px;
+            color: #bfbfbf;
+            margin-left: 2px;
+        }
+
+        .pedido-detalle-expandido {
+            width: 100%;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+            transition: max-height 0.35s ease, opacity 0.25s ease, margin-top 0.25s ease;
+        }
+
+        .pedido-detalle-expandido.is-open {
+            max-height: 5000px;
+            opacity: 1;
+            margin-top: 15px;
+        }
+    </style>
 </head>
 
 <body>
@@ -96,19 +134,12 @@
 
 
             <main class="pedidos-container">
-                <div class="pedidos-header">
-                    <button class="filtro-pedidos">
-                        <i class="fa-solid fa-filter"></i>
-                        Filtrar Pedidos
-                    </button>
-                </div>
-
                 <div class="lista-pedidos">
                     {% if pedidos %}
                         {% for pedido in pedidos %}
                             <div class="pedido-item">
                                 <div class="pedido-image-container">
-                                    <img src="{{ pedido.imagen }}" alt="{{ pedido.producto_nombre }}" class="pedido-imagen">
+                                    <img src="{{ pedido.imagen }}" alt="{{ pedido.producto_nombre }}" class="pedido-imagen" loading="lazy" decoding="async">
                                 </div>
                                 <div class="pedido-info">
                                     <h3 class="product-title">
@@ -117,14 +148,29 @@
                                             y {{ pedido.productos_extra }} mas
                                         {% endif %}
                                     </h3>
+                                    {% if pedido.miniaturas %}
+                                        <div class="pedido-miniaturas">
+                                            {% for item in pedido.miniaturas %}
+                                                <img src="{{ item.imagen }}" alt="{{ item.producto_nombre }}" class="pedido-miniatura" loading="lazy" decoding="async">
+                                            {% endfor %}
+                                            {% if pedido.miniaturas_extra > 0 %}
+                                                <span class="pedido-miniaturas-extra">+{{ pedido.miniaturas_extra }}</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
                                     <p><strong>Fecha de Compra:</strong> {{ pedido.fecha_compra }}</p>
                                     <p><strong>Fecha de Entrega:</strong> {{ pedido.fecha_entrega }}</p>
                                     <p class="estado-pedido {{ pedido.estado_clase }}">{{ pedido.estado_label }}</p>
                                 </div>
-                                <button class="pedido-detalles" data-pedido-id="{{ pedido.id_pedido }}">
+                                <button class="pedido-detalles" type="button" data-detalle-toggle="pedido-detalle-{{ pedido.id_pedido }}" aria-expanded="false">
                                     <i class="fa-solid fa-eye"></i>
                                     Detalles
                                 </button>
+                            </div>
+                            <div id="pedido-detalle-{{ pedido.id_pedido }}" class="pedido-detalle-expandido" aria-hidden="true" data-pedido-id="{{ pedido.id_pedido }}" data-loaded="false">
+                                <div class="loading-menu" style="padding: 18px 0;">
+                                    <i class="fa-solid fa-spinner fa-spin"></i> Cargando detalle del pedido...
+                                </div>
                             </div>
                         {% endfor %}
                     {% else %}
@@ -149,6 +195,125 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.4.1/backbone-min.js"></script>
     <script src="/static/js/favoritos-backbone.js"></script>
     <script src="/static/js/carrito-sync.js"></script>
+    <script>
+        const detalleCache = new Map();
+
+        function escapeHtml(value) {
+            const text = String(value ?? '');
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function construirDetallePedidoHtml(pedido) {
+            const fecha = pedido.fecha_pedido
+                ? new Date(pedido.fecha_pedido).toLocaleString('es-AR')
+                : 'No disponible';
+
+            const items = Array.isArray(pedido.items) ? pedido.items : [];
+
+            const itemsHtml = items.length
+                ? items.map((item) => `
+                    <div class="pedido-item">
+                        <div class="pedido-image-container">
+                            <img src="${escapeHtml(item.imagen)}" alt="${escapeHtml(item.producto_nombre)}" class="pedido-imagen" loading="lazy" decoding="async">
+                        </div>
+                        <div class="pedido-info">
+                            <h3 class="product-title">${escapeHtml(item.producto_nombre)}</h3>
+                            <p><strong>Cantidad:</strong> ${item.cantidad ?? 0}</p>
+                            <p><strong>Precio unitario:</strong> $${Number(item.precio_unitario || 0).toFixed(2)}</p>
+                            <p><strong>Subtotal:</strong> $${Number(item.subtotal || 0).toFixed(2)}</p>
+                        </div>
+                    </div>
+                `).join('')
+                : `
+                    <div class="no-pedidos">
+                        <i class="fa-solid fa-box-open"></i>
+                        <h2>Este pedido no tiene productos</h2>
+                    </div>
+                `;
+
+            return `
+                <div class="pedido-resumen-card" style="margin-bottom: 20px;">
+                    <p><strong>Pedido:</strong> #${pedido.id_pedido}</p>
+                    <p><strong>Fecha:</strong> ${escapeHtml(fecha)}</p>
+                    <p><strong>Estado:</strong> ${escapeHtml(pedido.estado || 'No disponible')}</p>
+                    <p><strong>Método de pago:</strong> ${escapeHtml(pedido.metodo_pago || 'No disponible')}</p>
+                    <p><strong>ID de transacción:</strong> ${escapeHtml(pedido.id_transaccion || 'No disponible')}</p>
+                    <p><strong>Dirección de envío:</strong> ${escapeHtml(pedido.direccion_envio || 'No especificada')}</p>
+                    <p><strong>Total de productos:</strong> ${pedido.total_items ?? 0}</p>
+                    <p><strong>Total pagado:</strong> $${Number(pedido.total || 0).toFixed(2)}</p>
+                </div>
+                <div class="lista-pedidos">
+                    ${itemsHtml}
+                </div>
+            `;
+        }
+
+        async function cargarDetallePedido(panel) {
+            const pedidoId = panel.getAttribute('data-pedido-id');
+            if (!pedidoId) {
+                panel.innerHTML = '<p class="error">No se pudo identificar el pedido.</p>';
+                return;
+            }
+
+            if (detalleCache.has(pedidoId)) {
+                panel.innerHTML = detalleCache.get(pedidoId);
+                panel.setAttribute('data-loaded', 'true');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/pedidos/detalles/${pedidoId}`);
+                const data = await response.json();
+
+                if (!response.ok || !data.success || !data.pedido) {
+                    throw new Error(data.error || 'No se pudieron cargar los detalles');
+                }
+
+                const html = construirDetallePedidoHtml(data.pedido);
+                detalleCache.set(pedidoId, html);
+                panel.innerHTML = html;
+                panel.setAttribute('data-loaded', 'true');
+            } catch (error) {
+                panel.innerHTML = `<p class="error">${escapeHtml(error.message || 'Error al cargar detalle')}</p>`;
+            }
+        }
+
+        document.querySelectorAll('[data-detalle-toggle]').forEach((button) => {
+            button.addEventListener('click', async () => {
+                const targetId = button.getAttribute('data-detalle-toggle');
+                const detailPanel = document.getElementById(targetId);
+                if (!detailPanel) {
+                    return;
+                }
+
+                const isVisible = detailPanel.classList.contains('is-open');
+
+                document.querySelectorAll('.pedido-detalle-expandido').forEach((panel) => {
+                    panel.classList.remove('is-open');
+                    panel.setAttribute('aria-hidden', 'true');
+                });
+
+                document.querySelectorAll('[data-detalle-toggle]').forEach((toggleButton) => {
+                    toggleButton.setAttribute('aria-expanded', 'false');
+                });
+
+                if (!isVisible) {
+                    detailPanel.classList.add('is-open');
+                    detailPanel.setAttribute('aria-hidden', 'false');
+                    button.setAttribute('aria-expanded', 'true');
+
+                    if (detailPanel.getAttribute('data-loaded') !== 'true') {
+                        await cargarDetallePedido(detailPanel);
+                    }
+                }
+            });
+        });
+    </script>
 
 </body>
 

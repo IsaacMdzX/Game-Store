@@ -3,6 +3,44 @@
 let salesChartInstance = null
 let topProductsChartInstance = null
 
+const topProductsValuePlugin = {
+  id: "topProductsValuePlugin",
+  afterDatasetsDraw(chart) {
+    if (chart?.canvas?.id !== "topProductsChart") return
+
+    const dataset = chart.data?.datasets?.[0]
+    const meta = chart.getDatasetMeta(0)
+    if (!dataset || !meta?.data?.length) return
+
+    const { ctx, chartArea } = chart
+    ctx.save()
+    ctx.font = "600 11px sans-serif"
+    ctx.textBaseline = "middle"
+
+    meta.data.forEach((bar, index) => {
+      const value = Number(dataset.data[index] || 0)
+      if (!value) return
+
+      const text = value.toLocaleString()
+      let x = bar.x + 8
+      let align = "left"
+      let color = "#f3f4f6"
+
+      if (x > chartArea.right - 22) {
+        x = bar.x - 8
+        align = "right"
+        color = "#f9fafb"
+      }
+
+      ctx.textAlign = align
+      ctx.fillStyle = color
+      ctx.fillText(text, x, bar.y)
+    })
+
+    ctx.restore()
+  },
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   if (typeof Chart === "undefined") {
     console.error("Chart.js no está cargado")
@@ -144,39 +182,46 @@ function renderSalesChart(labels, data) {
 
   if (salesChartInstance) salesChartInstance.destroy()
 
+  const prepared = prepareSalesPieData(labels, data)
+
+  const pieColors = generateChartColors(prepared.data.length)
+
   salesChartInstance = new Chart(ctx, {
-    type: "line",
+    type: "pie",
     data: {
-      labels,
+      labels: prepared.labels,
       datasets: [
         {
           label: "Ventas",
-          data,
-          borderColor: "#a21caf",
-          backgroundColor: "rgba(162, 28, 175, 0.1)",
-          tension: 0.4,
-          fill: true,
+          data: prepared.data,
+          backgroundColor: pieColors,
+          borderColor: "#2a2a2a",
+          borderWidth: 1,
         },
       ],
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: true,
+      aspectRatio: 1,
       plugins: {
         legend: {
           display: false,
         },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: (value) => "$" + Number(value).toLocaleString(),
+        tooltip: {
+          callbacks: {
+            label: (context) => {
+              const label = context.label || ""
+              const value = Number(context.parsed || 0)
+              return `${label}: ${formatCurrency(value)}`
+            },
           },
         },
       },
     },
   })
+
+  renderCustomLegend("salesLegend", prepared.labels, prepared.data, pieColors, (value) => formatCurrency(value))
 }
 
 function renderTopProductsChart(labels, data) {
@@ -185,33 +230,185 @@ function renderTopProductsChart(labels, data) {
 
   if (topProductsChartInstance) topProductsChartInstance.destroy()
 
+  const prepared = prepareTopProductsBarData(labels, data)
+  const barColors = generateChartColors(prepared.data.length)
+  if (barColors.length) {
+    barColors[0] = "#f59e0b"
+  }
+
   topProductsChartInstance = new Chart(ctx, {
+    plugins: [topProductsValuePlugin],
     type: "bar",
     data: {
-      labels,
+      labels: prepared.labels,
       datasets: [
         {
           label: "Unidades Vendidas",
-          data,
-          backgroundColor: ["#a21caf", "#c026d3", "#d946ef", "#e879f9", "#f0abfc"],
+          data: prepared.data,
+          backgroundColor: barColors,
+          borderColor: "rgba(255,255,255,0.10)",
+          borderWidth: 1,
+          borderRadius: 6,
+          borderSkipped: false,
+          barThickness: 10,
+          maxBarThickness: 12,
         },
       ],
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: true,
+      aspectRatio: 1.25,
+      indexAxis: "y",
+      layout: {
+        padding: {
+          right: 26,
+        },
+      },
       plugins: {
         legend: {
           display: false,
         },
+        tooltip: {
+          callbacks: {
+            title: (items) => {
+              const index = items?.[0]?.dataIndex ?? 0
+              return prepared.fullLabels[index] || prepared.labels[index] || ""
+            },
+            label: (context) => {
+              const value = Number(context.parsed || 0)
+              return `${value.toLocaleString()} unidades`
+            },
+          },
+        },
       },
       scales: {
-        y: {
+        x: {
           beginAtZero: true,
+          grid: {
+            color: "rgba(255,255,255,0.08)",
+          },
+          ticks: {
+            color: "#d1d5db",
+            font: {
+              size: 11,
+            },
+          },
+        },
+        y: {
+          grid: {
+            display: false,
+          },
+          ticks: {
+            color: "#f3f4f6",
+            font: {
+              size: 11,
+              weight: "600",
+            },
+          },
         },
       },
     },
   })
+
+  const topLegend = document.getElementById("topProductsLegend")
+  if (topLegend) {
+    topLegend.innerHTML = ""
+    topLegend.style.display = "none"
+  }
+}
+
+function prepareSalesPieData(labels, data) {
+  const safeLabels = Array.isArray(labels) ? labels : []
+  const safeData = Array.isArray(data) ? data.map((item) => Number(item || 0)) : []
+
+  if (safeLabels.length <= 7) {
+    return { labels: safeLabels, data: safeData }
+  }
+
+  const recentLabels = safeLabels.slice(-7)
+  const recentData = safeData.slice(-7)
+  const previousSum = safeData.slice(0, -7).reduce((acc, value) => acc + value, 0)
+
+  if (previousSum > 0) {
+    return {
+      labels: [...recentLabels, "Anteriores"],
+      data: [...recentData, previousSum],
+    }
+  }
+
+  return { labels: recentLabels, data: recentData }
+}
+
+function prepareTopProductsBarData(labels, data) {
+  const safeLabels = Array.isArray(labels) ? labels : []
+  const safeData = Array.isArray(data) ? data.map((item) => Number(item || 0)) : []
+
+  const orderedProducts = safeLabels
+    .map((label, index) => ({
+      label,
+      value: safeData[index] || 0,
+    }))
+    .sort((a, b) => b.value - a.value)
+
+  const topProducts = orderedProducts.slice(0, 5)
+  const topLabels = topProducts.map((item) => item.label)
+  const topData = topProducts.map((item) => item.value)
+
+  return {
+    labels: topLabels.map((label) => truncateLabel(label, 20)),
+    fullLabels: topLabels,
+    data: topData,
+  }
+}
+
+function truncateLabel(value, maxLength) {
+  const text = String(value || "")
+  if (text.length <= maxLength) return text
+  return `${text.slice(0, maxLength - 1)}…`
+}
+
+function renderCustomLegend(containerId, labels, data, colors, valueFormatter) {
+  const legend = document.getElementById(containerId)
+  if (!legend) return
+
+  if (!labels.length) {
+    legend.innerHTML = ""
+    return
+  }
+
+  legend.innerHTML = labels
+    .map((label, index) => {
+      const color = colors[index] || "#a21caf"
+      const rawValue = Number(data[index] || 0)
+      const valueText = valueFormatter ? valueFormatter(rawValue) : rawValue.toLocaleString()
+
+      return `
+        <div class="chart-legend-item" title="${label}">
+          <span class="chart-legend-dot" style="background:${color}"></span>
+          <span class="chart-legend-label">${truncateLabel(label, 24)}</span>
+          <span class="chart-legend-value">${valueText}</span>
+        </div>
+      `
+    })
+    .join("")
+}
+
+function generateChartColors(count) {
+  const palette = [
+    "#a21caf",
+    "#c026d3",
+    "#d946ef",
+    "#e879f9",
+    "#f0abfc",
+    "#86198f",
+    "#701a75",
+    "#9333ea",
+    "#7e22ce",
+    "#6b21a8",
+  ]
+
+  return Array.from({ length: count }, (_, index) => palette[index % palette.length])
 }
 
 function setStat(statName, value) {
