@@ -32,6 +32,7 @@
                     Gestión de productos</a></li>
             <li><a class="enlace_barra_lateral" href="/admin/usuarios"><i class="fa-solid fa-users"></i> Gestión de
                     usuarios</a></li>
+                <li><a class="enlace_barra_lateral" href="/admin/chatbot-faqs"><i class="fa-solid fa-comments"></i> FAQs Chatbot</a></li>
         </ul>
     </nav>
 
@@ -143,6 +144,47 @@
                     </thead>
                     <tbody id="recent-orders-body">
                         <!-- Pedidos recientes dinámicos -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section-header">
+                <h2>Preguntas Frecuentes (Chatbot)</h2>
+            </div>
+
+            <div class="filtros-container" style="margin-bottom: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: end;">
+                <input type="text" id="faqSearch" class="search-input" placeholder="Buscar pregunta..." style="min-width: 220px;">
+
+                <select id="faqIntent" class="filtro-select" style="min-width: 180px;">
+                    <option value="">Todas las intenciones</option>
+                </select>
+
+                <select id="faqPage" class="filtro-select" style="min-width: 180px;">
+                    <option value="">Todas las páginas</option>
+                </select>
+
+                <input type="date" id="faqDateFrom" class="filtro-select">
+                <input type="date" id="faqDateTo" class="filtro-select">
+
+                <button type="button" id="faqApplyFilters" class="btn-secondary">Filtrar</button>
+                <button type="button" id="faqClearFilters" class="btn-secondary">Limpiar</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pregunta</th>
+                            <th>Frecuencia</th>
+                            <th>Intención</th>
+                            <th>Página</th>
+                            <th>Última consulta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chatbot-faq-body">
+                        <tr>
+                            <td colspan="5" class="no-data">Cargando preguntas frecuentes...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

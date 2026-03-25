@@ -20,10 +20,29 @@ class MenuManager {
         if (!this.sidebar || !this.header) return;
 
         this.setupElements();
+        this.highlightAdminFaqLink();
         this.optimizeImages();
         this.observeNewImages();
         this.attachEventListeners();
         this.handleInitialLoad();
+    }
+
+    highlightAdminFaqLink() {
+        const path = (window.location.pathname || '').toLowerCase();
+        if (!path.startsWith('/admin/chatbot-faqs')) return;
+
+        const faqLink = this.sidebar.querySelector('a[href="/admin/chatbot-faqs"]');
+        if (!faqLink) return;
+
+        this.sidebar.querySelectorAll('a.enlace_barra_lateral_fijo').forEach((link) => {
+            link.classList.remove('enlace_barra_lateral_fijo');
+            if (!link.classList.contains('enlace_barra_lateral')) {
+                link.classList.add('enlace_barra_lateral');
+            }
+        });
+
+        faqLink.classList.remove('enlace_barra_lateral');
+        faqLink.classList.add('enlace_barra_lateral_fijo');
     }
 
     optimizeImages(root = document) {
@@ -685,6 +704,8 @@ class ThemeManager {
                 flex-direction: column;
                 gap: 14px;
                 background: transparent;
+                flex: 1 1 auto;
+                min-height: 180px;
             }
 
             .chatbot-message {
@@ -710,10 +731,44 @@ class ThemeManager {
             }
 
             .chatbot-suggestions {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
+                display: none;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 8px;
                 padding: 0 18px 16px;
+                border-top: 1px solid rgba(168, 85, 247, 0.18);
+                margin-top: 6px;
+                padding-top: 12px;
+                max-height: 210px;
+                overflow-y: auto;
+            }
+
+            .chatbot-suggestions.show {
+                display: grid;
+            }
+
+            .chatbot-menu-toggle-wrap {
+                padding: 0 18px 12px;
+                display: flex;
+                justify-content: flex-start;
+            }
+
+            .chatbot-menu-toggle {
+                border: 1px solid rgba(168, 85, 247, 0.45);
+                background: linear-gradient(135deg, rgba(168, 85, 247, 0.28), rgba(139, 92, 246, 0.24));
+                color: #f5f3ff;
+                border-radius: 999px;
+                padding: 10px 16px;
+                font-size: 14px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+                box-shadow: 0 6px 16px rgba(88, 0, 154, 0.18);
+            }
+
+            .chatbot-menu-toggle:hover {
+                transform: translateY(-1px);
+                background: linear-gradient(135deg, rgba(168, 85, 247, 0.36), rgba(139, 92, 246, 0.3));
+                box-shadow: 0 10px 22px rgba(88, 0, 154, 0.25);
             }
 
             .chatbot-chip {
@@ -725,6 +780,74 @@ class ThemeManager {
                 font-size: 15px;
                 font-weight: 600;
                 cursor: pointer;
+                transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+                width: 100%;
+                text-align: center;
+            }
+
+            .chatbot-chip:hover {
+                transform: translateY(-1px);
+                background: rgba(168, 85, 247, 0.18);
+                border-color: rgba(192, 132, 252, 0.6);
+            }
+
+            .chatbot-menu-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                width: 100%;
+                background: rgba(76, 29, 149, 0.12);
+                border: 1px solid rgba(168, 85, 247, 0.28);
+                border-radius: 14px;
+                padding: 10px;
+            }
+
+            .chatbot-chip-parent {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                width: 100%;
+                padding-right: 12px;
+            }
+
+            .chatbot-chip-parent::after {
+                content: '▾';
+                font-size: 12px;
+                transition: transform 0.2s ease;
+            }
+
+            .chatbot-chip-parent.expanded::after {
+                transform: rotate(180deg);
+            }
+
+            .chatbot-submenu {
+                display: none;
+                flex-wrap: wrap;
+                gap: 8px;
+                padding-left: 4px;
+            }
+
+            .chatbot-submenu.show {
+                display: flex;
+            }
+
+            .chatbot-subchip {
+                border: 1px solid rgba(168, 85, 247, 0.32);
+                background: rgba(255, 255, 255, 0.08);
+                color: #f3e8ff;
+                border-radius: 999px;
+                padding: 9px 12px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+            }
+
+            .chatbot-subchip:hover {
+                transform: translateY(-1px);
+                background: rgba(168, 85, 247, 0.22);
+                border-color: rgba(192, 132, 252, 0.65);
             }
 
             .chatbot-quick-actions {
@@ -754,10 +877,13 @@ class ThemeManager {
                 gap: 10px;
                 padding: 18px;
                 border-top: 1px solid rgba(168, 85, 247, 0.18);
+                align-items: center;
             }
 
             .chatbot-input {
                 flex: 1;
+                min-width: 0;
+                width: 100%;
                 border-radius: 14px;
                 border: 1px solid rgba(168, 85, 247, 0.22);
                 background: rgba(255, 255, 255, 0.06);
@@ -1126,6 +1252,27 @@ class ThemeManager {
                 border-color: #d6deec !important;
             }
 
+            html[data-theme='light'] .chatbot-menu-group {
+                background: #f7f4ff !important;
+                border-color: #ddd6fe !important;
+            }
+
+            html[data-theme='light'] .chatbot-subchip {
+                background: #f5f3ff !important;
+                color: #5b21b6 !important;
+                border-color: #d8b4fe !important;
+            }
+
+            html[data-theme='light'] .chatbot-menu-toggle {
+                background: linear-gradient(135deg, #ede9fe, #ddd6fe) !important;
+                color: #4c1d95 !important;
+                border-color: #c4b5fd !important;
+            }
+
+            html[data-theme='light'] .chatbot-suggestions {
+                border-top-color: #ddd6fe !important;
+            }
+
             html[data-theme='light'] .chatbot-action-btn {
                 background: #ede9fe !important;
                 color: #4c1d95 !important;
@@ -1450,62 +1597,128 @@ class ThemeManager {
                 }
 
                 .chatbot-toggle-btn {
-                    right: 8px;
-                    bottom: 10px;
-                    padding: 12px 14px;
+                    right: 10px;
+                    bottom: calc(10px + env(safe-area-inset-bottom));
+                    padding: 12px 15px;
                     font-size: 15px;
                     min-height: 52px;
                 }
 
                 .chatbot-panel {
+                    left: 8px;
                     right: 8px;
-                    bottom: 76px;
-                    width: calc(100vw - 16px);
-                    max-height: 80vh;
+                    bottom: calc(72px + env(safe-area-inset-bottom));
+                    width: auto;
+                    height: min(78dvh, 680px);
+                    max-height: min(78dvh, 680px);
+                    border-radius: 18px;
+                }
+
+                .chatbot-messages {
+                    min-height: 0;
+                    padding: 14px;
+                    gap: 10px;
+                }
+
+                .chatbot-suggestions {
+                    max-height: 30vh;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
                 }
 
                 .chatbot-header {
-                    padding: 16px 16px;
+                    padding: 14px 14px;
                 }
 
                 .chatbot-title {
-                    font-size: 17px;
+                    font-size: 16px;
                 }
 
                 .chatbot-font-btn,
                 .chatbot-close {
-                    width: 42px;
-                    height: 42px;
-                    min-width: 42px;
-                    min-height: 42px;
+                    width: 40px;
+                    height: 40px;
+                    min-width: 40px;
+                    min-height: 40px;
                 }
 
                 .chatbot-message {
-                    font-size: 18px;
-                    line-height: 1.6;
+                    font-size: 16px;
+                    line-height: 1.5;
                     max-width: 96%;
+                    padding: 12px 13px;
                 }
 
                 .chatbot-chip {
-                    font-size: 16px;
+                    font-size: 14px;
+                }
+
+                .chatbot-subchip {
+                    font-size: 14px;
                 }
 
                 .chatbot-action-btn {
-                    font-size: 15px;
+                    font-size: 14px;
                     padding: 9px 13px;
                 }
 
+                .chatbot-menu-toggle {
+                    font-size: 14px;
+                    padding: 9px 14px;
+                }
+
+                .chatbot-menu-toggle-wrap {
+                    padding: 0 14px 10px;
+                }
+
+                .chatbot-menu-group {
+                    padding: 9px;
+                    gap: 9px;
+                }
+
+                .chatbot-chip-parent {
+                    width: 100%;
+                    justify-content: space-between;
+                }
+
+                .chatbot-submenu.show {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    width: 100%;
+                    gap: 8px;
+                    padding-left: 0;
+                }
+
+                .chatbot-subchip {
+                    width: 100%;
+                    text-align: center;
+                    padding: 10px 8px;
+                    line-height: 1.25;
+                }
+
+                .chatbot-input-wrap {
+                    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+                    gap: 8px;
+                }
+
                 .chatbot-input {
-                    font-size: 18px;
+                    font-size: 16px;
+                    padding: 12px 13px;
+                    min-width: 0;
+                    width: 100%;
                 }
 
                 .chatbot-send {
-                    min-width: 52px;
-                    min-height: 52px;
+                    min-width: 48px;
+                    min-height: 48px;
+                    flex: 0 0 48px;
                 }
 
                 .chatbot-panel.chatbot-large-text .chatbot-message {
-                    font-size: 19px;
+                    font-size: 18px;
+                }
+
+                .chatbot-panel.chatbot-large-text .chatbot-input {
+                    font-size: 17px;
                 }
 
                 .theme-toggle-btn .theme-toggle-label {
@@ -1532,10 +1745,48 @@ class ThemeManager {
                 }
 
                 .chatbot-panel {
+                    left: 6px;
                     right: 6px;
-                    bottom: 74px;
-                    width: calc(100vw - 12px);
+                    bottom: calc(70px + env(safe-area-inset-bottom));
+                    width: auto;
+                    height: min(76dvh, 640px);
+                    max-height: min(76dvh, 640px);
                     border-radius: 16px;
+                }
+
+                .chatbot-input-wrap {
+                    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+                    gap: 8px;
+                }
+
+                .chatbot-input {
+                    font-size: 16px;
+                    padding: 11px 12px;
+                    min-width: 0;
+                    width: 100%;
+                }
+
+                .chatbot-send {
+                    min-width: 46px;
+                    min-height: 46px;
+                    flex: 0 0 46px;
+                    border-radius: 12px;
+                    font-size: 16px;
+                }
+
+                .chatbot-suggestions {
+                    max-height: 160px;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+
+                .chatbot-submenu.show {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 7px;
+                }
+
+                .chatbot-subchip {
+                    font-size: 14px;
+                    padding: 9px 7px;
                 }
             }
         `;
@@ -1547,14 +1798,39 @@ class ThemeManager {
 class ChatbotManager {
     constructor() {
         this.fontSizeStorageKey = 'gamestore-chatbot-large-text';
+        this.sessionStorageKey = 'gamestore-chatbot-session-state';
+        this.localStorageKey = 'gamestore-chatbot-persisted-state';
+        this.windowStateKey = '__gamestore_chatbot_state__';
+
         this.isLargeText = this.getStoredFontSizePreference();
+        this.conversationContext = {
+            lastIntents: [],
+            lastActions: [],
+            turns: 0
+        };
+        this.isConversationClosed = false;
         this.toggleBtn = null;
         this.panel = null;
         this.messagesContainer = null;
         this.input = null;
         this.fontToggleBtn = null;
-        this.suggestions = ['Pagos', 'Pedidos', 'Envíos', 'Cuenta', 'Carrito', 'Contacto'];
+        this.menuToggleBtn = null;
+        this.isMenuVisible = false;
+        this.suggestions = [
+            { label: 'Pagos' },
+            { label: 'Pedidos' },
+            { label: 'Consolas' },
+            { label: 'Controles' },
+            { label: 'Accesorios' },
+            { label: 'Juegos' },
+            { label: 'Precios' },
+            { label: 'Contacto' }
+        ];
         this.createWidget();
+    }
+
+    getWelcomeMessage() {
+        return '¡Hola! 👋 Estoy aquí para ayudarte con lo que necesites de la tienda: pagos, pedidos, envíos, precios o encontrar productos como consolas, juegos, controles y accesorios.';
     }
 
     getStoredFontSizePreference() {
@@ -1584,7 +1860,8 @@ class ChatbotManager {
         const currentPath = window.location.pathname.toLowerCase();
         return currentPath.includes('/login') ||
                currentPath.includes('/registro') ||
-               currentPath.includes('/registroadmin');
+               currentPath.includes('/registroadmin') ||
+               currentPath.includes('/admin');
     }
 
     createWidget() {
@@ -1615,6 +1892,9 @@ class ChatbotManager {
                 </div>
             </div>
             <div class="chatbot-messages"></div>
+            <div class="chatbot-menu-toggle-wrap">
+                <button type="button" class="chatbot-menu-toggle" aria-expanded="false">Ver menú</button>
+            </div>
             <div class="chatbot-suggestions"></div>
             <form class="chatbot-input-wrap">
                 <input class="chatbot-input" type="text" placeholder="Escribe tu pregunta..." aria-label="Escribe tu pregunta al chatbot">
@@ -1630,13 +1910,23 @@ class ChatbotManager {
         this.messagesContainer = this.panel.querySelector('.chatbot-messages');
         this.input = this.panel.querySelector('.chatbot-input');
         this.fontToggleBtn = this.panel.querySelector('.chatbot-font-btn');
+        this.menuToggleBtn = this.panel.querySelector('.chatbot-menu-toggle');
         this.applyFontSizePreference();
 
-        this.addMessage('bot', 'Hola, soy el asistente de Game Store. Puedo ayudarte con envíos, pagos, devoluciones y contacto.');
+        this.messagesContainer.addEventListener('click', (event) => this.handleMessagesContainerClick(event));
+
         this.renderSuggestions();
+
+        const restored = this.restoreConversationState();
+        if (!restored) {
+            this.addMessage('bot', this.getWelcomeMessage());
+            this.setMenuVisibility(false);
+            this.saveConversationState();
+        }
 
         this.toggleBtn.addEventListener('click', () => this.togglePanel());
         this.fontToggleBtn.addEventListener('click', () => this.toggleFontSizePreference());
+        this.menuToggleBtn.addEventListener('click', () => this.toggleOptionsMenu());
         this.panel.querySelector('.chatbot-close').addEventListener('click', () => this.closePanel());
         this.panel.querySelector('.chatbot-input-wrap').addEventListener('submit', (event) => {
             event.preventDefault();
@@ -1646,35 +1936,138 @@ class ChatbotManager {
 
     renderSuggestions() {
         const container = this.panel.querySelector('.chatbot-suggestions');
-        container.innerHTML = this.suggestions.map(item => `
-            <button type="button" class="chatbot-chip">${item}</button>
-        `).join('');
+        container.innerHTML = '';
 
-        container.querySelectorAll('.chatbot-chip').forEach(chip => {
-            chip.addEventListener('click', () => this.handleUserMessage(chip.textContent));
+        this.suggestions.forEach((item) => {
+            if (item.children && item.children.length > 0) {
+                const group = document.createElement('div');
+                group.className = 'chatbot-menu-group';
+
+                const parentBtn = document.createElement('button');
+                parentBtn.type = 'button';
+                parentBtn.className = 'chatbot-chip chatbot-chip-parent';
+                parentBtn.textContent = item.label;
+                parentBtn.setAttribute('aria-expanded', 'false');
+
+                const submenu = document.createElement('div');
+                submenu.className = 'chatbot-submenu';
+
+                item.children.forEach((childLabel) => {
+                    const childBtn = document.createElement('button');
+                    childBtn.type = 'button';
+                    childBtn.className = 'chatbot-subchip';
+                    childBtn.textContent = childLabel;
+                    childBtn.addEventListener('click', () => {
+                        this.handleUserMessage(childLabel);
+                        this.setMenuVisibility(false);
+                        window.setTimeout(() => this.scrollConversationToBottom(), 120);
+                    });
+                    submenu.appendChild(childBtn);
+                });
+
+                parentBtn.addEventListener('click', () => {
+                    const willShow = !submenu.classList.contains('show');
+                    submenu.classList.toggle('show', willShow);
+                    parentBtn.classList.toggle('expanded', willShow);
+                    parentBtn.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+                });
+
+                group.appendChild(parentBtn);
+                group.appendChild(submenu);
+                container.appendChild(group);
+                return;
+            }
+
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'chatbot-chip';
+            chip.textContent = item.label;
+            chip.addEventListener('click', () => {
+                this.handleUserMessage(item.label);
+                this.setMenuVisibility(false);
+                window.setTimeout(() => this.scrollConversationToBottom(), 120);
+            });
+            container.appendChild(chip);
         });
+    }
+
+    setMenuVisibility(visible) {
+        this.isMenuVisible = Boolean(visible);
+        const suggestionsContainer = this.panel?.querySelector('.chatbot-suggestions');
+        if (suggestionsContainer) {
+            suggestionsContainer.classList.toggle('show', this.isMenuVisible);
+        }
+
+        if (this.menuToggleBtn) {
+            this.menuToggleBtn.textContent = this.isMenuVisible ? 'Ocultar menú' : 'Ver menú';
+            this.menuToggleBtn.setAttribute('aria-expanded', this.isMenuVisible ? 'true' : 'false');
+        }
+
+        if (!this.isMenuVisible) {
+            window.requestAnimationFrame(() => this.scrollConversationToBottom());
+        }
+
+        this.saveConversationState();
+    }
+
+    toggleOptionsMenu() {
+        this.setMenuVisibility(!this.isMenuVisible);
+    }
+
+    hideAllOptions() {
+        const suggestionsContainer = this.panel?.querySelector('.chatbot-suggestions');
+        if (suggestionsContainer) {
+            suggestionsContainer.innerHTML = '';
+        }
+
+        if (this.menuToggleBtn) {
+            this.menuToggleBtn.style.display = 'none';
+        }
+
+        this.setMenuVisibility(false);
+        this.saveConversationState();
     }
 
     togglePanel() {
         const isOpen = this.panel.classList.toggle('show');
         this.toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        if (isOpen) this.input.focus();
+        if (isOpen) {
+            this.input.focus();
+        }
     }
 
     closePanel() {
         this.panel.classList.remove('show');
         this.toggleBtn.setAttribute('aria-expanded', 'false');
+        this.saveConversationState();
     }
 
     handleUserMessage(text) {
         const message = text.trim();
         if (!message) return;
 
+        if (this.isConversationClosed) {
+            this.addMessage('bot', 'Esta conversación quedó cerrada y se mantiene guardada en esta página. Si quieres reiniciarla, recarga la página.');
+            this.saveConversationState();
+            return;
+        }
+
         this.addMessage('user', message);
         this.input.value = '';
         window.setTimeout(() => {
             const responsePayload = this.getResponsePayload(message);
             this.addMessage('bot', responsePayload.text);
+
+            this.trackFaqQuestion(message, responsePayload);
+
+            this.updateConversationContext(responsePayload);
+
+            if (responsePayload.closeConversation) {
+                this.isConversationClosed = true;
+                this.hideAllOptions();
+                this.saveConversationState();
+                return;
+            }
 
             if (responsePayload.actions.length > 0) {
                 this.renderQuickActions(responsePayload.actions);
@@ -1685,7 +2078,30 @@ class ChatbotManager {
                     window.location.href = responsePayload.autoNavigateUrl;
                 }, 800);
             }
+
+            this.saveConversationState();
         }, 180);
+    }
+
+    async trackFaqQuestion(question, responsePayload) {
+        try {
+            const intents = responsePayload?.intents || [];
+            const topIntent = intents.length > 0 ? intents[0].id : null;
+
+            await fetch('/api/chatbot/faq-track', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    question,
+                    top_intent: topIntent,
+                    page_path: window.location.pathname
+                })
+            });
+        } catch (error) {
+            console.warn('No se pudo registrar FAQ del chatbot:', error);
+        }
     }
 
     addMessage(type, text) {
@@ -1693,6 +2109,12 @@ class ChatbotManager {
         message.className = `chatbot-message ${type}`;
         message.textContent = text;
         this.messagesContainer.appendChild(message);
+        this.scrollConversationToBottom();
+        this.saveConversationState();
+    }
+
+    scrollConversationToBottom() {
+        if (!this.messagesContainer) return;
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
     }
 
@@ -1711,15 +2133,24 @@ class ChatbotManager {
             btn.className = 'chatbot-action-btn';
             btn.textContent = action.label;
             btn.setAttribute('aria-label', `Ir a ${action.label}`);
-            btn.addEventListener('click', () => {
-                window.location.href = action.url;
-            });
+            btn.setAttribute('data-action-url', action.url);
             actionsContainer.appendChild(btn);
         });
 
         wrap.appendChild(actionsContainer);
         this.messagesContainer.appendChild(wrap);
-        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+        this.scrollConversationToBottom();
+        this.saveConversationState();
+    }
+
+    handleMessagesContainerClick(event) {
+        const actionBtn = event.target.closest('.chatbot-action-btn[data-action-url]');
+        if (!actionBtn) return;
+
+        const targetUrl = actionBtn.getAttribute('data-action-url');
+        if (!targetUrl) return;
+
+        window.location.href = targetUrl;
     }
 
     normalizeQuery(text) {
@@ -1730,62 +2161,380 @@ class ChatbotManager {
             .trim();
     }
 
+    isLikelyNonsenseQuery(normalizedQuery) {
+        if (!normalizedQuery) return true;
+
+        const compact = normalizedQuery.replace(/[^a-z0-9]/g, '');
+        if (!compact) return true;
+
+        if (/(.)\1{4,}/.test(compact)) return true;
+        if (/asdf|qwer|zxcv|poiuy|lkjh|mnbv/i.test(compact)) return true;
+
+        const tokens = normalizedQuery.split(/\s+/).filter(Boolean);
+        const lettersOnlyTokens = tokens.map((token) => token.replace(/[^a-z]/g, '')).filter(Boolean);
+
+        const hasLargeConsonantCluster = lettersOnlyTokens.some((token) => /[bcdfghjklmnñpqrstvwxyz]{5,}/i.test(token));
+        if (hasLargeConsonantCluster) return true;
+
+        const letterOnly = compact.replace(/[^a-z]/g, '');
+        if (letterOnly.length >= 5) {
+            const vowels = (letterOnly.match(/[aeiou]/g) || []).length;
+            const vowelRatio = vowels / letterOnly.length;
+            if (vowelRatio < 0.28) return true;
+        }
+
+        const knownWords = /\b(hola|buenas|quiero|necesito|como|cómo|que|qué|cual|cuál|cuando|cuándo|donde|dónde|ayuda|precio|precios|pedido|pedidos|pago|pagos|envio|envios|envíos|carrito|contacto|perfil|juego|juegos|accesorio|accesorios|consola|consolas|control|controles|quienes|quiénes|somos|ubicacion|ubicación)\b/;
+        const hasKnownWord = knownWords.test(normalizedQuery);
+
+        if (!hasKnownWord && letterOnly.length >= 8) {
+            const suspiciousWords = lettersOnlyTokens.filter((token) => token.length >= 4).length;
+            if (suspiciousWords >= 1) return true;
+        }
+
+        return false;
+    }
+
+    isFollowUpQuery(normalizedQuery) {
+        if (!normalizedQuery) return false;
+
+        if (normalizedQuery.length <= 4) return true;
+
+        return /\b(y|tambien|tambien quiero|de eso|de eso mismo|de ese|de esa|eso|mas|mas info|otro|otra)\b/.test(normalizedQuery);
+    }
+
+    isAffirmativeQuery(normalizedQuery) {
+        return /\b(si|sí|dale|ok|oka|perfecto|de una|hazlo|hágalo|vamos|listo|claro)\b/.test(normalizedQuery);
+    }
+
+    getCurrentPageContext() {
+        const path = window.location.pathname.toLowerCase();
+
+        const pageMap = [
+            { match: '/consolas', intentId: 'cat_consolas', label: 'Consolas' },
+            { match: '/accesorios', intentId: 'cat_accesorios', label: 'Accesorios' },
+            { match: '/controles', intentId: 'cat_controles', label: 'Controles' },
+            { match: '/juegos', intentId: 'cat_juegos', label: 'Juegos' },
+            { match: '/carrito', intentId: 'carrito', label: 'Carrito' },
+            { match: '/pedidos', intentId: 'pedidos', label: 'Pedidos' },
+            { match: '/perfil/direccion', intentId: 'envios', label: 'Dirección de envío' },
+            { match: '/contactanos', intentId: 'contacto', label: 'Contacto' }
+        ];
+
+        return pageMap.find(page => path.includes(page.match)) || null;
+    }
+
+    shouldInjectPageContextIntent(normalizedQuery, matchedIntents, pageContext) {
+        if (!pageContext) return false;
+
+        const hasPageIntent = matchedIntents.some(intent => intent.id === pageContext.intentId);
+        if (hasPageIntent) return false;
+
+        const specificCategoryIds = ['cat_consolas', 'cat_accesorios', 'cat_controles', 'cat_juegos'];
+        const hasOtherSpecificCategory = matchedIntents.some(intent =>
+            specificCategoryIds.includes(intent.id) && intent.id !== pageContext.intentId
+        );
+        if (hasOtherSpecificCategory) return false;
+
+        const contextWords = /\b(aqui|acá|aca|esta pagina|en esta pagina|este producto|estos productos|de aqui|de aca)\b/.test(normalizedQuery);
+        const genericCommerceWords = /\b(precio|precios|recomienda|recomendacion|recomendación|opciones|info|informacion|información|disponible|stock|catalogo|catálogo)\b/.test(normalizedQuery);
+
+        if (contextWords || genericCommerceWords) return true;
+
+        const domainIntentIds = ['precios', 'productos', 'recomendacion'];
+        return matchedIntents.some(intent => domainIntentIds.includes(intent.id));
+    }
+
+    addPageContextPrefix(baseText, intents, normalizedQuery) {
+        const pageContext = this.getCurrentPageContext();
+        if (!pageContext) return baseText;
+
+        const hasContextIntent = intents.some(intent => intent.id === pageContext.intentId);
+        if (!hasContextIntent) return baseText;
+
+        const mentionsCurrentPage = /\b(aqui|acá|aca|esta pagina|en esta pagina|estos|estas|este)\b/.test(normalizedQuery);
+        const asksAboutPriceOrOptions = /\b(precio|precios|recomienda|opciones|disponible|stock)\b/.test(normalizedQuery);
+
+        if (!mentionsCurrentPage && !asksAboutPriceOrOptions) return baseText;
+
+        return `Veo que estás en ${pageContext.label}. ${baseText}`;
+    }
+
+    formatAsContinuation(text) {
+        if (!text) return '';
+        return text.charAt(0).toLowerCase() + text.slice(1);
+    }
+
+    buildNaturalCombinedResponse(intents, normalizedQuery = '') {
+        if (!intents || intents.length === 0) {
+            return 'Cuéntame con confianza qué necesitas y te ayudo paso a paso. Por ejemplo: pago, pedido, consola, accesorios o contacto.';
+        }
+
+        if (intents.length === 1) {
+            return this.addPageContextPrefix(intents[0].response, intents, normalizedQuery);
+        }
+
+        const primary = intents[0];
+        const secondary = intents[1];
+        let response = primary.response;
+
+        if (secondary) {
+            response += ` Además, ${this.formatAsContinuation(secondary.response)}`;
+        }
+
+        if (intents.length > 2) {
+            response += ' Si quieres, lo resolvemos por partes para que sea más rápido y claro.';
+        }
+
+        return this.addPageContextPrefix(response, intents, normalizedQuery);
+    }
+
+    updateConversationContext(payload) {
+        this.conversationContext.turns += 1;
+        this.conversationContext.lastIntents = (payload.intents || []).map(intent => intent.id);
+        this.conversationContext.lastActions = payload.actions || [];
+        this.saveConversationState();
+    }
+
+    saveConversationState() {
+        if (!this.messagesContainer) return;
+
+        const state = {
+            messagesHtml: this.messagesContainer.innerHTML,
+            conversationContext: this.conversationContext,
+            isConversationClosed: this.isConversationClosed,
+            isMenuVisible: this.isMenuVisible,
+            menuToggleHidden: this.menuToggleBtn ? this.menuToggleBtn.style.display === 'none' : false
+        };
+
+        try {
+            sessionStorage.setItem(this.sessionStorageKey, JSON.stringify(state));
+        } catch (error) {
+            console.warn('No se pudo guardar estado del chatbot en sesión:', error);
+        }
+
+        try {
+            this.saveStateInWindowName(state);
+        } catch (error) {
+            console.warn('No se pudo guardar respaldo del chatbot en window.name:', error);
+        }
+
+        try {
+            localStorage.setItem(this.localStorageKey, JSON.stringify(state));
+        } catch (error) {
+            console.warn('No se pudo guardar respaldo del chatbot en localStorage:', error);
+        }
+    }
+
+    restoreConversationState() {
+        try {
+            const state = this.getPersistedConversationState();
+            if (!state || typeof state !== 'object') return false;
+
+            if (state.messagesHtml && this.messagesContainer) {
+                this.messagesContainer.innerHTML = state.messagesHtml;
+            }
+
+            if (state.conversationContext && typeof state.conversationContext === 'object') {
+                this.conversationContext = {
+                    lastIntents: Array.isArray(state.conversationContext.lastIntents) ? state.conversationContext.lastIntents : [],
+                    lastActions: Array.isArray(state.conversationContext.lastActions) ? state.conversationContext.lastActions : [],
+                    turns: Number(state.conversationContext.turns || 0)
+                };
+            }
+
+            this.isConversationClosed = Boolean(state.isConversationClosed);
+
+            if (this.menuToggleBtn) {
+                this.menuToggleBtn.style.display = state.menuToggleHidden ? 'none' : '';
+            }
+
+            if (!this.isConversationClosed) {
+                const suggestionsContainer = this.panel?.querySelector('.chatbot-suggestions');
+                if (suggestionsContainer && suggestionsContainer.children.length === 0) {
+                    this.renderSuggestions();
+                }
+            }
+
+            this.setMenuVisibility(Boolean(state.isMenuVisible));
+            this.scrollConversationToBottom();
+
+            return true;
+        } catch (error) {
+            console.warn('No se pudo restaurar estado del chatbot en sesión:', error);
+            return false;
+        }
+    }
+
+    getPersistedConversationState() {
+        let state = null;
+
+        try {
+            const raw = sessionStorage.getItem(this.sessionStorageKey);
+            if (raw) {
+                state = JSON.parse(raw);
+            }
+        } catch (error) {
+            state = null;
+        }
+
+        if (state && typeof state === 'object') {
+            return state;
+        }
+
+        try {
+            const localRaw = localStorage.getItem(this.localStorageKey);
+            if (localRaw) {
+                const localState = JSON.parse(localRaw);
+                if (localState && typeof localState === 'object') {
+                    return localState;
+                }
+            }
+        } catch (error) {
+            // no-op
+        }
+
+        try {
+            return this.readStateFromWindowName();
+        } catch (error) {
+            return null;
+        }
+    }
+
+    readStateFromWindowName() {
+        const rawWindowName = window.name || '';
+        if (!rawWindowName) return null;
+
+        const parsed = JSON.parse(rawWindowName);
+        if (!parsed || typeof parsed !== 'object') return null;
+
+        const state = parsed[this.windowStateKey];
+        if (!state || typeof state !== 'object') return null;
+
+        return state;
+    }
+
+    saveStateInWindowName(state) {
+        let parsed = {};
+
+        try {
+            parsed = window.name ? JSON.parse(window.name) : {};
+            if (!parsed || typeof parsed !== 'object') {
+                parsed = {};
+            }
+        } catch (error) {
+            parsed = {};
+        }
+
+        parsed[this.windowStateKey] = state;
+        window.name = JSON.stringify(parsed);
+    }
+
     getIntentCatalog() {
         return [
             {
                 id: 'saludo',
-                pattern: /\b(hola|buenas|hey|que tal|hi)\b/,
-                response: '¡Hola! Te ayudo con pagos, pedidos, envíos, cuenta, carrito y contacto.'
+                pattern: /\b(hola|holi|buenas|buen dia|buen día|buenas tardes|buenas noches|hey|que tal|hi|hello)\b/,
+                response: '¡Hola! Qué bueno tenerte por aquí. Dime qué necesitas y te ayudo enseguida.'
+            },
+            {
+                id: 'despedida',
+                pattern: /\b(chao|chau|adios|adiós|hasta luego|nos vemos|bye|me voy|gracias bye|eso es todo)\b/,
+                response: '¡Listo! Fue un gusto ayudarte. Cuando quieras, aquí estaré para ti.'
             },
             {
                 id: 'pagos',
-                pattern: /\b(pago|pagos|pagar|tarjeta|debito|credito|paypal|mercadopago|checkout|transaccion)\b/,
-                response: 'Pagos: puedes finalizar compra desde el carrito y elegir PayPal. Si un pago falla, intenta nuevamente o cambia de método.'
+                pattern: /\b(pago|pagos|pagar|tarjeta|debito|débito|credito|crédito|paypal|checkout|transaccion|transacción|pasarela|cobro)\b/,
+                response: 'Para pagar, solo ve al carrito y continúa al checkout con PayPal. Si el pago falla, intenta de nuevo y verifica conexión, datos y saldo.'
             },
             {
                 id: 'pedidos',
-                pattern: /\b(pedido|pedidos|orden|ordenes|compra|compras|estado|seguimiento)\b/,
-                response: 'Pedidos: revisa el estado en la sección Pedidos. Ahí verás fecha, productos, total y estado actualizado de tu orden.'
+                pattern: /\b(pedido|pedidos|orden|ordenes|órdenes|compra|compras|estado|seguimiento|tracking|rastreo|guia|guía)\b/,
+                response: 'Puedes revisar tu pedido desde la sección Pedidos. Ahí verás estado, fecha, productos y total actualizado.'
             },
             {
                 id: 'envios',
-                pattern: /\b(envio|envios|entrega|domicilio|llega|despacho|shipping|direccion)\b/,
-                response: 'Envíos: asegúrate de tener bien tu dirección de envío antes de pagar. El avance de entrega lo puedes consultar en Pedidos.'
+                pattern: /\b(envio|envíos|envios|entrega|domicilio|llega|despacho|shipping|direccion|dirección|reparto)\b/,
+                response: 'Con gusto te ayudo con envíos. Antes de pagar, revisa bien tu dirección y luego consulta el avance en Pedidos.'
             },
             {
                 id: 'carrito',
-                pattern: /\b(carrito|carro|agregar|quitar|cantidad|subtotal|total)\b/,
-                response: 'Carrito: puedes ajustar cantidades, eliminar productos y validar el total antes de ir al checkout.'
+                pattern: /\b(carrito|carro|agregar|anadir|añadir|quitar|eliminar|cantidad|subtotal|total|vaciar carrito)\b/,
+                response: 'En el carrito puedes ajustar cantidades, quitar productos y confirmar el total antes de pagar.'
             },
             {
                 id: 'devoluciones',
-                pattern: /\b(devolucion|devoluciones|reembolso|garantia|cambio|cancelar|cancelacion)\b/,
-                response: 'Devoluciones/Reembolsos: contacta soporte con tu número de pedido y motivo para que te guíen según el caso.'
+                pattern: /\b(devolucion|devoluciones|reembolso|garantia|garantía|cambio|cancelar|cancelacion|cancelación|devolver)\b/,
+                response: 'Para devoluciones o reembolsos, lo ideal es escribir a soporte con tu número de pedido y motivo para darte una solución rápida.'
             },
             {
                 id: 'cuenta',
-                pattern: /\b(cuenta|login|iniciar sesion|registro|registrar|contrasena|perfil|mis datos|usuario|correo|email)\b/,
-                response: 'Cuenta: puedes iniciar sesión, registrarte y actualizar tus datos desde perfil. Si olvidaste acceso, intenta con tu correo correcto y vuelve a ingresar.'
+                pattern: /\b(cuenta|login|iniciar sesion|registro|registrar|contrasena|contraseña|perfil|mis datos|usuario|correo|email|acceso)\b/,
+                response: 'Con tu cuenta puedes iniciar sesión, registrarte y actualizar tus datos desde Perfil. Si tienes problemas de acceso, te guío para recuperarlo.'
+            },
+            {
+                id: 'cat_consolas',
+                pattern: /\b(consola|consolas|playstation|ps4|ps5|xbox|nintendo|switch)\b/,
+                response: 'Perfecto, te ayudo con consolas. Te puedo llevar directo a esa categoría para que compares modelos y precios.'
+            },
+            {
+                id: 'cat_accesorios',
+                pattern: /\b(accesorio|accesorios|audifono|audífono|headset|soporte|cargador|funda|cable|mousepad)\b/,
+                response: 'Buenísimo, te ayudo con accesorios. Si quieres, te llevo a la categoría para ver opciones y precios actuales.'
+            },
+            {
+                id: 'cat_controles',
+                pattern: /\b(control|controles|joystick|gamepad|mando)\b/,
+                response: 'Claro, te ayudo con controles. Te puedo llevar a esa categoría para que compares opciones rápidamente.'
+            },
+            {
+                id: 'cat_juegos',
+                pattern: /\b(juego|juegos|videojuego|videojuegos|titulos|títulos)\b/,
+                response: 'Si buscas juegos, te llevo a la categoría para que revises títulos y detalles en cada tarjeta.'
             },
             {
                 id: 'productos',
-                pattern: /\b(producto|productos|juego|juegos|consola|consolas|accesorio|accesorios|control|controles|stock|disponible)\b/,
-                response: 'Productos: puedes explorar por categorías (juegos, consolas, controles y accesorios) y revisar disponibilidad directamente en cada tarjeta.'
+                pattern: /\b(producto|productos|catalogo|catálogo|tienda|stock|disponible|disponibilidad)\b/,
+                response: 'Puedes explorar productos por categorías y revisar disponibilidad directamente en cada tarjeta.'
             },
             {
                 id: 'precios',
-                pattern: /\b(precio|precios|oferta|ofertas|descuento|descuentos|promocion|promociones)\b/,
-                response: 'Precios/Ofertas: verifica el valor final en carrito antes de pagar, ahí se refleja el total real de tu compra.'
+                pattern: /\b(precio|precios|cuanto|cuánto|valor|vale|coste|costo|oferta|ofertas|descuento|descuentos|promocion|promociones|barato|barata)\b/,
+                response: 'Sobre precios, te recomiendo validar el valor final en el carrito, porque ahí verás el monto real antes de pagar.'
             },
             {
                 id: 'contacto',
-                pattern: /\b(contacto|soporte|ayuda|telefono|correo|email|whatsapp|asesor)\b/,
-                response: 'Contacto: usa la sección Contáctanos para enviar tu caso. Si reportas un pedido, incluye el número para atención más rápida.'
+                pattern: /\b(contacto|soporte|telefono|teléfono|correo|email|whatsapp|asesor|atencion|atención)\b/,
+                response: 'Si necesitas soporte, te puedo llevar a Contáctanos. Si es por un pedido, incluye el número para atenderte más rápido.'
+            },
+            {
+                id: 'ubicacion',
+                pattern: /\b(ubicacion|ubicación|donde estan|donde están|direccion de tienda|tienda fisica|tienda física|mapa)\b/,
+                response: 'Si quieres, te llevo a Ubicación para que veas el mapa y datos de referencia de la tienda.'
+            },
+            {
+                id: 'quienes_somos',
+                pattern: /\b(quienes son|quienes son|quienes somos|quienes-somos|quien es game store|sobre ustedes|sobre nosotros|historia de la tienda)\b/,
+                response: 'Claro, te llevo al apartado de Quiénes Somos para que conozcas mejor la tienda.'
+            },
+            {
+                id: 'recomendacion',
+                pattern: /\b(recomienda|recomendacion|recomendación|que me recomiendas|sugerencia|sugerencias|cual compro|cuál compro)\b/,
+                response: '¡Claro! Te puedo recomendar según lo que buscas. Dime si prefieres consola, juegos o accesorios y tu presupuesto aproximado.'
+            },
+            {
+                id: 'seguridad',
+                pattern: /\b(seguro|segura|seguridad|confiable|confiar|fraude|estafa)\b/,
+                response: 'Entiendo tu preocupación. Lo ideal es revisar todo en carrito antes de pagar y usar siempre los canales oficiales de la tienda.'
+            },
+            {
+                id: 'problema',
+                pattern: /\b(no funciona|error|problema|falla|fallando|bug|no puedo|no me deja)\b/,
+                response: 'Vamos a solucionarlo. Cuéntame exactamente qué intentaste hacer y en qué paso falló para guiarte mejor.'
             },
             {
                 id: 'agradecimiento',
                 pattern: /\b(gracias|muchas gracias|ok gracias|perfecto)\b/,
-                response: '¡Con gusto! Si quieres, dime exactamente qué necesitas: pago, envío, pedido, cuenta o carrito.'
+                response: '¡Con gusto! Si quieres, sigo contigo para resolver lo que te falte.'
             }
         ];
     }
@@ -1799,8 +2548,16 @@ class ChatbotManager {
             devoluciones: { label: 'Ir a contacto', url: '/contactanos' },
             cuenta: { label: 'Ir a mis datos', url: '/perfil/mis-datos' },
             contacto: { label: 'Ir a contacto', url: '/contactanos' },
+            cat_consolas: { label: 'Ver consolas', url: '/consolas' },
+            cat_accesorios: { label: 'Ver accesorios', url: '/accesorios' },
+            cat_controles: { label: 'Ver controles', url: '/controles' },
+            cat_juegos: { label: 'Ver juegos', url: '/juegos' },
             productos: { label: 'Ver juegos', url: '/juegos' },
-            precios: { label: 'Ver juegos', url: '/juegos' }
+            precios: { label: 'Ver juegos', url: '/juegos' },
+            ubicacion: { label: 'Ver ubicación', url: '/ubicacion' },
+            quienes_somos: { label: 'Ver quiénes somos', url: '/quienes-somos' },
+            recomendacion: { label: 'Ver consolas', url: '/consolas' },
+            problema: { label: 'Ir a contacto', url: '/contactanos' }
         };
     }
 
@@ -1812,6 +2569,24 @@ class ChatbotManager {
         const actionMap = this.getIntentActionMap();
         const actions = [];
         const seen = new Set();
+        const specificCategoryIds = ['cat_consolas', 'cat_accesorios', 'cat_controles', 'cat_juegos'];
+        const hasSpecificCategory = intents.some(intent => specificCategoryIds.includes(intent.id));
+        const hasGenericProducts = intents.some(intent => intent.id === 'productos');
+
+        if (hasSpecificCategory) {
+            const primaryCategoryIntent = intents.find(intent => specificCategoryIds.includes(intent.id));
+            const primaryAction = primaryCategoryIntent ? actionMap[primaryCategoryIntent.id] : null;
+            return primaryAction ? [primaryAction] : [];
+        }
+
+        if (hasGenericProducts) {
+            return [
+                { label: 'Ver juegos', url: '/juegos' },
+                { label: 'Ver consolas', url: '/consolas' },
+                { label: 'Ver controles', url: '/controles' },
+                { label: 'Ver accesorios', url: '/accesorios' }
+            ];
+        }
 
         intents.forEach((intent) => {
             const action = actionMap[intent.id];
@@ -1828,11 +2603,45 @@ class ChatbotManager {
     composeIntentResponse(query) {
         const normalizedQuery = this.normalizeQuery(query);
         const intents = this.getIntentCatalog();
-        const matched = intents.filter(intent => intent.pattern.test(normalizedQuery));
+        let matched = intents.filter(intent => intent.pattern.test(normalizedQuery));
+        const pageContext = this.getCurrentPageContext();
+
+        const asksPrice = /\b(precio|precios|cuanto|cuánto|valor|vale|coste|costo)\b/.test(normalizedQuery);
+        const lastIntents = this.conversationContext.lastIntents || [];
+
+        if (matched.length === 0 && this.isFollowUpQuery(normalizedQuery) && lastIntents.length > 0) {
+            matched = intents.filter(intent => lastIntents.includes(intent.id));
+        }
+
+        if (asksPrice && matched.length > 0 && !matched.some(intent => intent.id === 'precios')) {
+            const pricesIntent = intents.find(intent => intent.id === 'precios');
+            if (pricesIntent) matched.push(pricesIntent);
+        }
+
+        if (asksPrice && matched.length === 0 && lastIntents.length > 0) {
+            matched = intents.filter(intent => lastIntents.includes(intent.id));
+            const pricesIntent = intents.find(intent => intent.id === 'precios');
+            if (pricesIntent) matched.push(pricesIntent);
+        }
+
+        if (this.shouldInjectPageContextIntent(normalizedQuery, matched, pageContext)) {
+            const pageIntent = intents.find(intent => intent.id === pageContext.intentId);
+            if (pageIntent) {
+                matched.push(pageIntent);
+            }
+        }
 
         if (matched.length === 0) {
+            if (this.isLikelyNonsenseQuery(normalizedQuery)) {
+                return {
+                    text: 'No logré entender bien tu mensaje 😅. ¿Me lo puedes explicar con más detalle? Por ejemplo: pagos, pedidos, envíos, productos o contacto.',
+                    intents: [],
+                    normalizedQuery
+                };
+            }
+
             return {
-                text: 'Te puedo ayudar con: pagos, pedidos, envíos, carrito, cuenta y contacto. Escribe una palabra clave como "pago", "pedido" o "devolución".',
+                text: 'Te entiendo. Para ayudarte mejor, dime qué necesitas resolver ahora mismo: pago, pedido, envío, consola, accesorios, precios o contacto.',
                 intents: [],
                 normalizedQuery
             };
@@ -1847,39 +2656,82 @@ class ChatbotManager {
             }
         });
 
-        const priorityOrder = ['pagos', 'pedidos', 'envios', 'carrito', 'devoluciones', 'cuenta', 'contacto', 'productos', 'precios', 'saludo', 'agradecimiento'];
-        uniqueById.sort((a, b) => priorityOrder.indexOf(a.id) - priorityOrder.indexOf(b.id));
+        const nonMetaDomainIntents = ['pagos', 'pedidos', 'envios', 'carrito', 'devoluciones', 'cuenta', 'cat_consolas', 'cat_accesorios', 'cat_controles', 'cat_juegos', 'precios', 'contacto', 'productos', 'ubicacion', 'quienes_somos', 'recomendacion', 'seguridad', 'problema'];
+        const hasDomainIntent = uniqueById.some(intent => nonMetaDomainIntents.includes(intent.id));
 
-        let text = '';
-        if (uniqueById.length === 1) {
-            text = uniqueById[0].response;
+        let filteredIntents = uniqueById;
+        if (hasDomainIntent) {
+            filteredIntents = uniqueById.filter(intent => intent.id !== 'saludo' && intent.id !== 'agradecimiento');
+        }
+
+        const hasPaymentIntent = filteredIntents.some(intent => intent.id === 'pagos');
+        if (hasPaymentIntent && !/\b(contacto|soporte|asesor|telefono|teléfono|correo|email|whatsapp)\b/.test(normalizedQuery)) {
+            filteredIntents = filteredIntents.filter(intent => intent.id !== 'contacto');
+        }
+
+        const priorityOrder = ['despedida', 'problema', 'pagos', 'pedidos', 'envios', 'carrito', 'devoluciones', 'cuenta', 'cat_consolas', 'cat_accesorios', 'cat_controles', 'cat_juegos', 'precios', 'quienes_somos', 'recomendacion', 'contacto', 'ubicacion', 'seguridad', 'productos', 'saludo', 'agradecimiento'];
+        filteredIntents.sort((a, b) => priorityOrder.indexOf(a.id) - priorityOrder.indexOf(b.id));
+
+        const farewellIntent = filteredIntents.find(intent => intent.id === 'despedida');
+        if (farewellIntent) {
             return {
-                text,
-                intents: uniqueById,
+                text: farewellIntent.response,
+                intents: [farewellIntent],
                 normalizedQuery
             };
         }
 
-        const topResponses = uniqueById.slice(0, 3).map(intent => `• ${intent.response}`);
-        text = `Entendí varias consultas relacionadas. Te resumo lo más importante:\n${topResponses.join('\n')}`;
+        if (filteredIntents.length === 1) {
+            return {
+                text: this.addPageContextPrefix(filteredIntents[0].response, filteredIntents, normalizedQuery),
+                intents: filteredIntents,
+                normalizedQuery
+            };
+        }
 
         return {
-            text,
-            intents: uniqueById,
+            text: this.buildNaturalCombinedResponse(filteredIntents, normalizedQuery),
+            intents: filteredIntents,
             normalizedQuery
         };
     }
 
     getResponsePayload(text) {
+        const normalizedQuery = this.normalizeQuery(text);
+
+        if (this.isAffirmativeQuery(normalizedQuery) && this.conversationContext.lastActions.length > 0) {
+            const directAction = this.conversationContext.lastActions[0];
+            return {
+                text: `Perfecto, te llevo a "${directAction.label}" ahora mismo.`,
+                actions: [],
+                autoNavigateUrl: directAction.url,
+                intents: []
+            };
+        }
+
         const resolved = this.composeIntentResponse(text);
-        const actions = this.resolveActionsFromIntents(resolved.intents || []).slice(0, 3);
+        const hasFarewell = (resolved.intents || []).some(intent => intent.id === 'despedida');
+
+        if (hasFarewell) {
+            return {
+                text: resolved.text,
+                actions: [],
+                autoNavigateUrl: null,
+                intents: resolved.intents || [],
+                closeConversation: true
+            };
+        }
+
+        const actions = this.resolveActionsFromIntents(resolved.intents || []).slice(0, 4);
         const directNavigate = actions.length > 0 && this.isDirectNavigationCommand(resolved.normalizedQuery || '');
 
         if (!directNavigate) {
             return {
                 text: resolved.text,
                 actions,
-                autoNavigateUrl: null
+                autoNavigateUrl: null,
+                intents: resolved.intents || [],
+                closeConversation: false
             };
         }
 
@@ -1887,7 +2739,9 @@ class ChatbotManager {
         return {
             text: `${resolved.text} Te llevo ahora a "${primaryAction.label}"...`,
             actions: [],
-            autoNavigateUrl: primaryAction.url
+            autoNavigateUrl: primaryAction.url,
+            intents: resolved.intents || [],
+            closeConversation: false
         };
     }
 }

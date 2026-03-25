@@ -1,15 +1,15 @@
 from app import db
-from datetime import datetime
+from app.utils.datetime_utils import utc_now_naive
 
 class ContactMessage(db.Model):
     __tablename__ = 'mensajes_contacto'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(200), nullable=False)
     asunto = db.Column(db.String(300), nullable=False)
     mensaje = db.Column(db.Text, nullable=False)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=utc_now_naive)
     leido = db.Column(db.Boolean, default=False)
     respondido = db.Column(db.Boolean, default=False)
 

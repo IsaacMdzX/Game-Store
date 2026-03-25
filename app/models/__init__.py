@@ -1,7 +1,7 @@
 from .models import Categoria, Producto, Carrito, CarritoItem
 from .role import Role
 from .usuario import Usuario
-from .analytics import AdminActivity, InventarioMovimiento, Pago, Reporte, ReporteItem
+from .analytics import AdminActivity, InventarioMovimiento, Pago, Reporte, ReporteItem, ChatbotFAQ
 from .contacto import ContactMessage
 
 __all__ = [
@@ -16,5 +16,6 @@ __all__ = [
     'Pago',
     'Reporte',
     'ReporteItem',
+    'ChatbotFAQ',
     'ContactMessage',
 ]

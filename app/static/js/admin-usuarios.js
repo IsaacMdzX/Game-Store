@@ -376,7 +376,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return fecha.toLocaleDateString('es-ES', {
             year: 'numeric',
             month: '2-digit',
-            day: '2-digit'
+            day: '2-digit',
+            timeZone: 'America/Mexico_City'
         });
     }
 

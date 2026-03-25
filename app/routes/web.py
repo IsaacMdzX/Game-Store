@@ -10,9 +10,17 @@ from app.models.usuario import Usuario
 from app.models.models import Carrito, CarritoItem, Producto, Categoria
 from app.models.role import Role
 from app.models.favorito import Favorito
-from app.models.analytics import AdminActivity, InventarioMovimiento, Pago
+from app.models.analytics import AdminActivity, InventarioMovimiento, Pago, ChatbotFAQ
 from sqlalchemy import func
 from sqlalchemy.orm import selectinload
+from app.utils.datetime_utils import (
+    utc_now_naive,
+    format_datetime_mx,
+    isoformat_datetime_mx,
+    parse_mx_date_start_to_utc_naive,
+    parse_mx_date_end_exclusive_to_utc_naive,
+    today_mx,
+)
 
 web_bp = Blueprint('web', __name__)
 
@@ -70,6 +78,12 @@ def admin_usuarios():
     return render_template('admin_templates/usuarios.html')
 
 
+@web_bp.route('/admin/chatbot-faqs')
+@admin_required
+def admin_chatbot_faqs():
+    return render_template('admin_templates/chatbot_faqs.html')
+
+
 @web_bp.route('/admin/pedidos')
 @admin_required
 def admin_pedidos():
@@ -106,6 +120,52 @@ def admin_perfil():
 def admin():
     """Ruta principal del administrador - SOLO accesible para rol 1"""
     return render_template('admin_templates/admin.html')
+
+
+@web_bp.route('/api/chatbot/faq-track', methods=['POST'])
+def api_chatbot_faq_track():
+    """Registrar preguntas frecuentes del chatbot para analítica/admin."""
+    try:
+        data = request.get_json(silent=True) or {}
+        question = (data.get('question') or '').strip()
+
+        if len(question) < 3:
+            return jsonify({'success': True, 'skipped': True})
+
+        normalized = ' '.join(question.lower().split())[:300]
+        if not any(char.isalnum() for char in normalized):
+            return jsonify({'success': True, 'skipped': True})
+
+        top_intent = (data.get('top_intent') or '').strip()[:80] or None
+        page_path = (data.get('page_path') or '').strip()[:120] or None
+
+        faq = ChatbotFAQ.query.filter_by(pregunta_normalizada=normalized).first()
+        now = utc_now_naive()
+
+        if faq:
+            faq.frecuencia = (faq.frecuencia or 0) + 1
+            faq.ultima_consulta = now
+            faq.pregunta_original = question[:300]
+            faq.ultima_intencion = top_intent
+            faq.ultima_pagina = page_path
+        else:
+            faq = ChatbotFAQ(
+                pregunta_normalizada=normalized,
+                pregunta_original=question[:300],
+                frecuencia=1,
+                primera_consulta=now,
+                ultima_consulta=now,
+                ultima_intencion=top_intent,
+                ultima_pagina=page_path,
+            )
+            db.session.add(faq)
+
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error registrando FAQ chatbot: {e}")
+        return jsonify({'success': False, 'error': 'Error registrando FAQ'}), 500
 
 # ----------------------------------------- RUTAS DE USUARIO ---------------------------------------- #
 
@@ -144,9 +204,9 @@ def perfil():
 
     pedidos_count = Pedido.query.filter_by(usuario_id=usuario.id_usuario).count()
     if usuario.fecha_registro:
-        fecha_registro = usuario.fecha_registro.strftime('%d/%m/%Y')
+        fecha_registro = format_datetime_mx(usuario.fecha_registro, '%d/%m/%Y', 'No disponible')
     if usuario.ultimo_acceso:
-        ultimo_acceso = usuario.ultimo_acceso.strftime('%d/%m/%Y %H:%M')
+        ultimo_acceso = format_datetime_mx(usuario.ultimo_acceso, '%d/%m/%Y %H:%M', 'No disponible')
 
     return render_template(
         'perfiluser.html',
@@ -229,7 +289,7 @@ def pedidos():
             pedido.usuario_id,
             pedido.estado,
             float(pedido.total) if pedido.total else 0,
-            pedido.fecha_pedido.strftime('%Y-%m-%d %H:%M') if pedido.fecha_pedido else None,
+            format_datetime_mx(pedido.fecha_pedido, '%Y-%m-%d %H:%M', None) if pedido.fecha_pedido else None,
             signature_items,
         )
         if pedido_signature in pedidos_signatures:
@@ -241,7 +301,7 @@ def pedidos():
 
         imagen = normalizar_imagen_producto(producto.imagen if producto else None)
 
-        fecha_compra = pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') if pedido.fecha_pedido else 'No disponible'
+        fecha_compra = format_datetime_mx(pedido.fecha_pedido, '%d/%m/%Y %H:%M', 'No disponible') if pedido.fecha_pedido else 'No disponible'
         fecha_entrega = 'Por confirmar'
 
         estado_info = estado_map.get(pedido.estado, {'label': pedido.estado, 'class': 'procesando'})
@@ -323,7 +383,7 @@ def detalle_pedido(pedido_id):
 
     pedido_data = {
         'id_pedido': pedido.id_pedido,
-        'fecha_pedido': pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M') if pedido.fecha_pedido else 'No disponible',
+        'fecha_pedido': format_datetime_mx(pedido.fecha_pedido, '%d/%m/%Y %H:%M', 'No disponible') if pedido.fecha_pedido else 'No disponible',
         'estado': estado_map.get(pedido.estado, pedido.estado),
         'metodo_pago': (pedido.metodo_pago or 'paypal').capitalize(),
         'direccion_envio': pedido.direccion_envio or 'No especificada',
@@ -1061,7 +1121,7 @@ def api_favoritos():
             producto = favorito.producto
             favoritos_data.append({
                 'id': favorito.id_favorito,
-                'fecha_agregado': favorito.fecha_agregado.isoformat() if favorito.fecha_agregado else None,
+                'fecha_agregado': isoformat_datetime_mx(favorito.fecha_agregado) if favorito.fecha_agregado else None,
                 'producto': {
                     'id': producto.id_producto,
                     'nombre': producto.nombre,
@@ -1219,7 +1279,7 @@ def api_admin_productos():
                 'categoria': producto.categoria.nombre if producto.categoria else 'Sin categoría',
                 'categoria_id': producto.categoria_id,
                 'activo': producto.activo,
-                'fecha_creacion': producto.fecha_creacion.isoformat() if producto.fecha_creacion else None
+                'fecha_creacion': isoformat_datetime_mx(producto.fecha_creacion) if producto.fecha_creacion else None
             })
 
         return jsonify({
@@ -1650,7 +1710,7 @@ def api_detalle_pedido_usuario(pedido_id):
                 'id_pedido': pedido.id_pedido,
                 'total': float(pedido.total) if pedido.total else 0,
                 'estado': estado_map.get(pedido.estado, pedido.estado),
-                'fecha_pedido': pedido.fecha_pedido.isoformat() if pedido.fecha_pedido else None,
+                'fecha_pedido': isoformat_datetime_mx(pedido.fecha_pedido) if pedido.fecha_pedido else None,
                 'metodo_pago': metodo_pago,
                 'direccion_envio': pedido.direccion_envio or 'No especificada',
                 'id_transaccion': id_transaccion,
@@ -1782,8 +1842,8 @@ def api_admin_usuarios():
                 'rol': usuario.rol.nombre if usuario.rol else 'Sin rol',
                 'rol_id': usuario.rol_id,
                 'activo': usuario.activo,
-                'fecha_registro': usuario.fecha_registro.isoformat() if usuario.fecha_registro else None,
-                'ultimo_login': usuario.ultimo_acceso.isoformat() if usuario.ultimo_acceso else None
+                'fecha_registro': isoformat_datetime_mx(usuario.fecha_registro) if usuario.fecha_registro else None,
+                'ultimo_login': isoformat_datetime_mx(usuario.ultimo_acceso) if usuario.ultimo_acceso else None
             })
 
         return jsonify({
@@ -2039,10 +2099,14 @@ def api_admin_pedidos():
             query = query.filter(Pedido.estado == estado)
 
         if fecha_inicio:
-            query = query.filter(Pedido.fecha_pedido >= fecha_inicio)
+            fecha_inicio_utc = parse_mx_date_start_to_utc_naive(fecha_inicio)
+            if fecha_inicio_utc:
+                query = query.filter(Pedido.fecha_pedido >= fecha_inicio_utc)
 
         if fecha_fin:
-            query = query.filter(Pedido.fecha_pedido <= fecha_fin)
+            fecha_fin_utc_exclusive = parse_mx_date_end_exclusive_to_utc_naive(fecha_fin)
+            if fecha_fin_utc_exclusive:
+                query = query.filter(Pedido.fecha_pedido < fecha_fin_utc_exclusive)
 
         # Ordenar por fecha más reciente primero
         pedidos = query.order_by(Pedido.fecha_pedido.desc()).all()
@@ -2069,8 +2133,8 @@ def api_admin_pedidos():
                 'cantidad_total': sum(item.cantidad for item in pedido.items),
                 'total_pedido': float(pedido.total) if pedido.total else 0,
                 'estado': pedido.estado,
-                'fecha_pedido': pedido.fecha_pedido.strftime('%Y-%m-%d %H:%M') if pedido.fecha_pedido else '',
-                'fecha_iso': pedido.fecha_pedido.isoformat() if pedido.fecha_pedido else '',
+                'fecha_pedido': format_datetime_mx(pedido.fecha_pedido, '%Y-%m-%d %H:%M', '') if pedido.fecha_pedido else '',
+                'fecha_iso': isoformat_datetime_mx(pedido.fecha_pedido) if pedido.fecha_pedido else '',
                 'direccion_envio': pedido.direccion_envio or 'No especificada'
             })
 
@@ -2152,7 +2216,7 @@ def api_admin_detalle_pedido(pedido_id):
                 'email': pedido.usuario.correo,
                 'telefono': pedido.usuario.telefono
             } if pedido.usuario else None,
-            'fecha_pedido': pedido.fecha_pedido.strftime('%Y-%m-%d %H:%M') if pedido.fecha_pedido else '',
+            'fecha_pedido': format_datetime_mx(pedido.fecha_pedido, '%Y-%m-%d %H:%M', '') if pedido.fecha_pedido else '',
             'total': float(pedido.total) if pedido.total else 0,
             'estado': pedido.estado,
             'direccion_envio': pedido.direccion_envio
@@ -2187,7 +2251,7 @@ def api_admin_detalle_pedido(pedido_id):
 @admin_required
 def api_admin_dashboard_summary():
     try:
-        today = datetime.date.today()
+        today = today_mx()
         daily_sales = db.session.query(func.coalesce(func.sum(Pedido.total), 0)).filter(
             func.date(Pedido.fecha_pedido) == today,
             Pedido.estado != 'cancelado'
@@ -2327,7 +2391,7 @@ def api_admin_dashboard_recent_activity():
                 activity.append({
                     'title': log.tipo.title(),
                     'description': log.descripcion,
-                    'timestamp': log.creado_en.isoformat(),
+                    'timestamp': isoformat_datetime_mx(log.creado_en),
                     'icon': '✓',
                     'icon_class': 'success'
                 })
@@ -2337,7 +2401,7 @@ def api_admin_dashboard_recent_activity():
                 activity.append({
                     'title': 'Pedido reciente',
                     'description': f"Orden #ORD-{pedido.id_pedido:03d} - ${float(pedido.total or 0):.2f}",
-                    'timestamp': pedido.fecha_pedido.isoformat() if pedido.fecha_pedido else None,
+                    'timestamp': isoformat_datetime_mx(pedido.fecha_pedido) if pedido.fecha_pedido else None,
                     'icon': '📦',
                     'icon_class': 'info'
                 })
@@ -2347,7 +2411,7 @@ def api_admin_dashboard_recent_activity():
                 activity.append({
                     'title': 'Stock bajo',
                     'description': f"{producto.nombre} - {producto.stock} unidades",
-                    'timestamp': producto.fecha_creacion.isoformat() if producto.fecha_creacion else None,
+                    'timestamp': isoformat_datetime_mx(producto.fecha_creacion) if producto.fecha_creacion else None,
                     'icon': '⚠',
                     'icon_class': 'warning'
                 })
@@ -2357,7 +2421,7 @@ def api_admin_dashboard_recent_activity():
                 activity.append({
                     'title': 'Nuevo usuario',
                     'description': usuario.nombre_usuario,
-                    'timestamp': usuario.fecha_registro.isoformat() if usuario.fecha_registro else None,
+                    'timestamp': isoformat_datetime_mx(usuario.fecha_registro) if usuario.fecha_registro else None,
                     'icon': '👤',
                     'icon_class': 'info'
                 })
@@ -2387,7 +2451,7 @@ def api_admin_dashboard_recent_orders():
                 'total': float(pedido.total or 0),
                 'estado': pedido.estado,
                 'estado_label': pedido.estado.capitalize(),
-                'fecha': pedido.fecha_pedido.strftime('%Y-%m-%d') if pedido.fecha_pedido else ''
+                'fecha': format_datetime_mx(pedido.fecha_pedido, '%Y-%m-%d', '') if pedido.fecha_pedido else ''
             })
 
         return jsonify({
@@ -2397,6 +2461,93 @@ def api_admin_dashboard_recent_orders():
     except Exception as e:
         print(f"Error dashboard recent orders: {e}")
         return jsonify({'success': False, 'error': 'Error al cargar pedidos recientes'}), 500
+
+
+@web_bp.route('/api/admin/dashboard/chatbot-faqs')
+@admin_required
+def api_admin_dashboard_chatbot_faqs():
+    """Top preguntas frecuentes hechas al chatbot por clientes."""
+    try:
+        search = (request.args.get('search') or '').strip().lower()
+        intent = (request.args.get('intent') or '').strip().lower()
+        page = (request.args.get('page') or '').strip().lower()
+        date_from_raw = (request.args.get('date_from') or '').strip()
+        date_to_raw = (request.args.get('date_to') or '').strip()
+
+        try:
+            limit = int(request.args.get('limit', 30))
+        except (TypeError, ValueError):
+            limit = 30
+        limit = max(1, min(limit, 200))
+
+        query = ChatbotFAQ.query
+
+        if search:
+            query = query.filter(ChatbotFAQ.pregunta_normalizada.ilike(f'%{search}%'))
+
+        if intent:
+            query = query.filter(func.lower(ChatbotFAQ.ultima_intencion) == intent)
+
+        if page:
+            query = query.filter(func.lower(ChatbotFAQ.ultima_pagina) == page)
+
+        if date_from_raw:
+            try:
+                date_from = parse_mx_date_start_to_utc_naive(date_from_raw)
+                if date_from:
+                    query = query.filter(ChatbotFAQ.ultima_consulta >= date_from)
+            except ValueError:
+                pass
+
+        if date_to_raw:
+            try:
+                date_to = parse_mx_date_end_exclusive_to_utc_naive(date_to_raw)
+                if date_to:
+                    query = query.filter(ChatbotFAQ.ultima_consulta < date_to)
+            except ValueError:
+                pass
+
+        rows = query.order_by(ChatbotFAQ.frecuencia.desc(), ChatbotFAQ.ultima_consulta.desc()).limit(limit).all()
+
+        intents_rows = db.session.query(ChatbotFAQ.ultima_intencion).filter(
+            ChatbotFAQ.ultima_intencion.isnot(None),
+            ChatbotFAQ.ultima_intencion != ''
+        ).distinct().order_by(ChatbotFAQ.ultima_intencion.asc()).all()
+
+        pages_rows = db.session.query(ChatbotFAQ.ultima_pagina).filter(
+            ChatbotFAQ.ultima_pagina.isnot(None),
+            ChatbotFAQ.ultima_pagina != ''
+        ).distinct().order_by(ChatbotFAQ.ultima_pagina.asc()).all()
+
+        faqs = [
+            {
+                'pregunta': row.pregunta_original,
+                'frecuencia': int(row.frecuencia or 0),
+                'ultima_intencion': row.ultima_intencion or 'general',
+                'ultima_pagina': row.ultima_pagina or '-',
+                'ultima_consulta': format_datetime_mx(row.ultima_consulta, '%Y-%m-%d %H:%M', '-') if row.ultima_consulta else '-',
+            }
+            for row in rows
+        ]
+
+        return jsonify({
+            'success': True,
+            'faqs': faqs,
+            'filters_applied': {
+                'search': search,
+                'intent': intent,
+                'page': page,
+                'date_from': date_from_raw,
+                'date_to': date_to_raw,
+            },
+            'filter_options': {
+                'intents': [row[0] for row in intents_rows if row[0]],
+                'pages': [row[0] for row in pages_rows if row[0]],
+            }
+        })
+    except Exception as e:
+        print(f"Error FAQ chatbot dashboard: {e}")
+        return jsonify({'success': False, 'error': 'Error al cargar FAQs del chatbot'}), 500
 
 # ----------------------------------------- REPORTES ADMIN ---------------------------------------- #
 
@@ -2531,7 +2682,7 @@ def debug_favoritos():
                 'id_favorito': fav.id_favorito,
                 'usuario_id': fav.usuario_id,
                 'producto_id': fav.producto_id,
-                'fecha_agregado': fav.fecha_agregado.isoformat() if fav.fecha_agregado else None
+                'fecha_agregado': isoformat_datetime_mx(fav.fecha_agregado) if fav.fecha_agregado else None
             })
 
         return jsonify({

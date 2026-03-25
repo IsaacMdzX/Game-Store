@@ -1,6 +1,5 @@
 from app import db
-from flask_login import UserMixin
-from datetime import datetime
+from app.utils.datetime_utils import utc_now_naive
 
 class Categoria(db.Model):
     __tablename__ = 'categorias'
@@ -20,15 +19,15 @@ class Producto(db.Model):
     categoria_id = db.Column(db.Integer, db.ForeignKey('categorias.id_categoria'))
     activo = db.Column(db.Boolean, default=True)
     destacado = db.Column(db.Boolean, default=False)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=utc_now_naive)
 
 class Carrito(db.Model):
     __tablename__ = 'carrito'
     id_carrito = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'))
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=utc_now_naive)
     activo = db.Column(db.Boolean, default=True)
-    
+
     usuario = db.relationship('Usuario', backref='carritos')
     items = db.relationship('CarritoItem', backref='carrito', lazy=True, cascade='all, delete-orphan')
 
@@ -39,7 +38,6 @@ class CarritoItem(db.Model):
     producto_id = db.Column(db.Integer, db.ForeignKey('productos.id_producto'))
     cantidad = db.Column(db.Integer, default=1)
     precio_unitario = db.Column(db.Numeric(10, 2))
-    fecha_agregado = db.Column(db.DateTime, default=datetime.utcnow)
-    
+    fecha_agregado = db.Column(db.DateTime, default=utc_now_naive)
+
     producto = db.relationship('Producto', backref='carrito_items')
-    

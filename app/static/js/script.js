@@ -587,6 +587,7 @@ function formatDate(date) {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "America/Mexico_City",
   }).format(new Date(date))
 }
 

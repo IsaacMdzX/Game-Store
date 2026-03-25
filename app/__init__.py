@@ -154,6 +154,13 @@ def create_app():
     # Agregar headers de caché eficientes
     @app.after_request
     def set_cache_headers(response):
+        # Evitar caché agresivo en el script principal del chatbot
+        if request.path == '/static/js/menu-system.js':
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+            return response
+
         # Cache largo para estáticos (CSS/JS/imagenes/fuentes)
         if request.path.startswith('/static/'):
             response.headers['Cache-Control'] = 'public, max-age=604800, immutable'
