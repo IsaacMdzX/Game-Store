@@ -20,20 +20,26 @@ $(document).ready(function() {
 
     // Función para mostrar alerta de error
     function mostrarErrorGeneral(mensaje) {
-        var $errorDiv = $('<div class="error-alerta" style="background: #ffebee; color: #c62828; padding: 10px; border-radius: 5px; margin: 10px 0; border: 1px solid #ffcdd2;">').text(mensaje);
+        var $errorDiv = $('<div class="error-alerta">').text(mensaje);
         $('.register-btn').before($errorDiv);
-        
+
         setTimeout(function() {
             $errorDiv.fadeOut(function() {
                 $(this).remove();
             });
-        }, 5000);
+        }, 3000);
     }
 
     // Función para mostrar alerta de éxito
     function mostrarExito(mensaje) {
-        var $exitoDiv = $('<div class="exito-alerta" style="background: #e8f5e8; color: #2e7d32; padding: 10px; border-radius: 5px; margin: 10px 0; border: 1px solid #c8e6c9;">').text(mensaje);
+        var $exitoDiv = $('<div class="exito-alerta">').text(mensaje);
         $('.register-btn').before($exitoDiv);
+
+        setTimeout(function() {
+            $exitoDiv.fadeOut(function() {
+                $(this).remove();
+            });
+        }, 3000);
     }
 
     // Función para mostrar/ocultar loading
@@ -96,7 +102,7 @@ $(document).ready(function() {
     $('#registro-form').on('submit', function(e) {
         e.preventDefault();
         console.log('Formulario enviado');
-        
+
         limpiarErrores();
 
         const username = $('#username').val().trim();
@@ -161,14 +167,14 @@ $(document).ready(function() {
             }),
             success: function(response) {
                 console.log('Respuesta del servidor:', response);
-                
+
                 if (response.success) {
                     mostrarExito('¡Administrador creado exitosamente! Redirigiendo...');
-                    
+
                     setTimeout(function() {
                         window.location.href = '/login';
                     }, 2000);
-                    
+
                 } else {
                     if (response.error) {
                         mostrarErrorGeneral(response.error);
@@ -178,9 +184,9 @@ $(document).ready(function() {
             },
             error: function(xhr) {
                 console.log('Error en AJAX:', xhr);
-                
+
                 let errorMessage = 'Error del servidor';
-                
+
                 if (xhr.responseJSON && xhr.responseJSON.error) {
                     errorMessage = xhr.responseJSON.error;
                 } else if (xhr.status === 0) {
@@ -188,7 +194,7 @@ $(document).ready(function() {
                 } else if (xhr.status === 500) {
                     errorMessage = 'Error interno del servidor';
                 }
-                
+
                 mostrarErrorGeneral(errorMessage);
                 mostrarCargando(false);
             }

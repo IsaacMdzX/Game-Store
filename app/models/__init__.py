@@ -3,6 +3,7 @@ from .role import Role
 from .usuario import Usuario
 from .analytics import AdminActivity, InventarioMovimiento, Pago, Reporte, ReporteItem, ChatbotFAQ
 from .contacto import ContactMessage
+from .password_reset import PasswordResetCode
 
 __all__ = [
     'Role',
@@ -18,4 +19,5 @@ __all__ = [
     'ReporteItem',
     'ChatbotFAQ',
     'ContactMessage',
+    'PasswordResetCode',
 ]

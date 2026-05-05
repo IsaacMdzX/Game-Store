@@ -119,6 +119,16 @@ def create_app():
 
             # Seed de categorías por defecto si no existen
             from app.models.models import Categoria
+            # Importar modelo de magic link para crear tabla si no existe
+            try:
+                from app.models.magic_link import MagicLinkToken
+            except Exception:
+                pass
+            # Importar modelo de reset de contraseña para crear tabla si no existe
+            try:
+                from app.models.password_reset import PasswordResetCode
+            except Exception:
+                pass
             if Categoria.query.count() == 0:
                 categorias_default = [
                     ("Consolas", "Consolas y hardware"),

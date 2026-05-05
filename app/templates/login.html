@@ -16,8 +16,8 @@
     <title>Iniciar Sesión - Game Store</title>
     <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
     <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/responsive.css">
-    <link rel="stylesheet" href="/static/css/mobile-aesthetic.css">
+    <link rel="stylesheet" href="/static/css/responsive.css?v=2.2">
+    <link rel="stylesheet" href="/static/css/mobile-aesthetic.css?v=2.2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 </head>
 
@@ -31,13 +31,13 @@
         <div class="container">
             <h1>Iniciar Sesión</h1>
 
-            <p class="description">Ingresa el nombre o correo electrónico registrado.</p>
+            <p class="description">Ingresa el nombre de usuario o correo registrado.</p>
 
             <form id="login-form" class="form-section">
                 <div class="form-line">
-                      <label class="label" for="login-input">Nombre de usuario o Correo electrónico</label>
-                    <input type="text" id="login-input" name="login_input" class="input-field"
-                          placeholder="Ingresa tu usuario o correo" required aria-describedby="login-input-error">
+                                                <label class="label" for="login-input">Nombre de usuario o Correo</label>
+                                        <input type="text" id="login-input" name="login_input" class="input-field"
+                                                    placeholder="Ingresa tu usuario o correo" required aria-describedby="login-input-error">
                       <span class="error-message" id="login-input-error" aria-live="polite"></span>
                 </div>
 
@@ -66,13 +66,15 @@
             </form>
 
             <div class="sidebar-register-section">
-                <p class="preguntaxd">¿No tienes cuenta?</p>
-                <a class="sidebar-register-btn" href="/registro">Crear cuenta</a>
+                <div class="sidebar-actions-row login-footer-links">
+                    <a class="sidebar-register-btn compact-link-btn" href="/registro">Crear cuenta</a>
+                    <a class="sidebar-register-btn sidebar-secondary-btn compact-link-btn" href="/recuperar-contrasena">Olvidé mi contraseña</a>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="/static/js/menu-system.js"></script>
+    <script src="/static/js/menu-system.js?v=2.4"></script>
     <script src="/static/js/login.js"></script>
 </body>
 

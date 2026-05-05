@@ -3,6 +3,7 @@ var Usuario = Backbone.Model.extend({
     defaults: {
         username: '',
         email: '',
+        captcha_text: '',
         password: '',
         confirm_password: ''
     },
@@ -13,20 +14,24 @@ var Usuario = Backbone.Model.extend({
         var errors = [];
 
         if (!attrs.username || attrs.username.length < 6) {
-            errors.push('El nombre de usuario debe tener al menos 6 caracteres');
+            errors.push('complete_required');
         }
 
         var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!attrs.email || !emailRegex.test(attrs.email)) {
-            errors.push('Ingresa un email válido');
+            errors.push('complete_required');
+        }
+
+        if (!attrs.captcha_text || attrs.captcha_text.length < 3) {
+            errors.push('complete_required');
         }
 
         if (!attrs.password || attrs.password.length < 8) {
-            errors.push('La contraseña debe tener al menos 8 caracteres');
+            errors.push('complete_required');
         }
 
         if (attrs.password !== attrs.confirm_password) {
-            errors.push('Las contraseñas no coinciden');
+            errors.push('complete_required');
         }
 
         return errors.length > 0 ? errors : undefined;
@@ -41,6 +46,7 @@ var RegistroView = Backbone.View.extend({
         'submit': 'registrarUsuario',
         'input #username': 'limpiarError',
         'input #email': 'limpiarError',
+        'input #captcha-text': 'limpiarError',
         'input #password': 'limpiarError',
         'input #confirm-password': 'limpiarError',
         'click #toggle-registro-password-btn': 'togglePasswordPrincipal',
@@ -49,6 +55,7 @@ var RegistroView = Backbone.View.extend({
 
     initialize: function() {
         this.usuario = new Usuario();
+        this.alertTimeout = null;
         this.listenTo(this.usuario, 'invalid', this.mostrarErrores);
         this.listenTo(this.usuario, 'sync', this.registroExitoso);
         this.listenTo(this.usuario, 'error', this.registroFallido);
@@ -60,6 +67,7 @@ var RegistroView = Backbone.View.extend({
         var datos = {
             username: this.$('#username').val().trim(),
             email: this.$('#email').val().trim(),
+            captcha_text: this.$('#captcha-text').val().trim(),
             password: this.$('#password').val(),
             confirm_password: this.$('#confirm-password').val()
         };
@@ -73,22 +81,34 @@ var RegistroView = Backbone.View.extend({
         }
     },
 
+    mostrarAlertaCamposRequeridos: function() {
+        this.mostrarErrorGeneral('Por favor completa los campos solicitados antes de crear la cuenta.');
+    },
+
     mostrarErrores: function(model, errors) {
         this.mostrarCargando(false);
-        errors.forEach(function(error) {
-            this.mostrarErrorGeneral(error);
-        }.bind(this));
+        this.mostrarAlertaCamposRequeridos();
     },
 
     mostrarErrorGeneral: function(mensaje) {
-        var $errorDiv = $('<div class="error-alerta">').text(mensaje);
-        this.$('.register-btn').before($errorDiv);
+        var $alert = this.$('#registro-alert');
+        if (!$alert.length) {
+            return;
+        }
 
-        setTimeout(function() {
-            $errorDiv.fadeOut(function() {
-                $(this).remove();
-            });
-        }, 5000);
+        $alert
+            .stop(true, true)
+            .removeClass('is-success is-info')
+            .addClass('is-error')
+            .text(mensaje)
+            .show();
+
+        if (this.alertTimeout) {
+            clearTimeout(this.alertTimeout);
+        }
+        this.alertTimeout = setTimeout(function() {
+            $alert.fadeOut(180);
+        }, 3000);
     },
 
     registroExitoso: function() {
@@ -102,9 +122,9 @@ var RegistroView = Backbone.View.extend({
 
     registroFallido: function(model, response) {
         this.mostrarCargando(false);
-        var mensaje = response.responseJSON && response.responseJSON.error
-                     ? response.responseJSON.error
-                     : 'Error en el servidor. Intenta nuevamente.';
+        var mensaje = response && response.responseJSON && response.responseJSON.error
+            ? response.responseJSON.error
+            : 'No se pudo crear la cuenta. Verifica los datos e intenta nuevamente.';
         this.mostrarErrorGeneral(mensaje);
     },
 
@@ -120,8 +140,20 @@ var RegistroView = Backbone.View.extend({
     },
 
     mostrarExito: function(mensaje) {
-        var $exitoDiv = $('<div class="exito-alerta">').text(mensaje);
-        this.$('#registro-btn').before($exitoDiv);
+        var $alert = this.$('#registro-alert');
+        $alert
+            .stop(true, true)
+            .removeClass('is-error is-info')
+            .addClass('is-success')
+            .text(mensaje)
+            .show();
+
+        if (this.alertTimeout) {
+            clearTimeout(this.alertTimeout);
+        }
+        this.alertTimeout = setTimeout(function() {
+            $alert.fadeOut(180);
+        }, 3000);
     },
 
     limpiarError: function(e) {
@@ -131,7 +163,11 @@ var RegistroView = Backbone.View.extend({
     },
 
     limpiarTodosErrores: function() {
-        this.$('.error-alerta').remove();
+        if (this.alertTimeout) {
+            clearTimeout(this.alertTimeout);
+            this.alertTimeout = null;
+        }
+        this.$('#registro-alert').hide().text('').removeClass('is-error is-success is-info');
         this.$('.error-input').removeClass('error-input');
         this.$('.error-message').text('');
     },

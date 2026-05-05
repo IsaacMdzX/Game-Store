@@ -4,6 +4,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 from app import db
 import datetime
+import os
+import json
+import urllib.request
+import urllib.error
+import random
+import threading
 from flask import Flask, request, jsonify
 from app.models.pedido import Pedido, PedidoItem
 from app.models.usuario import Usuario
@@ -11,6 +17,8 @@ from app.models.models import Carrito, CarritoItem, Producto, Categoria
 from app.models.role import Role
 from app.models.favorito import Favorito
 from app.models.analytics import AdminActivity, InventarioMovimiento, Pago, ChatbotFAQ
+from app.models.magic_link import MagicLinkToken
+from app.models.password_reset import PasswordResetCode
 from sqlalchemy import func
 from sqlalchemy.orm import selectinload
 from app.utils.datetime_utils import (
@@ -58,7 +66,17 @@ def login():
 
 @web_bp.route('/registro')
 def registro():
-    return render_template('registro.html')
+    captcha_words = [
+        'GAMER', 'PIXEL', 'LEVEL', 'ARCADE', 'JOYSTICK', 'RETRO', 'POWER'
+    ]
+    captcha_phrase = random.choice(captcha_words)
+    session['registration_text_captcha'] = captcha_phrase
+    return render_template('registro.html', captcha_phrase=captcha_phrase)
+
+
+@web_bp.route('/recuperar-contrasena')
+def recuperar_contrasena():
+    return render_template('recuperar_contrasena.html')
 
 # ----------------------------------------- RUTAS ADMINISTRADOR ---------------------------------------- #
 
@@ -166,6 +184,131 @@ def api_chatbot_faq_track():
         db.session.rollback()
         print(f"Error registrando FAQ chatbot: {e}")
         return jsonify({'success': False, 'error': 'Error registrando FAQ'}), 500
+
+
+@web_bp.route('/api/chatbot/ai-fallback', methods=['POST'])
+def api_chatbot_ai_fallback():
+    """Fallback IA para respuestas conversacionales cuando no hay intención clara."""
+    try:
+        data = request.get_json(silent=True) or {}
+        question = (data.get('question') or '').strip()
+        page_path = (data.get('page_path') or '').strip()[:120]
+        recent_messages = data.get('recent_messages') or []
+
+        if len(question) < 3:
+            return jsonify({'success': False, 'disabled': True, 'reason': 'short_question'})
+
+        provider = (os.environ.get('CHATBOT_AI_PROVIDER') or 'auto').strip().lower()
+
+        openai_key = os.environ.get('OPENAI_API_KEY')
+        openrouter_key = os.environ.get('OPENROUTER_API_KEY')
+
+        if provider == 'openrouter':
+            api_key = openrouter_key
+            api_base = (os.environ.get('OPENROUTER_BASE_URL') or 'https://openrouter.ai/api/v1').rstrip('/')
+            model = os.environ.get('OPENROUTER_MODEL') or 'openai/gpt-4o-mini'
+        elif provider == 'openai':
+            api_key = openai_key or os.environ.get('CHATBOT_AI_API_KEY')
+            api_base = (os.environ.get('OPENAI_BASE_URL') or 'https://api.openai.com/v1').rstrip('/')
+            model = os.environ.get('OPENAI_MODEL') or 'gpt-4o-mini'
+        else:
+            # auto: prioriza OpenRouter si existe key, luego OpenAI
+            if openrouter_key:
+                provider = 'openrouter'
+                api_key = openrouter_key
+                api_base = (os.environ.get('OPENROUTER_BASE_URL') or 'https://openrouter.ai/api/v1').rstrip('/')
+                model = os.environ.get('OPENROUTER_MODEL') or 'openai/gpt-4o-mini'
+            else:
+                provider = 'openai'
+                api_key = openai_key or os.environ.get('CHATBOT_AI_API_KEY')
+                api_base = (os.environ.get('OPENAI_BASE_URL') or 'https://api.openai.com/v1').rstrip('/')
+                model = os.environ.get('OPENAI_MODEL') or 'gpt-4o-mini'
+
+        if not api_key:
+            return jsonify({'success': False, 'disabled': True, 'reason': 'missing_api_key'})
+
+        timeout_seconds = int(os.environ.get('CHATBOT_AI_TIMEOUT_SECONDS') or os.environ.get('OPENAI_TIMEOUT_SECONDS', '8'))
+
+        context_lines = []
+        if isinstance(recent_messages, list):
+            for msg in recent_messages[-4:]:
+                if not isinstance(msg, dict):
+                    continue
+                role = (msg.get('role') or '').strip().lower()
+                text = (msg.get('text') or '').strip()
+                if role not in ('user', 'assistant') or not text:
+                    continue
+                context_lines.append(f"{role}: {text[:180]}")
+
+        system_prompt = (
+            "Eres el asistente virtual de una tienda de videojuegos llamada Game Store. "
+            "Responde siempre en español, con tono breve, claro y útil. "
+            "Solo puedes responder sobre la web de Game Store (productos, categorías, carrito, pagos, pedidos, envíos, contacto, ubicación y cuenta). "
+            "Si la consulta no es del sitio, responde exactamente: 'Solo puedo ayudarte con temas de Game Store dentro de esta página.' "
+            "No inventes políticas, precios ni disponibilidad exacta si no están confirmados. "
+            "Si falta contexto, pide al usuario que especifique. "
+            "Máximo 2 frases y sin markdown."
+        )
+
+        user_prompt = (
+            f"Página actual: {page_path or 'desconocida'}\n"
+            f"Contexto reciente:\n" + "\n".join(context_lines) + "\n\n"
+            f"Consulta del usuario: {question}\n"
+            "Da una respuesta útil y breve."
+        )
+
+        payload = {
+            'model': model,
+            'messages': [
+                {'role': 'system', 'content': system_prompt},
+                {'role': 'user', 'content': user_prompt},
+            ],
+            'temperature': 0.2,
+            'max_tokens': 120,
+        }
+
+        request_headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {api_key}',
+        }
+
+        if provider == 'openrouter':
+            site_url = (os.environ.get('CHATBOT_AI_SITE_URL') or request.host_url or '').strip()
+            app_name = (os.environ.get('CHATBOT_AI_APP_NAME') or 'Game Store Chatbot').strip()
+            if site_url:
+                request_headers['HTTP-Referer'] = site_url
+            if app_name:
+                request_headers['X-Title'] = app_name
+
+        req = urllib.request.Request(
+            f"{api_base}/chat/completions",
+            data=json.dumps(payload).encode('utf-8'),
+            headers=request_headers,
+            method='POST'
+        )
+
+        with urllib.request.urlopen(req, timeout=timeout_seconds) as response:
+            raw_body = response.read().decode('utf-8')
+            result = json.loads(raw_body)
+
+        ai_text = (
+            (result.get('choices') or [{}])[0]
+            .get('message', {})
+            .get('content', '')
+            .strip()
+        )
+
+        if not ai_text:
+            return jsonify({'success': False, 'disabled': True, 'reason': 'empty_ai_response'})
+
+        return jsonify({'success': True, 'text': ai_text[:500]})
+
+    except urllib.error.HTTPError as http_error:
+        print(f"Error HTTP en fallback IA chatbot: {http_error}")
+        return jsonify({'success': False, 'disabled': True, 'reason': 'http_error'}), 200
+    except Exception as e:
+        print(f"Error fallback IA chatbot: {e}")
+        return jsonify({'success': False, 'disabled': True, 'reason': 'internal_error'}), 200
 
 # ----------------------------------------- RUTAS DE USUARIO ---------------------------------------- #
 
@@ -595,6 +738,7 @@ def api_registro():
 
         username = (data.get('username') or '').strip()
         email = (data.get('email') or '').strip().lower()
+        captcha_text = (data.get('captcha_text') or '').strip()
         password = data.get('password')
         confirm_password = data.get('confirm_password')
 
@@ -610,6 +754,16 @@ def api_registro():
 
         if password != confirm_password:
             return jsonify({'error': 'Las contraseñas no coinciden'}), 400
+
+        # -- Verificación de texto: el usuario debe escribir la palabra mostrada
+        expected_captcha = (session.get('registration_text_captcha') or '').strip().upper()
+        if not expected_captcha or not captcha_text:
+            return jsonify({'error': 'Completa la verificación de texto'}), 400
+
+        if captcha_text.upper() != expected_captcha:
+            return jsonify({'error': 'Verificación de texto incorrecta'}), 400
+
+        session.pop('registration_text_captcha', None)
 
         # Verificar si ya existe
         if Usuario.query.filter(func.lower(func.trim(Usuario.nombre_usuario)) == username.lower()).first():
@@ -640,6 +794,213 @@ def api_registro():
         db.session.rollback()
         print(f"Error en registro: {e}")
         return jsonify({'error': 'Error interno del servidor'}), 500
+
+
+@web_bp.route('/api/request-magic-link', methods=['POST'])
+def api_request_magic_link():
+    try:
+        data = request.get_json() or {}
+        email = (data.get('email') or '').strip().lower()
+        if not email:
+            return jsonify({'error': 'Email no proporcionado'}), 400
+
+        # Buscar usuario por email
+        usuario = Usuario.query.filter(func.lower(func.trim(Usuario.correo)) == email).first()
+        if not usuario:
+            return jsonify({'error': 'No existe una cuenta con ese email'}), 404
+
+        # Generar token seguro
+        import secrets, datetime
+        token = secrets.token_urlsafe(48)
+        expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+
+        ml = MagicLinkToken(token=token, email=email, user_id=usuario.id_usuario, expires_at=expires)
+        db.session.add(ml)
+        db.session.commit()
+
+        # Enviar email con link
+        try:
+            from app.api.contacto import send_email
+            verify_url = request.url_root.rstrip('/') + url_for('web.verify_magic') + f'?token={token}'
+            html = f"<h3>Enlace de acceso</h3><p>Hola {usuario.nombre_usuario},</p><p>Haz clic <a href=\"{verify_url}\">aquí</a> para iniciar sesión. El enlace expira en 15 minutos.</p>"
+            sent = send_email(subject='Enlace de acceso a Game Store', recipients=[email], html_body=html)
+            if not sent:
+                print(f"No se pudo enviar email a {email}")
+        except Exception as e:
+            print(f"Error preparando envio de email magic link: {e}")
+
+        return jsonify({'success': True, 'message': 'Enviamos un enlace a tu email si existe la cuenta'}), 200
+    except Exception as e:
+        print(f"Error en request_magic_link: {e}")
+        return jsonify({'error': 'Error interno'}), 500
+
+
+@web_bp.route('/verify-magic')
+def verify_magic():
+    try:
+        token = request.args.get('token', '').strip()
+        if not token:
+            return redirect(url_for('web.login'))
+
+        ml = MagicLinkToken.query.filter_by(token=token).first()
+        if not ml:
+            return render_template('login.html', magic_error='Token inválido o ya usado')
+
+        # Comprobar expiración y usado
+        import datetime
+        if ml.used:
+            return render_template('login.html', magic_error='Este enlace ya fue utilizado')
+        if datetime.datetime.utcnow() > ml.expires_at:
+            return render_template('login.html', magic_error='El enlace expiró')
+
+        # Iniciar sesión del usuario
+        usuario = Usuario.query.get(ml.user_id)
+        if not usuario:
+            return render_template('login.html', magic_error='Usuario no encontrado')
+
+        session.clear()
+        session['user_id'] = usuario.id_usuario
+        session['username'] = usuario.nombre_usuario
+        session['user_role'] = usuario.rol_id
+
+        # Marcar token como usado
+        ml.used = True
+        db.session.add(ml)
+        db.session.commit()
+
+        return redirect('/')
+    except Exception as e:
+        print(f"Error en verify_magic: {e}")
+        return redirect(url_for('web.login'))
+
+
+@web_bp.route('/api/password-reset/request', methods=['POST'])
+def api_password_reset_request():
+    try:
+        data = request.get_json() or {}
+        email = (data.get('email') or '').strip().lower()
+
+        if not email or '@' not in email:
+            return jsonify({'error': 'Ingresa un email válido'}), 400
+
+        usuario = Usuario.query.filter(func.lower(func.trim(Usuario.correo)) == email).first()
+        # Respuesta genérica para no exponer si el email existe o no
+        generic_ok = {
+            'success': True,
+            'message': 'Si el correo existe, enviamos un código de verificación.'
+        }
+
+        if not usuario:
+            return jsonify(generic_ok), 200
+
+        code = f"{random.randint(100000, 999999)}"
+        expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+
+        # Invalidar códigos activos anteriores para este usuario
+        PasswordResetCode.query.filter_by(user_id=usuario.id_usuario, used=False).update({'used': True})
+
+        pr = PasswordResetCode(
+            user_id=usuario.id_usuario,
+            email=email,
+            code=code,
+            expires_at=expires_at,
+            used=False
+        )
+        db.session.add(pr)
+        db.session.commit()
+
+        # Enviar código por email en segundo plano para no bloquear la respuesta
+        def send_reset_email_async(app, target_email, verification_code):
+            with app.app_context():
+                try:
+                    from app.api.contacto import send_email
+                    html_body = (
+                        f"<h3>Recuperación de contraseña</h3>"
+                        f"<p>Tu código de verificación es:</p>"
+                        f"<p style='font-size:24px;font-weight:700;letter-spacing:2px;'>{verification_code}</p>"
+                        f"<p>Este código expira en 10 minutos.</p>"
+                    )
+                    sent = send_email(
+                        subject='Código para recuperar contraseña - Game Store',
+                        recipients=[target_email],
+                        html_body=html_body
+                    )
+                    if not sent:
+                        print(f"[PASSWORD-RESET] No se pudo enviar correo a {target_email}. Código: {verification_code}")
+                except Exception as err:
+                    print(f"[PASSWORD-RESET] Error enviando email: {err}. Código: {verification_code}")
+
+        thread = threading.Thread(
+            target=send_reset_email_async,
+            args=(current_app._get_current_object(), email, code),
+            daemon=True,
+        )
+        thread.start()
+
+        return jsonify(generic_ok), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en api_password_reset_request: {e}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
+
+@web_bp.route('/api/password-reset/confirm', methods=['POST'])
+def api_password_reset_confirm():
+    try:
+        data = request.get_json() or {}
+        email = (data.get('email') or '').strip().lower()
+        code = (data.get('code') or '').strip()
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
+
+        if not email or '@' not in email:
+            return jsonify({'error': 'Ingresa un email válido'}), 400
+
+        if not code or len(code) < 6:
+            return jsonify({'error': 'Ingresa el código de verificación'}), 400
+
+        if not password or len(password) < 8:
+            return jsonify({'error': 'La contraseña debe tener al menos 8 caracteres'}), 400
+
+        if password != confirm_password:
+            return jsonify({'error': 'Las contraseñas no coinciden'}), 400
+
+        usuario = Usuario.query.filter(func.lower(func.trim(Usuario.correo)) == email).first()
+        if not usuario:
+            return jsonify({'error': 'Código o email inválido'}), 400
+
+        token = PasswordResetCode.query.filter_by(
+            user_id=usuario.id_usuario,
+            email=email,
+            code=code,
+            used=False
+        ).order_by(PasswordResetCode.id.desc()).first()
+
+        if not token:
+            return jsonify({'error': 'Código o email inválido'}), 400
+
+        if datetime.datetime.utcnow() > token.expires_at:
+            token.used = True
+            db.session.add(token)
+            db.session.commit()
+            return jsonify({'error': 'El código expiró. Solicita uno nuevo.'}), 400
+
+        usuario.password = generate_password_hash(password)
+        token.used = True
+        db.session.add(usuario)
+        db.session.add(token)
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': 'Contraseña actualizada correctamente'}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en api_password_reset_confirm: {e}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
+
+@web_bp.route('/api/verify-code', methods=['POST'])
+def api_verify_code():
+    return jsonify({'error': 'La verificación por teléfono está deshabilitada'}), 410
 
 @web_bp.route('/api/registro-admin', methods=['POST'])
 def api_registro_admin():
@@ -702,24 +1063,29 @@ def api_registro_admin():
 @web_bp.route('/api/productos')
 def api_productos():
     try:
-        # Obtener parámetro de categoría si existe
+        # Obtener parámetro de categoría y buscar si existe
         categoria_nombre = request.args.get('categoria')
+        buscar = request.args.get('buscar')
 
         # ✅ SOLO MOSTRAR PRODUCTOS ACTIVOS Y CON STOCK > 0
+        query = Producto.query.filter(
+            Producto.activo == True,
+            Producto.stock > 0
+        )
+
         if categoria_nombre:
-            productos = Producto.query.join(Categoria).filter(
-                Categoria.nombre == categoria_nombre,
-                Producto.activo == True,
-                Producto.stock > 0  # ✅ SOLO productos con stock
-            ).all()
-            print(f"🔍 Filtrando por categoría: {categoria_nombre}, encontrados: {len(productos)} productos")
-        else:
-            # Todos los productos activos con stock
-            productos = Producto.query.filter(
-                Producto.activo == True,
-                Producto.stock > 0  # ✅ SOLO productos con stock
-            ).all()
-            print(f"📦 Todos los productos activos con stock, encontrados: {len(productos)} productos")
+            query = query.join(Categoria).filter(Categoria.nombre == categoria_nombre)
+            print(f"🔍 Filtrando por categoría: {categoria_nombre}")
+
+        if buscar:
+            # Buscar en nombre ignorando mayúsculas/minúsculas
+            buscar_tokens = buscar.split()
+            for token in buscar_tokens:
+                query = query.filter(Producto.nombre.ilike(f'%{token}%'))
+            print(f"🔍 Filtrando por búsqueda: {buscar}")
+
+        productos = query.all()
+        print(f"📦 Productos encontrados: {len(productos)} productos")
 
         productos_data = []
         for producto in productos:

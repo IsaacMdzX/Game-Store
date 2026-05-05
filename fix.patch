@@ -1,0 +1,10 @@
+// Función helper para cerrar todos los menús
+function closeAllMenus() {
+    if (window.menuManager) window.menuManager.closeMenu();
+    if (window.userMenuManager) window.userMenuManager.close();
+}
+
+// Hacer disponible globalmente
+window.closeAllMenus = closeAllMenus;
+
+document.addEventListener("DOMContentLoaded", function() {

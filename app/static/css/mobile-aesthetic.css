@@ -879,3 +879,1126 @@ footer a:hover {
     color: var(--accent);
     text-decoration: underline;
 }
+
+/* ============================================
+   ADAPTACIÓN MÓVIL ALTA FIDELIDAD (BENTO + GLASSMORPHISM)
+   ============================================ */
+@media (max-width: 600px) {
+    /* 1. Paddings y Margen General */
+    main, .principal, .principal-carrito {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        box-sizing: border-box;
+    }
+
+    /* 2. Solución para Títulos Cortados */
+    h1.titulo-principal, h2.product-title, .titulo-producto, .nombre-producto, .card-title {
+        font-size: 5.5vw !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+        letter-spacing: -0.5px !important;
+        white-space: normal !important;
+        line-height: 1.2 !important;
+    }
+
+        /* 3. Ajuste del Bento Grid (Productos y Categorías) para 2x Fila */
+    .contenedor-productos, .grid-productos, .productos-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        padding: 5px !important;
+    }
+
+    .producto, .card {
+        border-radius: 12px !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        background: rgba(42, 42, 62, 0.7) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        min-height: auto !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+    }
+
+    /* Reducir tamaño de imágenes dentro de producto */
+    .producto img, .card img {
+        width: 100% !important;
+        height: 140px !important; /* Altura fija pequeña para que entren 2 por fila sin ser enormes */
+        object-fit: cover !important;
+        border-radius: 12px 12px 0 0 !important;
+    }
+
+    /* Ajustar botones e info dentro de la tarjeta */
+    .producto .info-producto {
+        padding: 8px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        flex-grow: 1 !important;
+    }
+
+    .producto .titulo-producto, .producto h3 {
+        font-size: 13px !important;
+        margin-bottom: 5px !important;
+        line-height: 1.2 !important;
+    }
+
+    .producto .precio {
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .producto .acciones, .producto .botones {
+        display: flex !important;
+        flex-direction: column !important; /* O row si caben, mejor column para 2xfila */
+        gap: 5px !important;
+        margin-top: auto !important;
+    }
+    
+    .producto .btn-producto, .producto .btn-comprar, .producto button {
+        width: 100% !important;
+        padding: 6px !important;
+        font-size: 12px !important;
+        min-height: 32px !important; /* Más pequeño */
+    }
+
+    /* 4. Optimización del Menú y Botones */
+    .user-dropdown {
+        right: 15px !important;
+        left: auto !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        background: rgba(42, 42, 62, 0.9) !important;
+        border: 1px solid var(--primary-light) !important;
+    }
+
+    .btn-producto, .btn_agregar, .btn-primary {
+        width: 100% !important;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+        padding: 12px 8px !important;
+        font-size: 14px !important;
+        border-radius: 10px !important;
+    }
+
+    /* 5. Navbar y Menú Hamburguesa táctil */
+    .hamburger-btn {
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 24px !important;
+    }
+
+    /* Arreglo para que el menú lateral se muestre sin cortarse ni quedar oculto */
+    .barra_lateral.mobile-open {
+        transform: translateX(0) !important;
+        left: 0 !important;
+        width: 85vw !important;
+        max-width: 320px !important;
+        bottom: 0 !important;
+    }
+
+    /* 6. Iconos interactivos adecuados (mínimo 44px) */
+    .icon.carrito-link, .btn_notificaciones, .user-menu-btn {
+        width: 44px !important;
+        height: 44px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* 7. Texto de Precio prominente y Neón Rosa */
+    .precio {
+        font-size: 1.3rem !important;
+        font-weight: 800 !important;
+        background: none !important;
+        color: var(--secondary) !important;
+        -webkit-text-fill-color: var(--secondary) !important;
+        text-shadow: 0 0 8px rgba(255, 0, 110, 0.5) !important;
+    }
+
+    /* 8. Chatbot dinámico al 100dvh para evitar teclado de iOS/Android */
+    /* Redimensionando chatbot para que no ocupe 100% de la pantalla */
+    .chatbot-panel.show {
+        height: 85dvh !important; /* Altura más moderada */
+        max-height: 85dvh !important;
+        top: auto !important; /* Dejar que se pegue abajo */
+        bottom: 0 !important;
+        border-radius: 20px 20px 0 0 !important; /* Bordes solo arriba */
+        width: 100vw !important;
+        right: 0 !important;
+        left: 0 !important;
+        position: fixed !important;
+        z-index: 99999 !important;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.5) !important;
+    }
+
+    .chatbot-messages {
+        height: calc(85dvh - 140px) !important;
+    }
+}
+
+/* ============================================
+
+/* ============================================
+   REVISIÓN FINAL: NAVBAR, SWITCH NOCHE Y SIDEBAR SCROLLABLE
+   ============================================ */
+@media (max-width: 600px) {
+
+        /* ================= NAVBAR SUPERIOR ================= */
+    header.encabezado {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 10px 15px !important;
+        gap: 15px 0 !important; /* Espacio vertical para separar buscador */
+    }
+
+    .hamburger-btn {
+        order: 1 !important;
+        margin: 0 !important;
+        width: 44px !important;
+        height: 44px !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 50% !important;
+    }
+
+    .encabezado .iconos {
+        order: 2 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important; /* Separar iconos por igual */
+        flex: 1 !important; /* Llenar espacio restante superior */
+        margin: 0 0 0 15px !important; /* Separar de hamburger btn */
+        padding: 0 !important;
+        width: auto !important;
+        gap: 0 !important; /* Use space-between en vez de gap por si acaso */
+    }
+
+    .encabezado .buscador {
+        order: 3 !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .buscador input {
+        width: 100% !important;
+        flex: 1 !important;
+    }
+
+    /* Asegurar que los botones sean idénticos en tamaño */
+    .btn_notificaciones, .carrito-link, .user-menu-btn {
+        width: 44px !important;
+        height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 50% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    .user-menu-container {
+        width: 44px !important;
+        height: 44px !important;
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Eliminar chevron de usuario en móvil para mantener estetica de un solo icono */
+    .user-menu-btn .fa-chevron-down {
+        display: none !important;
+    }
+
+
+    .theme-toggle-btn, .modo-oscuro {
+        order: 1 !important; /* Primer item dentro de recuadro de iconos */
+        width: 44px !important;
+        height: 44px !important;
+        min-height: unset !important;
+        padding: 0 !important;
+        border-radius: 50% !important; /* Exactamente circular */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        flex-shrink: 0 !important;
+    }
+
+    .theme-switch-track {
+        width: 100% !important;
+        height: 100% !important;
+        background: transparent !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .theme-switch-thumb {
+        transform: none !important; /* Evita que el boton se deslice y se esconda */
+        background: transparent !important;
+        width: auto !important;
+        height: auto !important;
+        box-shadow: none !important;
+        position: static !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: white !important;
+    }
+
+    .theme-switch-thumb i {
+        font-size: 20px !important;
+        margin: 0 !important;
+    }
+
+    /* == EXTREMOS CARRITO Y PERFIL == */
+    .icon.carrito-link {
+        order: 2 !important;
+        margin: 0 !important;
+    }
+
+    .user-menu-container {
+        order: 3 !important;
+        margin-left: auto !important; /* Reemplaza el espacio sobrante al centro y empuja usuario a la derecha total */
+    }
+
+    /* Posiciona buscador debajo de la fila de íconos */
+    .encabezado .buscador {
+        order: 3 !important;
+        flex: 1 1 100% !important;
+        margin: 10px 0 0 0 !important;
+        width: 100% !important;
+    }
+
+    /* ================= NAVBAR LATERAL (SIDEBAR) ================= */
+    .barra_lateral {
+        position: fixed !important;
+        top: 0 !important;
+        left: -100% !important;
+        width: 70% !important;
+        max-width: 280px !important;
+        height: 100dvh !important;
+
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important; /* Obliga alineación izquierda maestro */
+
+        background: rgba(88, 0, 154, 0.85) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+
+        z-index: 9999 !important;
+        padding: 30px 20px !important;
+        margin: 0 !important;
+        transform: none !important;
+        box-sizing: border-box !important;
+        transition: left 0.3s ease !important;
+
+        /* SOLUCIÓN AL SCROLL DE CATEGORÍAS */
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    .barra_lateral.mobile-open {
+        left: 0 !important;
+    }
+
+    /* ALINEACIÓN ESTRICTA DEL LOGO A LA IZQUIERDA (MATA EL MARGEN AUTO) */
+    .barra_lateral > a {
+        display: flex !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .barra_lateral .logo {
+        margin: 0 !important; /* Fundamental: Remueve el margin auto de css viejos */
+        display: block !important;
+        width: 100px !important;
+    }
+
+    /* ALINEACIÓN DE ENLACES A LA IZQUIERDA */
+    .barra_lateral ul {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important; /* Todo a la izquierda */
+        padding: 0 !important;
+        margin: 20px 0 50px 0 !important; /* Espacio extra abajo para que el scroll termine bonito */
+        width: 100% !important;
+        gap: 8px !important;
+    }
+
+    .barra_lateral li {
+        width: 100% !important;
+        display: block !important;
+        text-align: left !important; /* Forza izquierda */
+    }
+
+    .barra_lateral h3 {
+        text-align: left !important;
+        margin: 20px 0 5px 0 !important;
+        padding: 0 10px !important;
+    }
+
+    .enlace_barra_lateral,
+    .enlace_barra_lateral_fijo {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important; /* ICONO Y TEXTO A LA IZQUIERDA */
+        gap: 15px !important;
+        padding: 12px 10px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Prevenir que los íconos del menú desalineen el texto (Ancho Fijo) */
+    .enlace_barra_lateral i,
+    .enlace_barra_lateral_fijo i {
+        margin: 0 !important;
+        width: 24px !important;
+        text-align: center !important;
+    }
+}
+
+@media (max-width: 600px) {
+    /* NUKE SIDEBAR ALIGNMENT ISSUES */
+    nav.barra_lateral * {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        left: 0 !important;
+        right: auto !important;
+        text-align: left !important;
+        transform: none !important;
+    }
+    nav.barra_lateral ul {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        padding: 0 15px !important;
+        margin-top: 20px !important;
+    }
+    nav.barra_lateral li {
+        width: 100% !important;
+    }
+    nav.barra_lateral a {
+        width: 100% !important;
+        padding: 15px !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+    }
+    nav.barra_lateral .logo {
+        width: 120px !important;
+        margin: 20px 0 0 15px !important;
+    }
+}
+
+@media (max-width: 600px) {
+    /* CORRECCIÓN ICONO NOCHE (VOLVER A MOSTRAR EL ICONO) */
+    .theme-toggle-btn span {
+        display: flex !important; /* Deshacer el display:none a los spans internos */
+    }
+    .theme-toggle-status, .theme-toggle-label {
+        display: none !important; /* Seguir ocultando solo el texto descriptivo */
+    }
+
+    /* REFORZAR ALINEACIÓN MENÚ LATERAL VIOLETA */
+    .barra_lateral {
+        left: -100% !important;
+        transform: translateX(0) !important;
+    }
+    .barra_lateral.mobile-open {
+        left: 0 !important;
+    }
+
+    .barra_lateral ul {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    /* Prevenir que el contenido sea expulsado del contenedor violeta */
+    .barra_lateral li {
+        margin: 5px 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    .enlace_barra_lateral, .enlace_barra_lateral_fijo {
+        padding-left: 15px !important;
+        justify-content: flex-start !important;
+    }
+}
+
+@media (max-width: 600px) {
+    /* CORRECCIÓN MAXIMA SIDEBAR TEXTO */
+    nav.barra_lateral ul {
+        display: block !important; /* Salir de flexbox a veces arregla anomalias de width */
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 20px 0 !important;
+        padding: 0 !important;
+    }
+    nav.barra_lateral li {
+        display: block !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+    nav.barra_lateral h3 {
+        display: block !important;
+        width: 100% !important;
+        white-space: normal !important; /* Prevenir corte por nowrap */
+    }
+}
+
+/* ========================================= */
+/* 🚀 UI ENGINEERING REFINEMENT (GRID & ALERTS) */
+/* ========================================= */
+
+@media (max-width: 600px) {
+    /* 1. MENÚ LATERAL (SIDEBAR PERFECTO) */
+    nav.barra_lateral, .barra_lateral {
+        position: fixed !important;
+        top: 0 !important;
+        left: -100% !important; /* Cerrado por defecto */
+        width: 75% !important;
+        max-width: 320px !important;
+        height: 100dvh !important;
+        box-sizing: border-box !important;
+        padding: 30px !important;
+        background: rgba(30, 0, 50, 0.85) !important; /* Violeta */
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+        z-index: 1000 !important;
+        transition: left 0.3s ease-in-out !important;
+        overflow-y: auto !important;
+        display: block !important;
+    }
+
+    nav.barra_lateral.mobile-open, .barra_lateral.mobile-open {
+        left: 0 !important;
+    }
+
+    /* Limpiar elementos internos del menú para espaciado consistente */
+    nav.barra_lateral ul {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        margin: 20px 0 0 0 !important;
+        padding: 0 !important;
+        gap: 15px !important;
+    }
+
+    nav.barra_lateral li {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    nav.barra_lateral a {
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+        padding: 12px 15px !important;
+        border-radius: 12px !important;
+        box-sizing: border-box !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: white !important;
+        font-size: 1.1rem !important;
+        text-decoration: none !important;
+    }
+
+    /* 2. ALERTAS (TARJETITAS ROJAS Y VERDES) */
+    .notificacion, .alert, .error-alerta, .exito-alerta, .direccion-alert {
+        position: fixed !important;
+        top: 20px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 85% !important;
+        max-width: 350px !important;
+        padding: 15px 20px !important;
+        box-sizing: border-box !important;
+        border-radius: 15px !important;
+        background-color: rgba(220, 38, 38, 0.85) !important; /* Rojo desenfocado por defecto útil para Inicia Sesión */
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        z-index: 2000 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 12px !important;
+        font-size: 1rem !important;
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        margin: 0 !important;
+    }
+
+    /* Sobrescribir el color si es de éxito para no dejarla roja */
+    .notificacion.success, .alert-success, .exito-alerta, .direccion-alert.success {
+        background-color: rgba(34, 197, 94, 0.85) !important; /* Verde */
+    }
+
+    .notificacion i, .alert i, .error-alerta i {
+        font-size: 1.2rem !important;
+        width: 30px !important;
+        text-align: center !important;
+        flex-shrink: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* 3. BARRA SUPERIOR (NAVBAR) - ORDEN ESTRICTO */
+    header.encabezado {
+        display: flex !important;
+        flex-wrap: wrap !important; /* Para que el buscador baje */
+        align-items: center !important;
+        justify-content: flex-start !important;
+        padding: 10px 15px !important;
+        position: relative !important; /* Limpia cualquier centralización extraña */
+        gap: 10px !important;
+    }
+
+    /* El buscador baja a la segunda línea forzado al 100% width */
+    header.encabezado .buscador {
+        order: 10 !important;
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        margin-top: 5px !important;
+    }
+
+    /* Contenedor principal de hamburguesa (si está suelto) */
+    .hamburger-btn {
+        order: 1 !important;
+        position: static !important; /* Elimina posicionamiento central/absoluto */
+        left: unset !important;
+        transform: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 44px !important;
+        height: 44px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Sección iconos alinea Tema, Carrito y Perfil */
+    .encabezado .iconos {
+        order: 2 !important;
+        display: flex !important;
+        flex: 1 !important; /* Ocupa el espacio derecho sobrante */
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 12px !important;
+        position: static !important;
+        margin: 0 !important;
+        width: auto !important;
+    }
+
+    /* Botón TEMA (Recortado) */
+    .theme-toggle-btn, .modo-oscuro {
+        order: 1 !important;
+        width: 40px !important; /* Tamaño mínimo */
+        height: 40px !important;
+        border-radius: 50% !important;
+        flex-shrink: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Mostrar SOLO el icono de luna/sol, no los textos */
+    .theme-toggle-btn span {
+        display: flex !important;
+        position: static !important;
+    }
+    .theme-toggle-status, .theme-toggle-label {
+        display: none !important;
+    }
+
+    /* Carrito */
+    .icon.carrito-link {
+        order: 2 !important;
+        margin: 0 !important;
+    }
+
+    /* Perfil al extremo derecho */
+    .user-menu-container {
+        order: 3 !important;
+        margin-left: auto !important; /* Empuja a la derecha */
+    }
+}
+
+@media (max-width: 600px) {
+    /* Desactivar cualquier "slide" o track del boton de tema para que sea solo el icono centrado */
+    .theme-switch-track {
+        width: 100% !important;
+        height: 100% !important;
+        background: transparent !important;
+        border: none !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+
+    .theme-switch-thumb {
+        transform: none !important; /* Quita el sliding */
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .theme-switch-thumb i {
+        font-size: 18px !important;
+        color: white !important;
+        margin: 0 !important;
+    }
+}
+
+@media (max-width: 600px) {
+    /* CORRECCIÓN MAXIMA PARA EL SCROLL DEL SIDEBAR Y ACORDEÓN */
+    nav.barra_lateral, .barra_lateral {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important; /* Desbloquea scroll suave en iOS/Safari */
+        overscroll-behavior-y: contain !important;
+        pointer-events: auto !important; /* Asegura que registre los toques */
+    }
+
+    /* Prevenir que un padre cause overflow oculto */
+    body.menu-open {
+        position: fixed !important;
+        width: 100% !important;
+    }
+}
+
+/* ESTILOS DE ACORDEON EXCLUSIVOS DE FORMATO MOVIL */
+@media (max-width: 600px) {
+    /* Espacio al final del scroll */
+    nav.barra_lateral ul {
+        padding-bottom: 50px !important;
+    }
+
+    /* Cabecera del menu */
+    .mobile-accordion-header {
+        background: rgba(255,255,255,0.08) !important;
+        border-radius: 10px !important;
+        margin-top: 10px !important;
+        cursor: pointer !important;
+    }
+
+    .mobile-accordion-header h3 {
+        margin: 0 !important;
+        padding: 15px !important;
+        font-size: 1.1rem !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        color: #fff !important;
+    }
+
+    /* Icono indicador */
+    .mobile-category-icon {
+        transition: transform 0.3s ease !important;
+    }
+
+    .mobile-accordion-header.expanded .mobile-category-icon {
+        transform: rotate(180deg) !important;
+    }
+
+    /* Ocultar ítems si NO tienen la clase show-mobile-item */
+    .mobile-accordion-item {
+        display: none !important;
+    }
+
+    .mobile-accordion-item.show-mobile-item {
+        display: block !important;
+        animation: fadeIn 0.3s ease forwards !important;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .mobile-accordion-item a {
+        padding-left: 30px !important;
+        background: transparent !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        border-radius: 0 !important;
+    }
+}
+
+/* ESCONDER CUALQUIER ARTEFACTO (ICONO CHVERON) EN ESCRITORIO */
+    .mobile-accordion-item {
+        display: block !important; /* Siempre visible en escritorio */
+    }
+
+
+/* CORRECCIÓN DE ESPECIFICIDAD PARA EL ACORDEON */
+@media (max-width: 600px) {
+    nav.barra_lateral ul li.mobile-accordion-item {
+        display: none !important;
+    }
+
+    nav.barra_lateral ul li.mobile-accordion-item.show-mobile-item {
+        display: block !important;
+        animation: fadeIn 0.3s ease forwards !important;
+    }
+}
+
+@media (max-width: 600px) {
+    /* Forzar que CUALQUIER elemento del acordeon se oculte si usamos el display none directo */
+    nav.barra_lateral li.mobile-accordion-item {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        transition: all 0.3s ease !important;
+    }
+
+    /* Mostrar si tiene la clase */
+    nav.barra_lateral li.mobile-accordion-item.show-mobile-item {
+        display: block !important;
+        height: auto !important;
+        opacity: 1 !important;
+        margin: 5px 0 !important; /* Restaurar margen normal si quieres */
+    }
+}
+
+/* HABILITAR ACORDEÓN EN ESCRITORIO Y TODOS LOS TAMAÑOS */
+.mobile-category-icon {
+    display: inline-block !important; /* Mostrar icono en PC */
+    transition: transform 0.3s ease !important;
+}
+
+.mobile-accordion-header {
+    cursor: pointer !important;
+}
+
+.mobile-accordion-header h3 {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    transition: all 0.3s ease;
+}
+
+.mobile-accordion-header.expanded .mobile-category-icon {
+    transform: rotate(180deg) !important;
+}
+
+/* Ocultar elementos por defecto en todos los tamaños */
+nav.barra_lateral ul li.mobile-accordion-item,
+nav.barra_lateral li.mobile-accordion-item,
+.mobile-accordion-item {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Mostrar elementos cuando la categoria se expande */
+nav.barra_lateral ul li.mobile-accordion-item.show-mobile-item,
+nav.barra_lateral li.mobile-accordion-item.show-mobile-item,
+.mobile-accordion-item.show-mobile-item {
+    display: block !important;
+    height: auto !important;
+    opacity: 1 !important;
+    margin: 5px 0 !important;
+    animation: fadeInAccordion 0.3s ease forwards !important;
+}
+
+@keyframes fadeInAccordion {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* =========================================================
+   SUPER OVERRIDE: ALINEACIÓN DE BOTONES Y GRID DE PRODUCTOS
+   (Colocado al final para evitar sobreescritura de reglas previas)
+   ========================================================= */
+@media (max-width: 768px) {
+    /* ------ 1. HEADER Y BOTONES ------ */
+    header.encabezado {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 10px 15px !important;
+        gap: 15px 0 !important;
+    }
+
+    .hamburger-btn {
+        order: 1 !important;
+        margin: 0 !important;
+        width: 44px !important;
+        height: 44px !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 50% !important;
+        position: static !important;
+    }
+
+    .encabezado .iconos {
+        order: 2 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        flex: 1 !important;
+        margin: 0 0 0 15px !important;
+        padding: 0 !important;
+        width: auto !important;
+        gap: 0 !important;
+        position: static !important;
+    }
+
+    .encabezado .buscador {
+        order: 3 !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        flex: 1 1 100% !important;
+        margin-top: 5px !important;
+    }
+
+    .buscador input {
+        width: 100% !important;
+        flex: 1 !important;
+    }
+
+    /* Asegurar 4 botones idénticos */
+    .btn_notificaciones, .carrito-link, .user-menu-btn {
+        width: 44px !important;
+        height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 50% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        font-size: 18px !important;
+    }
+
+    .user-menu-container {
+        width: 44px !important;
+        height: 44px !important;
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .user-menu-btn .fa-chevron-down {
+        display: none !important;
+    }
+
+    /* ------ 2. GRID DE PRODUCTOS 2x FILA ------ */
+    .contenedor-productos, .grid-productos, .productos-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        padding: 10px !important;
+    }
+
+    .producto, .card {
+        border-radius: 12px !important;
+        background: rgba(42, 42, 62, 0.7) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .producto img, .card img {
+        width: 100% !important;
+        height: 140px !important;
+        min-height: 140px !important;
+        max-height: 140px !important;
+        object-fit: cover !important;
+        border-radius: 12px 12px 0 0 !important;
+        margin: 0 !important;
+    }
+
+    .producto .info-producto {
+        padding: 8px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        flex-grow: 1 !important;
+    }
+
+    .producto .titulo-producto, .producto h3 {
+        font-size: 13px !important;
+        margin-bottom: 5px !important;
+        line-height: 1.2 !important;
+    }
+
+    .producto .precio {
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .producto .acciones, .producto .botones {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 5px !important;
+        margin-top: auto !important;
+    }
+    
+    .producto .btn-producto, .producto .btn-comprar, .producto button {
+        width: 100% !important;
+        padding: 6px !important;
+        font-size: 12px !important;
+        min-height: 32px !important;
+    }
+}
+
+/* =========================================================
+   FIJO PARA BOTON NOCHE/DIA (MODO OSCURO) Y MENU AL CAMBIAR TEMA
+   ========================================================= */
+@media (max-width: 768px) {
+    /* Forzar el boton de tema para que sea completamente circular sin overflow ni cortes */
+    .theme-toggle-btn, .modo-oscuro {
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 50% !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
+    }
+
+    /* Forzar track y thumb internos del boton de luna a estar fijos y centrados */
+    .theme-switch-track {
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border: none !important;
+        border-radius: 50% !important;
+    }
+    
+    .theme-switch-thumb {
+        position: static !important;
+        transform: none !important;
+        width: auto !important;
+        height: auto !important;
+        background: transparent !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .theme-switch-thumb i {
+        font-size: 18px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+        line-height: 1 !important;
+    }
+
+    /* Solucion para que el boton hamburguesa no desaparezca al de cambiar a tema de dia en móvil */
+    .hamburger-btn i, .hamburger-btn svg {
+        color: var(--text-primary) !important;
+        font-size: 20px !important;
+    }
+    
+    body[data-theme='light'] .hamburger-btn, 
+    body:not(.dark-mode) .hamburger-btn {
+        background: rgba(0, 0, 0, 0.1) !important;
+    }
+
+    body[data-theme='light'] .hamburger-btn i, 
+    body:not(.dark-mode) .hamburger-btn i {
+        color: #333 !important;
+    }
+    
+    /* Repetir para el resto de botones para que el tema claro no los vuelva invisibles */
+    body[data-theme='light'] .theme-toggle-btn,
+    body[data-theme='light'] .carrito-link,
+    body[data-theme='light'] .user-menu-btn,
+    body:not(.dark-mode) .theme-toggle-btn,
+    body:not(.dark-mode) .carrito-link,
+    body:not(.dark-mode) .user-menu-btn {
+        background: rgba(0, 0, 0, 0.1) !important;
+        color: #333 !important;
+    }
+
+    body[data-theme='light'] .carrito-link i,
+    body[data-theme='light'] .user-menu-btn i,
+    body[data-theme='light'] .theme-switch-thumb i,
+    body:not(.dark-mode) .carrito-link i,
+    body:not(.dark-mode) .user-menu-btn i,
+    body:not(.dark-mode) .theme-switch-thumb i {
+        color: #333 !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Forzar que el modo dia/modo oscuro elimine OBLIGATORIAMENTE su texto y barra gigante */
+    .theme-toggle-label, 
+    .theme-toggle-status,
+    .theme-switch-track::before,
+    .theme-switch-track::after {
+        display: none !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+}
