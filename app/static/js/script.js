@@ -1,3 +1,191 @@
+// ================= NAVEGACIÓN POR TECLADO ===================
+document.addEventListener('DOMContentLoaded', function () {
+  const keyboardNavBtn = document.getElementById('keyboard-nav-toggle-btn');
+  const keyboardNavStatus = document.getElementById('keyboard-nav-status');
+  let keyboardNavActive = false;
+
+  if (keyboardNavBtn) {
+    keyboardNavBtn.addEventListener('click', function () {
+      keyboardNavActive = !keyboardNavActive;
+      if (keyboardNavActive) {
+        document.body.classList.add('keyboard-nav-mode');
+        keyboardNavBtn.innerHTML = '<i class="fa-solid fa-keyboard"></i> Quitar navegación por teclado';
+        keyboardNavStatus.textContent = 'Navegación por teclado activada. Usa Tab para moverte.';
+        keyboardNavStatus.style.display = 'block';
+        // Lleva el foco al primer enlace o botón
+        setTimeout(() => {
+          const first = document.querySelector('a, button, input, select, textarea');
+          if (first) first.focus();
+        }, 100);
+      } else {
+        document.body.classList.remove('keyboard-nav-mode');
+        keyboardNavBtn.innerHTML = '<i class="fa-solid fa-keyboard"></i> Navegación por teclado';
+        keyboardNavStatus.textContent = 'Navegación por teclado desactivada.';
+        keyboardNavStatus.style.display = 'block';
+        setTimeout(()=>keyboardNavStatus.style.display='none', 2000);
+      }
+    });
+  }
+
+  // Acceso rápido: Alt+K activa/desactiva navegación por teclado
+  document.addEventListener('keydown', function(e) {
+    if (e.altKey && e.key.toLowerCase() === 'k') {
+      if (keyboardNavBtn) keyboardNavBtn.click();
+    }
+  });
+});
+// ================= ESCALA DE GRISES ===================
+document.addEventListener('DOMContentLoaded', function () {
+  const grayscaleBtn = document.getElementById('grayscale-toggle-btn');
+  const grayscaleStatus = document.getElementById('grayscale-status');
+  let grayscaleActive = false;
+
+  if (grayscaleBtn) {
+    grayscaleBtn.addEventListener('click', function () {
+      grayscaleActive = !grayscaleActive;
+      if (grayscaleActive) {
+        document.body.classList.add('grayscale-mode');
+        grayscaleBtn.innerHTML = '<i class="fa-solid fa-adjust"></i> Quitar escala de grises';
+        grayscaleStatus.textContent = 'Escala de grises activada.';
+        grayscaleStatus.style.display = 'block';
+      } else {
+        document.body.classList.remove('grayscale-mode');
+        grayscaleBtn.innerHTML = '<i class="fa-solid fa-adjust"></i> Escala de grises';
+        grayscaleStatus.textContent = 'Escala de grises desactivada.';
+        grayscaleStatus.style.display = 'block';
+        setTimeout(()=>grayscaleStatus.style.display='none', 2000);
+      }
+    });
+  }
+});
+// ================= LECTURA GUIADA (resaltar al pasar mouse) ===================
+document.addEventListener('DOMContentLoaded', function () {
+  const guidedBtn = document.getElementById('tts-toggle-btn');
+  const guidedStatus = document.getElementById('tts-status');
+  let guidedActive = false;
+  let lastHighlighted = null;
+
+  const HIGHLIGHT_SELECTOR = 'p, h1, h2, h3, h4, h5, h6, li, span, a, label, button, td, th, .producto, .card, .nombre-producto, .titulo-producto, input[placeholder], textarea';
+
+  function onMouseOver(e) {
+    const el = e.target.closest(HIGHLIGHT_SELECTOR);
+    if (!el || el === lastHighlighted) return;
+    if (lastHighlighted) lastHighlighted.classList.remove('guided-reading-highlight');
+    el.classList.add('guided-reading-highlight');
+    lastHighlighted = el;
+  }
+
+  function onMouseOut(e) {
+    const el = e.target.closest(HIGHLIGHT_SELECTOR);
+    if (el) el.classList.remove('guided-reading-highlight');
+    lastHighlighted = null;
+  }
+
+  if (guidedBtn) {
+    guidedBtn.addEventListener('click', function () {
+      guidedActive = !guidedActive;
+      if (guidedActive) {
+        document.addEventListener('mouseover', onMouseOver);
+        document.addEventListener('mouseout', onMouseOut);
+        guidedBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Desactivar lectura guiada';
+        guidedStatus.textContent = 'Lectura guiada activada. Pasa el mouse sobre el texto.';
+        guidedStatus.style.display = 'block';
+      } else {
+        document.removeEventListener('mouseover', onMouseOver);
+        document.removeEventListener('mouseout', onMouseOut);
+        if (lastHighlighted) { lastHighlighted.classList.remove('guided-reading-highlight'); lastHighlighted = null; }
+        guidedBtn.innerHTML = '<i class="fa-solid fa-book-open"></i> Lectura guiada';
+        guidedStatus.textContent = 'Lectura guiada desactivada.';
+        guidedStatus.style.display = 'block';
+        setTimeout(()=>guidedStatus.style.display='none', 2000);
+      }
+    });
+  }
+});
+// ================= LECTURA DE VOZ (leer elemento bajo el mouse) ===================
+document.addEventListener('DOMContentLoaded', function () {
+  const ttsBtn = document.getElementById('voice-read-btn');
+  const ttsStatus = document.getElementById('voice-read-status');
+  let ttsActive = false;
+  let speakTimeout = null;
+
+  function speakElement(el) {
+    if (!window.speechSynthesis) return;
+    const text = el.innerText || el.textContent || el.getAttribute('placeholder') || el.getAttribute('aria-label') || '';
+    if (!text.trim()) return;
+    window.speechSynthesis.cancel();
+    const utterance = new window.SpeechSynthesisUtterance(text.trim());
+    utterance.lang = 'es-MX';
+    utterance.rate = 1;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  const VOICE_SELECTOR = 'p, h1, h2, h3, h4, h5, h6, li, a, label, button, span, td, th, .nombre-producto, .titulo-producto, input, textarea';
+
+  function onMouseEnter(e) {
+    const el = e.target.closest(VOICE_SELECTOR);
+    if (!el) return;
+    clearTimeout(speakTimeout);
+    speakTimeout = setTimeout(() => speakElement(el), 400);
+  }
+
+  function onMouseLeave() {
+    clearTimeout(speakTimeout);
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+  }
+
+  if (ttsBtn) {
+    ttsBtn.addEventListener('click', function () {
+      ttsActive = !ttsActive;
+      if (ttsActive) {
+        document.addEventListener('mouseover', onMouseEnter);
+        document.addEventListener('mouseout', onMouseLeave);
+        ttsBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> Desactivar lectura de voz';
+        ttsStatus.textContent = 'Lectura de voz activada. Pasa el mouse sobre el texto.';
+        ttsStatus.style.display = 'block';
+      } else {
+        document.removeEventListener('mouseover', onMouseEnter);
+        document.removeEventListener('mouseout', onMouseLeave);
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        ttsBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Lectura de voz';
+        ttsStatus.textContent = 'Lectura de voz desactivada.';
+        ttsStatus.style.display = 'block';
+        setTimeout(()=>ttsStatus.style.display='none', 2000);
+      }
+    });
+  }
+});
+// ================= ACCESIBILIDAD ===================
+document.addEventListener('DOMContentLoaded', function () {
+  const btn = document.getElementById('accessibility-btn');
+  const menu = document.getElementById('accessibility-menu');
+  const range = document.getElementById('font-size-range');
+  const value = document.getElementById('font-size-value');
+
+  if (btn && menu && range && value) {
+    btn.addEventListener('click', function () {
+      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    });
+
+    range.addEventListener('input', function () {
+      let size = Math.min(Math.max(parseInt(range.value), 12), 200);
+      value.textContent = size + 'px';
+      document.body.style.setProperty('--accessibility-font-size', size + 'px');
+      document.body.classList.add('accessibility-large-text');
+    });
+
+    // Inicializa con el valor por defecto
+    value.textContent = range.value + 'px';
+    document.body.style.setProperty('--accessibility-font-size', range.value + 'px');
+  }
+
+  // Cierra el menú si se hace click fuera
+  document.addEventListener('click', function (e) {
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+      menu.style.display = 'none';
+    }
+  });
+});
 // ============================================
 // GAME STORE WEB - JAVASCRIPT COMPLETO
 // ============================================

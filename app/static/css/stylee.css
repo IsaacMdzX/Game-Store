@@ -1,3 +1,388 @@
+body.keyboard-nav-mode a, body.keyboard-nav-mode button, body.keyboard-nav-mode input, body.keyboard-nav-mode select, body.keyboard-nav-mode textarea {
+    outline: 3px solid #ec4899 !important;
+    outline-offset: 2px !important;
+    transition: outline 0.2s;
+}
+body.grayscale-mode, .grayscale-mode body {
+    filter: grayscale(1) !important;
+}
+.accessibility-menu-btn {
+    background: linear-gradient(135deg, #8b5cf6 0%, #58009A 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    margin-top: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    transition: background 0.3s, transform 0.2s;
+}
+.accessibility-menu-btn:hover {
+    background: linear-gradient(135deg, #b19cd9 0%, #8b5cf6 100%);
+    transform: scale(1.04);
+}
+/* ======= ACCESIBILIDAD ======= */
+#accessibility-btn {
+    background: linear-gradient(135deg, #8b5cf6 0%, #58009A 100%);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    box-shadow: 0 4px 16px rgba(88,0,154,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    flex-shrink: 0;
+}
+#accessibility-btn:hover {
+    background: linear-gradient(135deg, #b19cd9 0%, #8b5cf6 100%);
+    transform: scale(1.08);
+}
+
+.accessibility-menu {
+    position: static;
+    background: #2d2d2d;
+    color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(88,0,154,0.18);
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    min-width: 220px;
+    border: 2px solid #8b5cf6;
+    margin-bottom: 12px;
+}
+.accessibility-menu h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #b19cd9;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+.accessibility-menu label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #fff;
+    font-size: 1rem;
+}
+#font-size-range {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+#font-size-value {
+    display: inline-block;
+    margin-left: 0.5rem;
+    color: #b19cd9;
+    font-size: 1rem;
+}
+
+@media (max-width: 600px) {
+    #accessibility-fab-container {
+        right: 8px !important;
+        bottom: 8px !important;
+    }
+    .accessibility-menu {
+        min-width: 160px;
+        padding: 1rem;
+    }
+}
+
+/* ======= LECTURA GUIADA - RESALTADO ======= */
+.guided-reading-highlight {
+    outline: 3px solid #8b5cf6 !important;
+    background: rgba(139, 92, 246, 0.15) !important;
+    border-radius: 4px !important;
+    transition: outline 0.15s, background 0.15s;
+    cursor: text;
+}
+
+/* =====================================================
+   MODO NOCHE (DARK) — MEJORAS VISUALES GLOBALES
+   ===================================================== */
+
+/* Base — fondo más rico con gradiente profundo */
+html[data-theme='dark'] body,
+html:not([data-theme]) body {
+    background: linear-gradient(160deg, #0d0d1a 0%, #120820 50%, #0a0a15 100%) !important;
+}
+
+/* Cards con glassmorphism sutil */
+html[data-theme='dark'] .producto,
+html[data-theme='dark'] .card,
+html[data-theme='dark'] .dashboard-card,
+html[data-theme='dark'] .form-card,
+html[data-theme='dark'] .pedido-card,
+html[data-theme='dark'] .perfil-card-centrado,
+html[data-theme='dark'] .card-informacion,
+html[data-theme='dark'] .card-ubicacion,
+html[data-theme='dark'] .no-favoritos,
+html[data-theme='dark'] .no-autenticado,
+html[data-theme='dark'] .no-pedidos {
+    background: linear-gradient(145deg, rgba(42,28,70,0.85) 0%, rgba(22,14,40,0.95) 100%) !important;
+    border: 1px solid rgba(139,92,246,0.22) !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04) !important;
+    backdrop-filter: blur(6px);
+    transition: box-shadow 0.25s, border-color 0.25s;
+}
+
+html[data-theme='dark'] .producto:hover,
+html[data-theme='dark'] .card:hover {
+    border-color: rgba(168,85,247,0.55) !important;
+    box-shadow: 0 14px 40px rgba(88,0,154,0.38), 0 0 0 1px rgba(168,85,247,0.18) !important;
+    transform: translateY(-3px);
+}
+
+/* Header mejorado modo noche */
+html[data-theme='dark'] header,
+html[data-theme='dark'] .encabezado {
+    background: linear-gradient(135deg, #2a004d 0%, #1a0033 60%, #0d001a 100%) !important;
+    border-bottom: 1px solid rgba(139,92,246,0.3) !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5) !important;
+}
+
+/* Sidebar modo noche */
+html[data-theme='dark'] .barra_lateral {
+    background: linear-gradient(180deg, #1e0040 0%, #120028 100%) !important;
+    border-right: 1px solid rgba(139,92,246,0.25) !important;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.4) !important;
+}
+
+/* Inputs modo noche */
+html[data-theme='dark'] input:not([type="range"]),
+html[data-theme='dark'] textarea,
+html[data-theme='dark'] select {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(139,92,246,0.3) !important;
+    color: #f0e8ff !important;
+    border-radius: 10px !important;
+}
+
+html[data-theme='dark'] input:not([type="range"]):focus,
+html[data-theme='dark'] textarea:focus,
+html[data-theme='dark'] select:focus {
+    border-color: rgba(168,85,247,0.7) !important;
+    background: rgba(255,255,255,0.07) !important;
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.2) !important;
+}
+
+/* Tablas modo noche */
+html[data-theme='dark'] .table-container,
+html[data-theme='dark'] table {
+    background: rgba(18,8,32,0.9) !important;
+    border: 1px solid rgba(139,92,246,0.18) !important;
+    border-radius: 14px !important;
+    overflow: hidden;
+}
+
+html[data-theme='dark'] th {
+    background: linear-gradient(135deg, rgba(88,0,154,0.6) 0%, rgba(124,58,237,0.5) 100%) !important;
+    color: #e9d5ff !important;
+    border-bottom: 1px solid rgba(139,92,246,0.3) !important;
+}
+
+html[data-theme='dark'] tr:nth-child(even) td {
+    background: rgba(255,255,255,0.025) !important;
+}
+
+html[data-theme='dark'] tr:hover td {
+    background: rgba(139,92,246,0.1) !important;
+}
+
+/* Menú de accesibilidad modo noche */
+html[data-theme='dark'] #accessibility-fab-container .accessibility-menu {
+    background: linear-gradient(160deg, #1e1030 0%, #160a2a 100%) !important;
+    border: 1px solid rgba(139,92,246,0.35) !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+
+/* Textos modo noche */
+html[data-theme='dark'] h1,
+html[data-theme='dark'] h2,
+html[data-theme='dark'] h3 {
+    color: #f3e8ff !important;
+}
+
+html[data-theme='dark'] p,
+html[data-theme='dark'] span:not(.carrito-count):not(.badge),
+html[data-theme='dark'] label {
+    color: #d8cce8 !important;
+}
+
+/* =====================================================
+   MODO DÍA (LIGHT) — MEJORAS VISUALES GLOBALES
+   ===================================================== */
+
+/* Fondo general más cálido */
+html[data-theme='light'] body,
+html[data-theme='light'] body > main,
+html[data-theme='light'] main,
+html[data-theme='light'] .principal {
+    background: linear-gradient(160deg, #f5f0ff 0%, #faf7ff 50%, #f0f4ff 100%) !important;
+}
+
+/* Sidebar modo día */
+html[data-theme='light'] .barra_lateral {
+    background: linear-gradient(180deg, #5b009e 0%, #3d0070 100%) !important;
+    border-right: 1px solid rgba(139,92,246,0.25) !important;
+    box-shadow: 4px 0 24px rgba(88,0,154,0.18) !important;
+}
+
+/* Todos los textos e íconos del sidebar en modo día — blancos para contrastar con fondo morado */
+html[data-theme='light'] .barra_lateral,
+html[data-theme='light'] .barra_lateral *,
+html[data-theme='light'] .barra_lateral a,
+html[data-theme='light'] .barra_lateral a *,
+html[data-theme='light'] .barra_lateral .enlace_barra_lateral,
+html[data-theme='light'] .barra_lateral .enlace_barra_lateral_fijo,
+html[data-theme='light'] .barra_lateral ul li a,
+html[data-theme='light'] .barra_lateral ul li a i,
+html[data-theme='light'] nav.barra_lateral h3,
+html[data-theme='light'] nav.barra_lateral li h3 {
+    color: #f0e6ff !important;
+}
+
+html[data-theme='light'] .barra_lateral .enlace_barra_lateral:hover,
+html[data-theme='light'] .barra_lateral .enlace_barra_lateral_fijo:hover {
+    background: rgba(255,255,255,0.15) !important;
+    color: #ffffff !important;
+    border-radius: 10px;
+}
+
+html[data-theme='light'] .barra_lateral .enlace_barra_lateral:hover *,
+html[data-theme='light'] .barra_lateral .enlace_barra_lateral_fijo:hover * {
+    color: #ffffff !important;
+}
+
+/* Header modo día mejorado */
+html[data-theme='light'] header,
+html[data-theme='light'] .encabezado {
+    background: linear-gradient(135deg, #ffffff 0%, #f5f0ff 100%) !important;
+    border-bottom: 2px solid rgba(139,92,246,0.18) !important;
+    box-shadow: 0 4px 20px rgba(88,0,154,0.08) !important;
+}
+
+/* Cards modo día */
+html[data-theme='light'] .producto,
+html[data-theme='light'] .card,
+html[data-theme='light'] .dashboard-card,
+html[data-theme='light'] .form-card,
+html[data-theme='light'] .pedido-card,
+html[data-theme='light'] .perfil-card-centrado,
+html[data-theme='light'] .card-informacion,
+html[data-theme='light'] .card-ubicacion,
+html[data-theme='light'] .no-favoritos,
+html[data-theme='light'] .no-autenticado,
+html[data-theme='light'] .no-pedidos,
+html[data-theme='light'] .user-dropdown {
+    background: #ffffff !important;
+    border: 1.5px solid rgba(139,92,246,0.15) !important;
+    box-shadow: 0 4px 20px rgba(88,0,154,0.07), 0 1px 4px rgba(0,0,0,0.04) !important;
+    border-radius: 16px !important;
+    transition: box-shadow 0.25s, border-color 0.25s, transform 0.2s;
+}
+
+html[data-theme='light'] .producto:hover,
+html[data-theme='light'] .card:hover {
+    border-color: rgba(139,92,246,0.4) !important;
+    box-shadow: 0 12px 32px rgba(88,0,154,0.14) !important;
+    transform: translateY(-3px) !important;
+}
+
+/* Inputs modo día */
+html[data-theme='light'] input:not([type="range"]),
+html[data-theme='light'] textarea,
+html[data-theme='light'] select {
+    background: #ffffff !important;
+    border: 1.5px solid #d4b8f8 !important;
+    color: #1f0a47 !important;
+    border-radius: 10px !important;
+}
+
+html[data-theme='light'] input:not([type="range"]):focus,
+html[data-theme='light'] textarea:focus,
+html[data-theme='light'] select:focus {
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.15) !important;
+    outline: none !important;
+}
+
+/* Tablas modo día */
+html[data-theme='light'] .table-container,
+html[data-theme='light'] table {
+    background: #ffffff !important;
+    border: 1.5px solid #ede0ff !important;
+    border-radius: 14px !important;
+    box-shadow: 0 4px 16px rgba(88,0,154,0.07) !important;
+    overflow: hidden;
+}
+
+html[data-theme='light'] th {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+    color: #ffffff !important;
+}
+
+html[data-theme='light'] tr:nth-child(even) td {
+    background: #faf5ff !important;
+}
+
+html[data-theme='light'] tr:hover td {
+    background: #f3e8ff !important;
+}
+
+/* Menú de accesibilidad modo día */
+html[data-theme='light'] #accessibility-fab-container .accessibility-menu {
+    background: #ffffff !important;
+    border: 1.5px solid rgba(139,92,246,0.25) !important;
+    box-shadow: 0 8px 28px rgba(88,0,154,0.12) !important;
+    color: #1f0a47 !important;
+}
+
+html[data-theme='light'] #accessibility-fab-container .accessibility-menu h4,
+html[data-theme='light'] #accessibility-fab-container .accessibility-menu label {
+    color: #5b21b6 !important;
+}
+
+/* Paginación y badges modo día */
+html[data-theme='light'] .badge,
+html[data-theme='light'] .etiqueta {
+    background: #ede9fe !important;
+    color: #6d28d9 !important;
+    border: 1px solid #c4b5fd !important;
+}
+
+/* Textos modo día */
+html[data-theme='light'] h1,
+html[data-theme='light'] h2,
+html[data-theme='light'] h3 {
+    color: #3b0764 !important;
+}
+
+html[data-theme='light'] p,
+html[data-theme='light'] label {
+    color: #374151 !important;
+}
+
+/* Barra de búsqueda modo día */
+html[data-theme='light'] .buscador input {
+    background: #ffffff !important;
+    border: 1.5px solid #d4b8f8 !important;
+    color: #1f0a47 !important;
+    box-shadow: 0 2px 10px rgba(88,0,154,0.07) !important;
+}
+
+/* ===================================================== */
+
+body.accessibility-large-text, .accessibility-large-text body {
+    font-size: var(--accessibility-font-size, 20px) !important;
+}
 /* Estilos específicos para la página de pedidos */
 .pedidos-header {
     display: flex;

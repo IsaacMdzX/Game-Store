@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_NAME="game-store"
-APP_DIR="/home/isaac/Escritorio/Game-Store"
+APP_DIR="/home/isaacmendez/Escritorio/Game-Store"
 PYTHON_BIN="$APP_DIR/.venv/bin/python"
 PORT="5000"
 
