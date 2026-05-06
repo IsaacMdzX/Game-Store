@@ -335,7 +335,37 @@ html[data-theme='light'] .toggle-password-btn.password-visible {
 }
 
 .verification-line {
+    flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
+}
+
+.verification-line .label {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+/* Ajuste específico del widget reCAPTCHA dentro del formulario */
+.captcha-block {
+    width: 100%;
+}
+
+#recaptcha-widget {
+    display: inline-block;
+    max-width: 100%;
+    transform-origin: 0 0;
+}
+
+@media (max-width: 420px) {
+    #recaptcha-widget {
+        transform: scale(0.92);
+    }
+}
+
+@media (max-width: 360px) {
+    #recaptcha-widget {
+        transform: scale(0.82);
+    }
 }
 
 .verification-actions {
@@ -901,6 +931,31 @@ body {
     --notify-success-grad: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
     --notify-info-grad: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
     --notify-warning-grad: linear-gradient(135deg, #f59e0b 0%, #facc15 100%);
+}
+
+/* Base del toast: evita que el body (flex) lo acomode como un elemento más */
+.notification,
+.notification-custom {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 10000;
+    max-width: 420px;
+    width: calc(100% - 36px);
+}
+
+.notification.show,
+.notification-custom.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (min-width: 520px) {
+    .notification,
+    .notification-custom {
+        width: auto;
+        min-width: 260px;
+    }
 }
 
 .error-alerta,

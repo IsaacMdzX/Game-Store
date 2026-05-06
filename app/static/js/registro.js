@@ -1,9 +1,40 @@
 // Modelo de Usuario para Backbone
+// Notificación global tipo "toast" (si no existe en la página)
+if (typeof window.showNotification !== 'function') {
+    window.showNotification = function(message, type = 'success') {
+        try {
+            var existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            var notification = document.createElement('div');
+            notification.className = 'notification notification-' + type;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            setTimeout(function() {
+                notification.classList.add('show');
+            }, 10);
+
+            setTimeout(function() {
+                notification.classList.remove('show');
+                setTimeout(function() {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        } catch (err) {
+            // fallback silencioso
+        }
+    };
+}
+
 var Usuario = Backbone.Model.extend({
     defaults: {
         username: '',
         email: '',
-        captcha_text: '',
+        recaptcha_token: '',
         password: '',
         confirm_password: ''
     },
@@ -13,25 +44,33 @@ var Usuario = Backbone.Model.extend({
     validate: function(attrs) {
         var errors = [];
 
-        if (!attrs.username || attrs.username.length < 6) {
-            errors.push('complete_required');
+        if (!attrs.username) {
+            errors.push({ field: 'username', message: 'Ingresa un nombre de usuario.' });
+        } else if (attrs.username.length < 6) {
+            errors.push({ field: 'username', message: 'El nombre de usuario debe tener al menos 6 caracteres.' });
         }
 
         var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!attrs.email || !emailRegex.test(attrs.email)) {
-            errors.push('complete_required');
+        if (!attrs.email) {
+            errors.push({ field: 'email', message: 'Ingresa tu email.' });
+        } else if (!emailRegex.test(attrs.email)) {
+            errors.push({ field: 'email', message: 'Ingresa un email válido.' });
         }
 
-        if (!attrs.captcha_text || attrs.captcha_text.length < 3) {
-            errors.push('complete_required');
+        if (!attrs.password) {
+            errors.push({ field: 'password', message: 'Ingresa una contraseña.' });
+        } else if (attrs.password.length < 8) {
+            errors.push({ field: 'password', message: 'La contraseña debe tener al menos 8 caracteres.' });
         }
 
-        if (!attrs.password || attrs.password.length < 8) {
-            errors.push('complete_required');
+        if (!attrs.confirm_password) {
+            errors.push({ field: 'confirm_password', message: 'Confirma tu contraseña.' });
+        } else if (attrs.password && attrs.password !== attrs.confirm_password) {
+            errors.push({ field: 'confirm_password', message: 'Las contraseñas no coinciden.' });
         }
 
-        if (attrs.password !== attrs.confirm_password) {
-            errors.push('complete_required');
+        if (!attrs.recaptcha_token) {
+            errors.push({ field: 'recaptcha', message: 'Completa la verificación reCAPTCHA.' });
         }
 
         return errors.length > 0 ? errors : undefined;
@@ -46,7 +85,6 @@ var RegistroView = Backbone.View.extend({
         'submit': 'registrarUsuario',
         'input #username': 'limpiarError',
         'input #email': 'limpiarError',
-        'input #captcha-text': 'limpiarError',
         'input #password': 'limpiarError',
         'input #confirm-password': 'limpiarError',
         'click #toggle-registro-password-btn': 'togglePasswordPrincipal',
@@ -61,13 +99,38 @@ var RegistroView = Backbone.View.extend({
         this.listenTo(this.usuario, 'error', this.registroFallido);
     },
 
+    notificar: function(message, type) {
+        // En REGISTRO, mostrar el mensaje dentro del formulario (encima del botón)
+        // para evitar toasts flotantes que se ven distintos entre entornos.
+        var normalizedType = (type || 'info');
+        if (normalizedType === 'success') {
+            this.mostrarExito(message);
+        } else if (normalizedType === 'info') {
+            this.mostrarInfo(message);
+        } else {
+            this.mostrarErrorGeneral(message);
+        }
+    },
+
     registrarUsuario: function(e) {
         e.preventDefault();
+
+        var recaptchaToken = '';
+        try {
+            if (window.grecaptcha && typeof window.grecaptcha.getResponse === 'function') {
+                recaptchaToken = (window.grecaptcha.getResponse() || '').trim();
+            } else {
+                var textarea = document.querySelector('textarea[name="g-recaptcha-response"]');
+                recaptchaToken = textarea ? (textarea.value || '').trim() : '';
+            }
+        } catch (err) {
+            recaptchaToken = '';
+        }
 
         var datos = {
             username: this.$('#username').val().trim(),
             email: this.$('#email').val().trim(),
-            captcha_text: this.$('#captcha-text').val().trim(),
+            recaptcha_token: recaptchaToken,
             password: this.$('#password').val(),
             confirm_password: this.$('#confirm-password').val()
         };
@@ -87,12 +150,69 @@ var RegistroView = Backbone.View.extend({
 
     mostrarErrores: function(model, errors) {
         this.mostrarCargando(false);
-        this.mostrarAlertaCamposRequeridos();
+
+        // Marcar campos con error, pero SIN escribir mensajes dentro del formulario.
+        // Los mensajes se muestran como notificación global.
+        var errorList = Array.isArray(errors) ? errors.filter(Boolean) : [];
+        errorList.forEach((err) => {
+            if (!err || !err.field) {
+                return;
+            }
+
+            if (err.field === 'username') {
+                this.marcarCampoError('#username');
+            } else if (err.field === 'email') {
+                this.marcarCampoError('#email');
+            } else if (err.field === 'password') {
+                this.marcarCampoError('#password');
+            } else if (err.field === 'confirm_password') {
+                this.marcarCampoError('#confirm-password');
+            } else if (err.field === 'recaptcha') {
+                // reCAPTCHA: no hay input para marcar, se notifica global
+            }
+        });
+
+        // Determinar mensaje preferido
+        var preferred = errorList.find((e) => e && e.field !== 'recaptcha') || errorList[0];
+        var message = (preferred && preferred.message) ? preferred.message : null;
+
+        // Si el usuario no llenó nada, mantener el mensaje clásico
+        var allEmpty = true;
+        try {
+            var usernameVal = (this.$('#username').val() || '').trim();
+            var emailVal = (this.$('#email').val() || '').trim();
+            var passVal = (this.$('#password').val() || '').trim();
+            var confirmVal = (this.$('#confirm-password').val() || '').trim();
+            allEmpty = !usernameVal && !emailVal && !passVal && !confirmVal;
+        } catch (err) {
+            allEmpty = false;
+        }
+
+        if (allEmpty) {
+            this.notificar('Por favor completa todos los campos requeridos.', 'error');
+            return;
+        }
+
+        if (message) {
+            this.notificar(message, 'error');
+        } else {
+            this.notificar('Por favor completa los campos solicitados antes de crear la cuenta.', 'error');
+        }
+    },
+
+    marcarCampoError: function(inputSelector) {
+        var $input = inputSelector ? this.$(inputSelector) : null;
+        if ($input && $input.length) {
+            $input.addClass('error-input');
+        }
     },
 
     mostrarErrorGeneral: function(mensaje) {
         var $alert = this.$('#registro-alert');
         if (!$alert.length) {
+            if (typeof window.showNotification === 'function') {
+                window.showNotification(mensaje, 'error');
+            }
             return;
         }
 
@@ -115,6 +235,12 @@ var RegistroView = Backbone.View.extend({
         this.mostrarCargando(false);
         this.mostrarExito('¡Cuenta creada exitosamente! Redirigiendo...');
 
+        try {
+            if (window.grecaptcha && typeof window.grecaptcha.reset === 'function') {
+                window.grecaptcha.reset();
+            }
+        } catch (err) {}
+
         setTimeout(function() {
             window.location.href = '/login';
         }, 2000);
@@ -125,7 +251,31 @@ var RegistroView = Backbone.View.extend({
         var mensaje = response && response.responseJSON && response.responseJSON.error
             ? response.responseJSON.error
             : 'No se pudo crear la cuenta. Verifica los datos e intenta nuevamente.';
-        this.mostrarErrorGeneral(mensaje);
+        this.notificar(mensaje, 'error');
+    },
+
+    mostrarInfo: function(mensaje) {
+        var $alert = this.$('#registro-alert');
+        if (!$alert.length) {
+            if (typeof window.showNotification === 'function') {
+                window.showNotification(mensaje, 'info');
+            }
+            return;
+        }
+
+        $alert
+            .stop(true, true)
+            .removeClass('is-error is-success')
+            .addClass('is-info')
+            .text(mensaje)
+            .show();
+
+        if (this.alertTimeout) {
+            clearTimeout(this.alertTimeout);
+        }
+        this.alertTimeout = setTimeout(function() {
+            $alert.fadeOut(180);
+        }, 3000);
     },
 
     mostrarCargando: function(mostrar) {
@@ -159,7 +309,16 @@ var RegistroView = Backbone.View.extend({
     limpiarError: function(e) {
         var $input = $(e.target);
         $input.removeClass('error-input');
-        $input.siblings('.error-message').text('');
+
+        // Los spans de error no siempre son "siblings" (password tiene wrapper)
+        var describedBy = ($input.attr('aria-describedby') || '').trim();
+        if (describedBy) {
+            describedBy.split(/\s+/).forEach(function(id) {
+                if (id) {
+                    $('#' + id).text('');
+                }
+            });
+        }
     },
 
     limpiarTodosErrores: function() {
@@ -170,6 +329,13 @@ var RegistroView = Backbone.View.extend({
         this.$('#registro-alert').hide().text('').removeClass('is-error is-success is-info');
         this.$('.error-input').removeClass('error-input');
         this.$('.error-message').text('');
+
+        try {
+            var existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+        } catch (err) {}
     },
 
     togglePasswordPrincipal: function(e) {
@@ -207,3 +373,12 @@ var RegistroView = Backbone.View.extend({
 $(document).ready(function() {
     new RegistroView();
 });
+
+// Callbacks para limpiar/mostrar mensaje de reCAPTCHA
+window.onRecaptchaSuccess = function() {
+    $('#recaptcha-error').text('');
+};
+
+window.onRecaptchaExpired = function() {
+    $('#recaptcha-error').text('La verificación expiró. Intenta nuevamente.');
+};

@@ -48,6 +48,12 @@ def create_app():
     else:
         app.config.from_object('app.config.DevelopmentConfig')
 
+    # Asegurar que reCAPTCHA se tome de variables de entorno (robusto ante orden de imports)
+    for _key in ('RECAPTCHA_SITE_KEY', 'RECAPTCHA_SECRET_KEY'):
+        _val = os.environ.get(_key)
+        if _val:
+            app.config[_key] = _val
+
     # Asegurar la clave secreta
     if not app.config.get('SECRET_KEY'):
         app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-secret-key-for-dev')

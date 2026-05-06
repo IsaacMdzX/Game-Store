@@ -71,7 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 showAlert(data.error || 'No se pudo enviar el código.');
                 return;
             }
-            showAlert(data.message || 'Si el correo existe, enviamos un código.', 'info');
+            showAlert(
+                (data.message || 'Si el correo existe, enviamos un código.') + ' Revisa spam; puede tardar 1–2 min.',
+                'info'
+            );
         } catch (err) {
             if (err && err.name === 'AbortError') {
                 showAlert('La solicitud tardó demasiado. Intenta nuevamente.');

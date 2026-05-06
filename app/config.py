@@ -3,6 +3,13 @@ import os
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
 def _get_database_uri():
     return (
         os.environ.get("DATABASE_URL")
@@ -36,10 +43,17 @@ class BaseConfig:
     # Email Configuration
     MAIL_SERVER = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
     MAIL_PORT = int(os.environ.get("MAIL_PORT", 587))
-    MAIL_USE_TLS = os.environ.get("MAIL_USE_TLS", True)
+    MAIL_USE_TLS = _env_bool("MAIL_USE_TLS", True)
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
-    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "noreply@gamestore.com")
+    # Importante: por entregabilidad, el sender debería coincidir con la cuenta autenticada del SMTP.
+    MAIL_DEFAULT_SENDER = (
+        os.environ.get("MAIL_DEFAULT_SENDER")
+        or os.environ.get("MAIL_USERNAME")
+        or "noreply@gamestore.com"
+    )
+    # Socket timeout (segundos) para evitar bloqueos largos en SMTP
+    MAIL_TIMEOUT = int(os.environ.get("MAIL_TIMEOUT", 10))
 
 
 class DevelopmentConfig(BaseConfig):

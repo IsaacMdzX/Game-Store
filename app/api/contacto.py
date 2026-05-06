@@ -1,8 +1,11 @@
 from flask import Blueprint, request, jsonify, current_app
-from app import db, mail
+from app import db
 from app.models.contacto import ContactMessage
 import re
 import threading
+import time
+import smtplib
+import ssl
 from app.utils.datetime_utils import utc_now_naive, format_datetime_mx
 
 bp = Blueprint('contacto', __name__, url_prefix='/api')
@@ -12,37 +15,103 @@ def is_valid_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(pattern, email) is not None
 
-def send_email(subject, recipients, html_body):
-    """Helper function para enviar emails si Flask-Mail está disponible"""
-    if mail is None:
-        print(f"⚠️ Flask-Mail no está disponible. No se puede enviar email a {recipients}")
-        return False
+
+def _open_smtp_connection():
+    server = current_app.config.get('MAIL_SERVER')
+    port = int(current_app.config.get('MAIL_PORT') or 0)
+    use_tls = bool(current_app.config.get('MAIL_USE_TLS'))
+    use_ssl = bool(current_app.config.get('MAIL_USE_SSL', False))
+    timeout = float(current_app.config.get('MAIL_TIMEOUT', 10))
+
+    if not server or not port:
+        raise RuntimeError('Configuración MAIL_SERVER/MAIL_PORT incompleta')
+
+    context = ssl.create_default_context()
+    if use_ssl:
+        smtp = smtplib.SMTP_SSL(server, port, timeout=timeout, context=context)
+    else:
+        smtp = smtplib.SMTP(server, port, timeout=timeout)
+
+    smtp.ehlo()
+    if use_tls and not use_ssl:
+        smtp.starttls(context=context)
+        smtp.ehlo()
+
+    username = current_app.config.get('MAIL_USERNAME')
+    password = current_app.config.get('MAIL_PASSWORD')
+    if username and password:
+        smtp.login(username, password)
+    return smtp
+
+def send_email(subject, recipients, html_body, text_body=None, connection=None):
+    """Envía un email vía SMTP con timeout explícito.
+
+    Nota: Flask-Mail 0.9.1 no soporta MAIL_TIMEOUT; por eso usamos smtplib directamente.
+    """
 
     try:
         from flask_mail import Message
-        msg = Message(subject=subject, recipients=recipients, html=html_body)
-        mail.send(msg)
+        sender = current_app.config.get('MAIL_DEFAULT_SENDER')
+        msg = Message(subject=subject, recipients=recipients, html=html_body, sender=sender)
+        if text_body:
+            msg.body = text_body
+
+        start = time.perf_counter()
+        smtp = connection
+        close_smtp = False
+        if smtp is None:
+            smtp = _open_smtp_connection()
+            close_smtp = True
+
+        from_addr = str(msg.sender)
+        to_addrs = [str(r) for r in msg.recipients]
+        smtp.sendmail(from_addr, to_addrs, msg.as_bytes())
+
+        if close_smtp:
+            try:
+                smtp.quit()
+            except Exception:
+                try:
+                    smtp.close()
+                except Exception:
+                    pass
+
+        elapsed = time.perf_counter() - start
+        print(f"[MAIL] Enviado a {recipients} en {elapsed:.2f}s", flush=True)
         return True
     except Exception as e:
-        print(f"Error enviando email: {e}")
+        print(f"Error enviando email: {e}", flush=True)
         return False
 
 def send_emails_async(app, admin_email_data, user_email_data, contact_id):
     """Envía emails en segundo plano usando threading"""
     with app.app_context():
         try:
-            # Email al administrador
-            send_email(
-                subject=admin_email_data['subject'],
-                recipients=admin_email_data['recipients'],
-                html_body=admin_email_data['html_body']
-            )
-            # Email al usuario
-            send_email(
-                subject=user_email_data['subject'],
-                recipients=user_email_data['recipients'],
-                html_body=user_email_data['html_body']
-            )
+            # Reusar una única conexión SMTP para ambos envíos (reduce handshake/latencia)
+            smtp = _open_smtp_connection()
+            try:
+                # Email al administrador
+                send_email(
+                    subject=admin_email_data['subject'],
+                    recipients=admin_email_data['recipients'],
+                    html_body=admin_email_data['html_body'],
+                    connection=smtp,
+                )
+                # Email al usuario
+                send_email(
+                    subject=user_email_data['subject'],
+                    recipients=user_email_data['recipients'],
+                    html_body=user_email_data['html_body'],
+                    connection=smtp,
+                )
+            finally:
+                try:
+                    smtp.quit()
+                except Exception:
+                    try:
+                        smtp.close()
+                    except Exception:
+                        pass
             print(f"✅ Emails enviados para el mensaje de contacto ID {contact_id}")
         except Exception as e:
             print(f"⚠️ Error enviando emails en background: {e}")
@@ -119,25 +188,24 @@ def submit_contact():
         """
 
         # Enviar emails en segundo plano (no bloquear la respuesta)
-        if mail is not None:
-            admin_email_data = {
-                'subject': f'Nuevo mensaje de contacto: {asunto}',
-                'recipients': [admin_email],
-                'html_body': email_admin_html
-            }
-            user_email_data = {
-                'subject': 'Hemos recibido tu mensaje - Game Store',
-                'recipients': [email],
-                'html_body': email_user_html
-            }
+        admin_email_data = {
+            'subject': f'Nuevo mensaje de contacto: {asunto}',
+            'recipients': [admin_email],
+            'html_body': email_admin_html
+        }
+        user_email_data = {
+            'subject': 'Hemos recibido tu mensaje - Game Store',
+            'recipients': [email],
+            'html_body': email_user_html
+        }
 
-            # Iniciar hilo para enviar emails en segundo plano
-            thread = threading.Thread(
-                target=send_emails_async,
-                args=(current_app._get_current_object(), admin_email_data, user_email_data, contact_message.id)
-            )
-            thread.daemon = True
-            thread.start()
+        # Iniciar hilo para enviar emails en segundo plano
+        thread = threading.Thread(
+            target=send_emails_async,
+            args=(current_app._get_current_object(), admin_email_data, user_email_data, contact_message.id)
+        )
+        thread.daemon = True
+        thread.start()
 
         # Responder inmediatamente (los emails se envían en segundo plano)
         return jsonify({

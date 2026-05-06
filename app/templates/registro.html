@@ -15,7 +15,7 @@
     <meta name="theme-color" content="#58009A">
     <title>Registro - Game Store</title>
     <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=2.8">
     <link rel="stylesheet" href="/static/css/responsive.css?v=2.2">
     <link rel="stylesheet" href="/static/css/mobile-aesthetic.css?v=2.2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
@@ -35,7 +35,7 @@
                         <div class="form-line">
                             <label class="label" for="username">Nombre De Usuario:</label>
                             <input type="text" id="username" name="username" class="input-field"
-                                placeholder="Ingresa tu nombre de usuario" aria-describedby="username-error">
+                                placeholder="Mínimo 6 caracteres" minlength="6" aria-describedby="username-error">
                             <span class="error-message" id="username-error" aria-live="polite"></span>
                         </div>
 
@@ -50,7 +50,7 @@
                             <label class="label" for="password">Contraseña:</label>
                             <div class="password-field-wrapper">
                                 <input type="password" id="password" name="password" class="input-field"
-                                    placeholder="Crea una contraseña segura" required aria-describedby="password-error">
+                                    placeholder="Mínimo 8 caracteres" minlength="8" required aria-describedby="password-error">
                                 <button type="button" id="toggle-registro-password-btn" class="toggle-password-btn" aria-label="Mostrar contraseña" title="Mostrar contraseña">
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
@@ -70,15 +70,20 @@
                             <span class="error-message" id="confirm-error" aria-live="polite"></span>
                         </div>
 
-                        <div class="form-line">
-                            <label class="label" for="captcha-text">Verificación de texto:</label>
+                        <div class="form-line verification-line">
+                            <label class="label" for="recaptcha-widget">Verificación:</label>
                             <div class="captcha-block">
                                 <div class="captcha-chip-row">
-                                    <span class="captcha-label-text">Escribe exactamente</span>
-                                    <span class="captcha-word">{{ captcha_phrase }}</span>
+                                    <span class="captcha-label-text">Verificación</span>
                                 </div>
-                                <input type="text" id="captcha-text" name="captcha_text" class="input-field" placeholder="Escribe la palabra exacta" required aria-describedby="captcha-error">
-                                <span class="error-message" id="captcha-error" aria-live="polite"></span>
+
+                                {% if recaptcha_site_key %}
+                                    <div id="recaptcha-widget" class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="onRecaptchaSuccess" data-expired-callback="onRecaptchaExpired"></div>
+                                {% else %}
+                                    <div class="registro-alert is-error" style="display:block;">reCAPTCHA no está configurado.</div>
+                                {% endif %}
+
+                                <span class="error-message" id="recaptcha-error" aria-live="polite"></span>
                             </div>
                         </div>
 
@@ -107,7 +112,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.1/underscore-min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.4.0/backbone-min.js"></script>
-    <script src="/static/js/registro.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="/static/js/registro.js?v=2.8"></script>
 
 </body>
 

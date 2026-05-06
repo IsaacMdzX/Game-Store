@@ -66,12 +66,8 @@ def login():
 
 @web_bp.route('/registro')
 def registro():
-    captcha_words = [
-        'GAMER', 'PIXEL', 'LEVEL', 'ARCADE', 'JOYSTICK', 'RETRO', 'POWER'
-    ]
-    captcha_phrase = random.choice(captcha_words)
-    session['registration_text_captcha'] = captcha_phrase
-    return render_template('registro.html', captcha_phrase=captcha_phrase)
+    recaptcha_site_key = current_app.config.get('RECAPTCHA_SITE_KEY')
+    return render_template('registro.html', recaptcha_site_key=recaptcha_site_key)
 
 
 @web_bp.route('/recuperar-contrasena')
@@ -738,7 +734,7 @@ def api_registro():
 
         username = (data.get('username') or '').strip()
         email = (data.get('email') or '').strip().lower()
-        captcha_text = (data.get('captcha_text') or '').strip()
+        recaptcha_token = (data.get('recaptcha_token') or '').strip()
         password = data.get('password')
         confirm_password = data.get('confirm_password')
 
@@ -755,15 +751,47 @@ def api_registro():
         if password != confirm_password:
             return jsonify({'error': 'Las contraseñas no coinciden'}), 400
 
-        # -- Verificación de texto: el usuario debe escribir la palabra mostrada
-        expected_captcha = (session.get('registration_text_captcha') or '').strip().upper()
-        if not expected_captcha or not captcha_text:
-            return jsonify({'error': 'Completa la verificación de texto'}), 400
+        # -- Google reCAPTCHA v2
+        secret = current_app.config.get('RECAPTCHA_SECRET_KEY')
+        if not secret:
+            return jsonify({'error': 'reCAPTCHA no está configurado en el servidor'}), 500
 
-        if captcha_text.upper() != expected_captcha:
-            return jsonify({'error': 'Verificación de texto incorrecta'}), 400
+        if not recaptcha_token:
+            return jsonify({'error': 'Completa la verificación reCAPTCHA'}), 400
 
-        session.pop('registration_text_captcha', None)
+        def _verify_recaptcha_v2(token: str, remote_ip: str | None = None) -> bool:
+            import json as _json
+            import urllib.request
+            import urllib.parse
+
+            payload = {
+                'secret': secret,
+                'response': token,
+            }
+            if remote_ip:
+                payload['remoteip'] = remote_ip
+
+            data_bytes = urllib.parse.urlencode(payload).encode('utf-8')
+            req = urllib.request.Request(
+                'https://www.google.com/recaptcha/api/siteverify',
+                data=data_bytes,
+                headers={
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'User-Agent': 'GameStore/1.0'
+                },
+                method='POST',
+            )
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                body = resp.read().decode('utf-8', errors='replace')
+                parsed = _json.loads(body)
+                return bool(parsed.get('success'))
+
+        remote_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        if remote_ip and ',' in remote_ip:
+            remote_ip = remote_ip.split(',')[0].strip()
+
+        if not _verify_recaptcha_v2(recaptcha_token, remote_ip):
+            return jsonify({'error': 'reCAPTCHA inválido. Intenta nuevamente.'}), 400
 
         # Verificar si ya existe
         if Usuario.query.filter(func.lower(func.trim(Usuario.nombre_usuario)) == username.lower()).first():
@@ -884,14 +912,9 @@ def api_password_reset_request():
             return jsonify({'error': 'Ingresa un email válido'}), 400
 
         usuario = Usuario.query.filter(func.lower(func.trim(Usuario.correo)) == email).first()
-        # Respuesta genérica para no exponer si el email existe o no
-        generic_ok = {
-            'success': True,
-            'message': 'Si el correo existe, enviamos un código de verificación.'
-        }
 
         if not usuario:
-            return jsonify(generic_ok), 200
+            return jsonify({'error': 'El correo no está asociado a ninguna cuenta.'}), 404
 
         code = f"{random.randint(100000, 999999)}"
         expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
@@ -914,16 +937,23 @@ def api_password_reset_request():
             with app.app_context():
                 try:
                     from app.api.contacto import send_email
+                    print(f"[PASSWORD-RESET] Iniciando envío a {target_email}", flush=True)
                     html_body = (
                         f"<h3>Recuperación de contraseña</h3>"
                         f"<p>Tu código de verificación es:</p>"
                         f"<p style='font-size:24px;font-weight:700;letter-spacing:2px;'>{verification_code}</p>"
                         f"<p>Este código expira en 10 minutos.</p>"
                     )
+                    text_body = (
+                        "Recuperación de contraseña\n\n"
+                        f"Tu código de verificación es: {verification_code}\n"
+                        "Este código expira en 10 minutos."
+                    )
                     sent = send_email(
                         subject='Código para recuperar contraseña - Game Store',
                         recipients=[target_email],
-                        html_body=html_body
+                        html_body=html_body,
+                        text_body=text_body,
                     )
                     if not sent:
                         print(f"[PASSWORD-RESET] No se pudo enviar correo a {target_email}. Código: {verification_code}")
@@ -937,7 +967,10 @@ def api_password_reset_request():
         )
         thread.start()
 
-        return jsonify(generic_ok), 200
+        return jsonify({
+            'success': True,
+            'message': 'Código enviado. Revisa tu correo (y la carpeta de spam).'
+        }), 200
     except Exception as e:
         db.session.rollback()
         print(f"Error en api_password_reset_request: {e}")
