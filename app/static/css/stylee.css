@@ -6,6 +6,19 @@ body.keyboard-nav-mode a, body.keyboard-nav-mode button, body.keyboard-nav-mode 
 body.grayscale-mode, .grayscale-mode body {
     filter: grayscale(1) !important;
 }
+
+/* Excluir botones flotantes del filtro de escala de grises */
+body.grayscale-mode #accessibility-fab-container,
+body.grayscale-mode #accessibility-btn,
+body.grayscale-mode .accessibility-menu,
+body.grayscale-mode #chatbot-container,
+body.grayscale-mode #chatbot-btn,
+body.grayscale-mode .chatbot-widget,
+body.grayscale-mode [class*="fab"],
+body.grayscale-mode [class*="floating"] {
+    filter: none !important;
+}
+
 .accessibility-menu-btn {
     background: linear-gradient(135deg, #8b5cf6 0%, #58009A 100%);
     color: #fff;
