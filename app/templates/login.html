@@ -15,7 +15,7 @@
     <meta name="theme-color" content="#58009A">
     <title>Iniciar Sesión - Game Store</title>
     <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=3.0">
     <link rel="stylesheet" href="/static/css/stylee.css?v=3.12">
     <link rel="stylesheet" href="/static/css/responsive.css?v=2.3">
     <link rel="stylesheet" href="/static/css/mobile-aesthetic.css?v=2.3">
@@ -187,12 +187,18 @@
             color: #93c5fd;
             border: 1px solid rgba(29,78,216,0.3);
             box-shadow: none;
+            white-space: nowrap;
         }
         .sidebar-secondary-btn:hover {
             background: rgba(29,78,216,0.32);
             color: #fff;
             border-color: #3b82f6;
             transform: translateY(-1px);
+        }
+        /* Asegurar que el botón compacto no corte texto */
+        .compact-link-btn {
+            min-width: 200px;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -293,7 +299,7 @@
             <i class="fa-solid fa-universal-access"></i>
         </button>
     </div>
-    <script src="/static/js/script.js"></script>
+    <script src="/static/js/script.js?v=2.1"></script>
 </body>
 
 </html>
