@@ -8,6 +8,7 @@ import os
 import json
 import urllib.request
 import urllib.error
+import urllib.parse
 import random
 import threading
 from flask import Flask, request, jsonify
@@ -18,8 +19,27 @@ from app.models.role import Role
 from app.models.favorito import Favorito
 from app.models.analytics import AdminActivity, InventarioMovimiento, Pago, ChatbotFAQ
 from app.models.magic_link import MagicLinkToken
+
+
+def _verify_recaptcha_v2(secret: str, token: str, remote_ip: str | None = None) -> bool:
+    """Verifica un token de reCAPTCHA v2 contra la API de Google."""
+    payload = {'secret': secret, 'response': token}
+    if remote_ip:
+        payload['remoteip'] = remote_ip
+    data_bytes = urllib.parse.urlencode(payload).encode('utf-8')
+    req = urllib.request.Request(
+        'https://www.google.com/recaptcha/api/siteverify',
+        data=data_bytes,
+        headers={'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'GameStore/1.0'},
+        method='POST',
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            return bool(json.loads(resp.read().decode('utf-8', errors='replace')).get('success'))
+    except Exception:
+        return False
 from app.models.password_reset import PasswordResetCode
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import selectinload
 from app.utils.datetime_utils import (
     utc_now_naive,
@@ -771,45 +791,23 @@ def api_registro():
         if not recaptcha_token:
             return jsonify({'error': 'Completa la verificación reCAPTCHA'}), 400
 
-        def _verify_recaptcha_v2(token: str, remote_ip: str | None = None) -> bool:
-            import json as _json
-            import urllib.request
-            import urllib.parse
-
-            payload = {
-                'secret': secret,
-                'response': token,
-            }
-            if remote_ip:
-                payload['remoteip'] = remote_ip
-
-            data_bytes = urllib.parse.urlencode(payload).encode('utf-8')
-            req = urllib.request.Request(
-                'https://www.google.com/recaptcha/api/siteverify',
-                data=data_bytes,
-                headers={
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'User-Agent': 'GameStore/1.0'
-                },
-                method='POST',
-            )
-            with urllib.request.urlopen(req, timeout=6) as resp:
-                body = resp.read().decode('utf-8', errors='replace')
-                parsed = _json.loads(body)
-                return bool(parsed.get('success'))
-
         remote_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
         if remote_ip and ',' in remote_ip:
             remote_ip = remote_ip.split(',')[0].strip()
 
-        if not _verify_recaptcha_v2(recaptcha_token, remote_ip):
+        if not _verify_recaptcha_v2(secret, recaptcha_token, remote_ip):
             return jsonify({'error': 'reCAPTCHA inválido. Intenta nuevamente.'}), 400
 
-        # Verificar si ya existe
-        if Usuario.query.filter(func.lower(func.trim(Usuario.nombre_usuario)) == username.lower()).first():
-            return jsonify({'error': 'Este usuario ya existe'}), 400
-
-        if Usuario.query.filter(func.lower(func.trim(Usuario.correo)) == email).first():
+        # Verificar si ya existe (una sola query)
+        existente = Usuario.query.filter(
+            or_(
+                func.lower(func.trim(Usuario.nombre_usuario)) == username.lower(),
+                func.lower(func.trim(Usuario.correo)) == email
+            )
+        ).first()
+        if existente:
+            if (existente.nombre_usuario or '').strip().lower() == username.lower():
+                return jsonify({'error': 'Este usuario ya existe'}), 400
             return jsonify({'error': 'Este email ya está registrado'}), 400
 
         # Crear usuario normal
