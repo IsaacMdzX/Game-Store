@@ -166,7 +166,7 @@
                     <h1>Crear una Cuenta</h1>
                     <p class="description">¡Vamos a crear tu cuenta!</p>
 
-                    <form id="registro-form" class="form-section" novalidate>
+                    <form id="registro-form" class="form-section" method="post" action="/api/registro" novalidate>
                         <div class="form-grid">
                             <!-- Col 1: Usuario -->
                             <div class="form-col">
@@ -247,10 +247,10 @@
         </div>
     </div>
 
+    <script src="/static/js/libs/jquery.min.js"></script>
+    <script src="/static/js/libs/underscore.min.js"></script>
+    <script src="/static/js/libs/backbone.min.js"></script>
     <script src="/static/js/menu-system.js?v=2.5"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.1/underscore-min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.4.0/backbone-min.js"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script src="/static/js/registro.js?v=2.9"></script>
 

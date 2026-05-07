@@ -119,7 +119,7 @@ def create_app():
         # Política de referrer
         response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
         # Evitar que se filtre información de versión del servidor
-        response.headers.discard('Server')
+        response.headers.remove('Server')
         return response
 
     # Configurar user_loader para Flask-Login
