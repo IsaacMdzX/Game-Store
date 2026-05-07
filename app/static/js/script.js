@@ -323,17 +323,37 @@ document.addEventListener('DOMContentLoaded', function () {
     const factor = pct / 100;
     // zoom escala TODO el contenido (px, rem, imágenes, etc.)
     document.documentElement.style.zoom = factor;
-    // Excluir el FAB del zoom para que no se desplace ni agrande
-    const fab = document.getElementById('accessibility-fab-container');
-    if (fab) fab.style.zoom = (1 / factor).toString();
+    // Excluir TODOS los FABs del zoom para que no se desplacen ni agranden
+    const fabs = [
+      document.getElementById('accessibility-fab-container'),
+      document.getElementById('chatbot-container'),
+      ...document.querySelectorAll('[class*="fab-container"]'),
+      ...document.querySelectorAll('[class*="floating-container"]')
+    ];
+    fabs.forEach(fab => {
+      if (fab) {
+        fab.style.zoom = (1 / factor).toString();
+        fab.style.position = 'fixed';
+      }
+    });
     if (valueLabel) valueLabel.textContent = pct + '%';
     localStorage.setItem(ZOOM_KEY, pct);
   }
 
   function resetZoom() {
     document.documentElement.style.zoom = '';
-    const fab = document.getElementById('accessibility-fab-container');
-    if (fab) fab.style.zoom = '';
+    const fabs = [
+      document.getElementById('accessibility-fab-container'),
+      document.getElementById('chatbot-container'),
+      ...document.querySelectorAll('[class*="fab-container"]'),
+      ...document.querySelectorAll('[class*="floating-container"]')
+    ];
+    fabs.forEach(fab => {
+      if (fab) {
+        fab.style.zoom = '';
+        fab.style.position = 'fixed';
+      }
+    });
   }
 
   if (btn && menu && range && valueLabel) {

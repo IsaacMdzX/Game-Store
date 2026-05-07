@@ -7,7 +7,7 @@ body.grayscale-mode, .grayscale-mode body {
     filter: grayscale(1) !important;
 }
 
-/* Excluir botones flotantes del filtro de escala de grises */
+/* Excluir botones flotantes del filtro de escala de grises y mantener posición fija */
 body.grayscale-mode #accessibility-fab-container,
 body.grayscale-mode #accessibility-btn,
 body.grayscale-mode .accessibility-menu,
@@ -17,6 +17,17 @@ body.grayscale-mode .chatbot-widget,
 body.grayscale-mode [class*="fab"],
 body.grayscale-mode [class*="floating"] {
     filter: none !important;
+}
+
+/* Forzar posición fija de FABs sin importar transformaciones */
+#accessibility-fab-container,
+#chatbot-container,
+[class*="fab-container"],
+[class*="floating-container"] {
+    position: fixed !important;
+    z-index: 9999 !important;
+    transform: none !important;
+    transform-origin: top right !important;
 }
 
 .accessibility-menu-btn {
@@ -46,8 +57,8 @@ body.grayscale-mode [class*="floating"] {
     color: #fff;
     border: none;
     border-radius: 50%;
-    width: 56px;
-    height: 56px;
+    width: 56px !important;
+    height: 56px !important;
     box-shadow: 0 4px 16px rgba(88,0,154,0.18);
     display: flex;
     align-items: center;
@@ -56,6 +67,7 @@ body.grayscale-mode [class*="floating"] {
     cursor: pointer;
     transition: background 0.3s, transform 0.2s;
     flex-shrink: 0;
+    position: relative !important;
 }
 #accessibility-btn:hover {
     background: linear-gradient(135deg, #b19cd9 0%, #8b5cf6 100%);
