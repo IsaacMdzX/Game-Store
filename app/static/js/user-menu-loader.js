@@ -4,17 +4,17 @@
 
 (function() {
     'use strict';
-    
+
     function initUserMenu() {
         const userMenuBtn = document.getElementById('userMenuBtn');
         const userDropdown = document.getElementById('userDropdown');
         const dropdownContent = document.querySelector('.dropdown-content');
-        
+
         if (!userMenuBtn || !userDropdown || !dropdownContent) {
             console.warn('[UserMenu] Elementos no encontrados');
             return;
         }
-        
+
         // ===== MOSTRAR MENÚ POR DEFECTO INMEDIATAMENTE =====
         function showDefaultMenu() {
             dropdownContent.innerHTML = `
@@ -22,33 +22,33 @@
                 <a href="/registro" class="dropdown-item"><i class="fa-solid fa-user-plus"></i> Registrarse</a>
             `;
         }
-        
+
         // Mostrar menú por defecto inmediatamente
         showDefaultMenu();
-        
+
         // ===== EVENT LISTENERS =====
         // Toggle dropdown al hacer click en botón
         userMenuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             userDropdown.classList.toggle('show');
         });
-        
+
         // Cerrar dropdown al hacer click fuera
         document.addEventListener('click', (e) => {
-            if (userDropdown.classList.contains('show') && 
-                !userDropdown.contains(e.target) && 
+            if (userDropdown.classList.contains('show') &&
+                !userDropdown.contains(e.target) &&
                 !userMenuBtn.contains(e.target)) {
                 userDropdown.classList.remove('show');
             }
         });
-        
+
         // Cerrar con ESC
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && userDropdown.classList.contains('show')) {
                 userDropdown.classList.remove('show');
             }
         });
-        
+
         // Cerrar al hacer click en un link
         dropdownContent.addEventListener('click', (e) => {
             const link = e.target.closest('a');
@@ -58,7 +58,7 @@
                 }, 100);
             }
         });
-        
+
         // ===== CARGAR DATOS DE USUARIO EN BACKGROUND =====
         async function loadUserData() {
             try {
@@ -66,10 +66,10 @@
                     method: 'GET',
                     credentials: 'same-origin'
                 });
-                
+
                 if (response.ok) {
                     const user = await response.json();
-                    
+
                     // Actualizar menú con datos del usuario
                     if (user && user.username) {
                         dropdownContent.innerHTML = `
@@ -83,7 +83,7 @@
                             <a href="/perfil" class="dropdown-item"><i class="fa-solid fa-user"></i> Mi Perfil</a>
                             <a href="#" id="logoutBtn" class="dropdown-item"><i class="fa-solid fa-sign-out-alt"></i> Cerrar Sesión</a>
                         `;
-                        
+
                         // Agregar listener al botón logout
                         const logoutBtn = dropdownContent.querySelector('#logoutBtn');
                         if (logoutBtn) {
@@ -99,10 +99,10 @@
                 // Si hay error, el menú por defecto ya está mostrado
             }
         }
-        
+
         // Cargar datos asincronamente
         setTimeout(loadUserData, 100);
-        
+
         // ===== LOGOUT =====
         async function logout() {
             try {
@@ -110,14 +110,16 @@
                     method: 'POST',
                     credentials: 'same-origin'
                 });
-                window.location.href = '/';
+                // replace() borra la entrada del historial actual → el botón Atrás
+                // no puede regresar a la página protegida desde la que se cerró sesión
+                window.location.replace('/');
             } catch (error) {
                 console.log('[UserMenu] Error en logout:', error);
-                window.location.href = '/';
+                window.location.replace('/');
             }
         }
     }
-    
+
     // Inicializar cuando DOM esté listo
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initUserMenu);

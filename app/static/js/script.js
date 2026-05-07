@@ -1,5 +1,12 @@
 // ================= NAVEGACIÓN POR TECLADO ===================
 document.addEventListener('DOMContentLoaded', function () {
+  // Mover FAB de accesibilidad a hijo directo de body para que el filtro
+  // CSS de grayscale (aplicado a body > *) no rompa su position:fixed
+  const fabContainer = document.getElementById('accessibility-fab-container');
+  if (fabContainer && fabContainer.parentElement !== document.body) {
+    document.body.appendChild(fabContainer);
+  }
+
   const keyboardNavBtn = document.getElementById('keyboard-nav-toggle-btn');
   const keyboardNavStatus = document.getElementById('keyboard-nav-status');
   let keyboardNavActive = false;
@@ -497,11 +504,8 @@ function sortTable(columnIndex, ascending = true) {
 // ============================================
 
 function showNotification(message, type = "success") {
-  // Remover notificación existente
-  const existingNotification = document.querySelector(".notification")
-  if (existingNotification) {
-    existingNotification.remove()
-  }
+  // Remover cualquier notificación existente (todos los tipos)
+  document.querySelectorAll(".notification, .notificacion, .notification-custom").forEach(el => el.remove())
 
   // Crear nueva notificación
   const notification = document.createElement("div")
@@ -903,20 +907,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Actualizar estadísticas del dashboard
   updateDashboardStats()
-
-  // Configurar formularios
-  document.querySelectorAll("form").forEach((form) => {
-    form.addEventListener("submit", (e) => {
-      e.preventDefault()
-
-      if (validateForm(form)) {
-        showNotification("Formulario enviado exitosamente", "success")
-        form.reset()
-      } else {
-        showNotification("Por favor completa todos los campos requeridos", "error")
-      }
-    })
-  })
 
   // Configurar botones de búsqueda
   document.querySelectorAll(".search-button").forEach((btn) => {

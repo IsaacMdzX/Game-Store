@@ -7,7 +7,7 @@
     <meta name="description" content="Contáctanos - Game Store">
     <meta name="theme-color" content="#58009A">
     <title>Contáctanos - Game Store</title>
-    <link rel="stylesheet" href="/static/css/stylee.css?v=3.15">
+    <link rel="stylesheet" href="/static/css/stylee.css?v=3.18">
     <link rel="stylesheet" href="/static/css/responsive.css?v=2.3">
     <link rel="stylesheet" href="/static/css/mobile-aesthetic.css?v=2.3">
     <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
@@ -459,12 +459,14 @@
 
                 const resultado = await response.json();
 
+                // Limpiar alertas previas antes de mostrar nueva
+                this.parentElement.querySelectorAll('.alert').forEach(el => el.remove());
+
                 if (response.ok && resultado.success) {
                     // Mostrar mensaje de éxito
                     btnEnviar.innerHTML = '<i class="fa-solid fa-check-circle"></i> ¡Mensaje Enviado!';
                     btnEnviar.style.background = 'linear-gradient(135deg, #00d97e 0%, #00f7a7 100%)';
 
-                    // Crear alerta de éxito
                     const alertDiv = document.createElement('div');
                     alertDiv.className = 'alert alert-success';
                     alertDiv.innerHTML = `
@@ -489,7 +491,9 @@
             } catch (error) {
                 console.error('Error:', error);
 
-                // Crear alerta de error
+                // Limpiar alertas previas
+                this.parentElement.querySelectorAll('.alert').forEach(el => el.remove());
+
                 const alertDiv = document.createElement('div');
                 alertDiv.className = 'alert alert-danger';
                 alertDiv.innerHTML = `
@@ -535,7 +539,7 @@
             <i class="fa-solid fa-universal-access"></i>
         </button>
     </div>
-    <script src="/static/js/script.js?v=2.3"></script>
+    <script src="/static/js/script.js?v=2.4"></script>
 </body>
 
 </html>

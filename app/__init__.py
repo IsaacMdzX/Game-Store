@@ -58,8 +58,11 @@ def create_app():
     if not app.config.get('SECRET_KEY'):
         app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'fallback-secret-key-for-dev')
 
-    # Cache global para archivos estáticos
-    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 60 * 60 * 24 * 7  # 7 días
+    # Cache global para archivos estáticos (0 en dev para ver cambios inmediatamente)
+    if env == 'production':
+        app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 60 * 60 * 24 * 7  # 7 días en prod
+    else:
+        app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Sin caché en desarrollo
 
     # Ajuste para SQLite: evitar sslmode en connect_args
     db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
@@ -105,6 +108,19 @@ def create_app():
     app.register_blueprint(contacto_bp)
 
     print("✅ Blueprints registrados: Web, Carrito, Productos, Auth, MercadoPago, Contacto")
+
+    # ---- Headers de seguridad globales (OWASP) ----
+    @app.after_request
+    def add_security_headers(response):
+        # Evitar que la app se cargue en iframes (clickjacking)
+        response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
+        # Evitar que el navegador adivine el tipo de contenido (MIME sniffing)
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+        # Política de referrer
+        response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+        # Evitar que se filtre información de versión del servidor
+        response.headers.discard('Server')
+        return response
 
     # Configurar user_loader para Flask-Login
     from app.models.usuario import Usuario

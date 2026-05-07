@@ -483,6 +483,8 @@ const ProductosController = {
     },
 
     mostrarNotificacion: function (mensaje, tipo = 'success') {
+        // Eliminar notificaciones anteriores antes de mostrar una nueva
+        document.querySelectorAll('.notificacion, .notification-custom').forEach(el => el.remove());
         const notificacion = document.createElement('div');
         notificacion.className = `notificacion ${tipo}`;
         notificacion.innerHTML = `

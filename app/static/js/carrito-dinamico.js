@@ -619,6 +619,9 @@ class CarritoDinamico {
             return;
         }
 
+        // Eliminar notificaciones anteriores antes de mostrar una nueva
+        document.querySelectorAll('.notification-custom, .notificacion').forEach(el => el.remove());
+
         const notification = document.createElement('div');
         notification.className = `notification-custom ${tipo}`;
 

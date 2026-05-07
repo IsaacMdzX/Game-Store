@@ -34,24 +34,36 @@ web_bp = Blueprint('web', __name__)
 
 # ----------------------------------------- DECORATORS ---------------------------------------- #
 
+def _add_no_cache_headers(response):
+    """Agrega headers para que el navegador NUNCA cachee páginas protegidas."""
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0, private'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            return redirect(url_for('web.login'))
-        return f(*args, **kwargs)
+            # Redirigir a inicio, no a login (para que el botón Atrás no pueda regresar)
+            response = make_response(redirect(url_for('web.index')))
+            return _add_no_cache_headers(response)
+        response = make_response(f(*args, **kwargs))
+        return _add_no_cache_headers(response)
     return decorated_function
 
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            return redirect(url_for('web.login'))
+            response = make_response(redirect(url_for('web.index')))
+            return _add_no_cache_headers(response)
 
         if session.get('user_role') != 1:  # 1 = Administrador
             return jsonify({'error': 'Acceso denegado. Se requieren privilegios de administrador'}), 403
 
-        return f(*args, **kwargs)
+        response = make_response(f(*args, **kwargs))
+        return _add_no_cache_headers(response)
     return decorated_function
 
 # ----------------------------------------- RUTAS PRINCIPALES ---------------------------------------- #
@@ -647,7 +659,7 @@ def api_login():
 @web_bp.route('/logout')
 def logout():
     session.clear()
-    response = make_response(redirect(url_for('web.login')))
+    response = make_response(redirect(url_for('web.index')))
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0, private'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'

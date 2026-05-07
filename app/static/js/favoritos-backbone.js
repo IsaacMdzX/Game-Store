@@ -392,6 +392,8 @@ async agregarAlCarritoDesdeFavoritos(productId, button) {
         if (window.carritoSimple && window.carritoSimple.mostrarNotificacion) {
             window.carritoSimple.mostrarNotificacion(message, type);
         } else {
+            // Eliminar notificaciones anteriores antes de mostrar una nueva
+            document.querySelectorAll('.notification-custom, .notificacion').forEach(el => el.remove());
             const notification = document.createElement('div');
             notification.className = `notification-custom ${type}`;
             notification.innerHTML = `
