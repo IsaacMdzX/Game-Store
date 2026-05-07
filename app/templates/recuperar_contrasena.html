@@ -9,32 +9,103 @@
     <title>Recuperar Contraseña - Game Store</title>
     <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/stylee.css?v=3.11">
     <link rel="stylesheet" href="/static/css/responsive.css?v=2.2">
     <link rel="stylesheet" href="/static/css/mobile-aesthetic.css?v=2.2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        body {
+            background: radial-gradient(ellipse at 60% 20%, #2d0060 0%, #0f0d12 55%, #0a0a14 100%);
+            min-height: 100vh;
+        }
+        .main-content { padding: 32px 16px; }
+        .container {
+            max-width: 460px;
+            width: 100%;
+            background: rgba(30, 24, 42, 0.92);
+            border: 1px solid rgba(139, 92, 246, 0.28);
+            border-radius: 20px;
+            padding: 36px 36px 28px;
+            box-shadow: 0 0 0 1px rgba(139,92,246,0.08), 0 8px 40px rgba(0,0,0,0.55), 0 0 80px rgba(88,0,154,0.18);
+            backdrop-filter: blur(12px);
+        }
+        .login-brand {
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; margin-bottom: 20px;
+        }
+        .login-brand img { width: 38px; height: 38px; object-fit: contain; }
+        .login-brand-name { font-size: 20px; font-weight: 800; color: #e9d5ff; letter-spacing: 1px; text-transform: uppercase; }
+        .container h1 { font-size: 26px; margin-bottom: 6px; letter-spacing: -0.5px; }
+        .description { font-size: 14px; margin-bottom: 24px; color: #9ca3af; }
+        .form-line {
+            flex-direction: column; align-items: flex-start;
+            padding: 0; border-bottom: none; gap: 6px; margin-bottom: 16px;
+        }
+        .label { width: 100%; font-size: 13px; color: #c4b5fd; font-weight: 600; letter-spacing: 0.3px; }
+        .input-field {
+            border-radius: 10px;
+            border: 1px solid rgba(139,92,246,0.3);
+            background: rgba(255,255,255,0.05);
+            font-size: 15px; padding: 12px 14px;
+        }
+        .input-field:focus {
+            border-color: #8b5cf6;
+            background: rgba(139,92,246,0.08);
+            box-shadow: 0 0 0 3px rgba(139,92,246,0.18);
+        }
+        .register-section { margin-top: 24px; }
+        .buttons-container { flex-direction: column; gap: 10px; }
+        .register-btn { width: 100%; padding: 14px 24px; font-size: 15px; border-radius: 12px; letter-spacing: 0.8px; }
+        .register-btn.back-btn {
+            background: transparent;
+            border: 1px solid rgba(139,92,246,0.35);
+            color: #c4b5fd; box-shadow: none;
+        }
+        .register-btn.back-btn:hover {
+            background: rgba(139,92,246,0.12);
+            border-color: #8b5cf6; color: #fff;
+            box-shadow: none; transform: translateY(-1px);
+        }
+        /* Enviar código — púrpura diferenciado */
+        #send-reset-code-btn {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            box-shadow: 0 4px 12px rgba(109,40,217,0.4);
+        }
+        #send-reset-code-btn:hover {
+            background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(109,40,217,0.5);
+        }
+    </style>
 </head>
 
 <body>
     <div class="main-content">
         <div class="container">
+
+            <div class="login-brand">
+                <img src="/static/img/Icon.png" alt="Game Store">
+                <span class="login-brand-name">Game Store</span>
+            </div>
+
             <h1>Recuperar Contraseña</h1>
             <p class="description">Ingresa tu correo, recibe un código y crea una nueva contraseña.</p>
 
             <form id="password-reset-form" class="form-section" novalidate>
                 <div class="form-line">
-                    <label class="label" for="reset-email">Email:</label>
+                    <label class="label" for="reset-email"><i class="fa-solid fa-envelope" style="margin-right:5px;opacity:.7;"></i>Email</label>
                     <input type="email" id="reset-email" class="input-field" placeholder="Ingresa tu correo" aria-describedby="reset-email-error">
                     <span class="error-message" id="reset-email-error" aria-live="polite"></span>
                 </div>
 
                 <div class="form-line">
-                    <label class="label" for="reset-code">Código de verificación:</label>
+                    <label class="label" for="reset-code"><i class="fa-solid fa-shield-halved" style="margin-right:5px;opacity:.7;"></i>Código de verificación</label>
                     <input type="text" id="reset-code" class="input-field" placeholder="Código de 6 dígitos" aria-describedby="reset-code-error">
                     <span class="error-message" id="reset-code-error" aria-live="polite"></span>
                 </div>
 
                 <div class="form-line">
-                    <label class="label" for="reset-password">Nueva contraseña:</label>
+                    <label class="label" for="reset-password"><i class="fa-solid fa-lock" style="margin-right:5px;opacity:.7;"></i>Nueva contraseña</label>
                     <div class="password-field-wrapper">
                         <input type="password" id="reset-password" class="input-field" placeholder="Mínimo 8 caracteres" aria-describedby="reset-password-error">
                         <button type="button" id="toggle-reset-password-btn" class="toggle-password-btn" aria-label="Mostrar contraseña" title="Mostrar contraseña">
@@ -45,7 +116,7 @@
                 </div>
 
                 <div class="form-line">
-                    <label class="label" for="reset-confirm-password">Confirmar contraseña:</label>
+                    <label class="label" for="reset-confirm-password"><i class="fa-solid fa-lock" style="margin-right:5px;opacity:.7;"></i>Confirmar contraseña</label>
                     <div class="password-field-wrapper">
                         <input type="password" id="reset-confirm-password" class="input-field" placeholder="Confirma tu contraseña" aria-describedby="reset-confirm-password-error">
                         <button type="button" id="toggle-reset-confirm-password-btn" class="toggle-password-btn" aria-label="Mostrar contraseña" title="Mostrar contraseña">
@@ -75,6 +146,37 @@
     </div>
 
     <script src="/static/js/recuperar-contrasena.js"></script>
+
+    <!-- Accesibilidad FAB -->
+    <div id="accessibility-fab-container" style="position: fixed; bottom: 100px; right: 16px; z-index: 1300; display: flex; flex-direction: column; align-items: flex-end;">
+        <div id="accessibility-menu" class="accessibility-menu" style="display:none; margin-bottom: 12px;">
+            <h4>Accesibilidad</h4>
+            <label for="font-size-range">Tamaño de texto</label>
+            <input type="range" id="font-size-range" min="70" max="150" value="100">
+            <span id="font-size-value">100%</span>
+            <hr style="margin:1rem 0;border:0;border-top:1px solid #8b5cf6;">
+            <button id="tts-toggle-btn" class="accessibility-menu-btn" aria-label="Lectura guiada" title="Lectura guiada">
+                <i class="fa-solid fa-book-open"></i> Lectura guiada
+            </button>
+            <div id="tts-status" style="margin-top:0.5rem;color:#b19cd9;font-size:0.95em;display:none;"></div>
+            <button id="voice-read-btn" class="accessibility-menu-btn" aria-label="Lectura de voz" title="Lectura de voz">
+                <i class="fa-solid fa-volume-high"></i> Lectura de voz
+            </button>
+            <div id="voice-read-status" style="margin-top:0.5rem;color:#b19cd9;font-size:0.95em;display:none;"></div>
+            <button id="grayscale-toggle-btn" class="accessibility-menu-btn" aria-label="Escala de grises" title="Escala de grises">
+                <i class="fa-solid fa-adjust"></i> Escala de grises
+            </button>
+            <div id="grayscale-status" style="margin-top:0.5rem;color:#b19cd9;font-size:0.95em;display:none;"></div>
+            <button id="keyboard-nav-toggle-btn" class="accessibility-menu-btn" aria-label="Navegación por teclado" title="Navegación por teclado">
+                <i class="fa-solid fa-keyboard"></i> Navegación por teclado
+            </button>
+            <div id="keyboard-nav-status" style="margin-top:0.5rem;color:#b19cd9;font-size:0.95em;display:none;"></div>
+        </div>
+        <button id="accessibility-btn" aria-label="Accesibilidad" title="Accesibilidad">
+            <i class="fa-solid fa-universal-access"></i>
+        </button>
+    </div>
+    <script src="/static/js/script.js"></script>
 </body>
 
 </html>

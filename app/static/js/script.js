@@ -4,25 +4,111 @@ document.addEventListener('DOMContentLoaded', function () {
   const keyboardNavStatus = document.getElementById('keyboard-nav-status');
   let keyboardNavActive = false;
 
+  const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+  function getFocusableElements() {
+    return Array.from(document.querySelectorAll(FOCUSABLE)).filter(el => {
+      return el.offsetParent !== null; // visible only
+    });
+  }
+
+  function getCurrentIndex(els) {
+    return els.indexOf(document.activeElement);
+  }
+
+  function focusAt(els, idx) {
+    if (idx < 0) idx = els.length - 1;
+    if (idx >= els.length) idx = 0;
+    els[idx].focus();
+    els[idx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  function onKeyDown(e) {
+    if (!keyboardNavActive) return;
+
+    const els = getFocusableElements();
+    const idx = getCurrentIndex(els);
+
+    switch (e.key) {
+      case 'ArrowDown':
+      case 'ArrowRight':
+        e.preventDefault();
+        focusAt(els, idx + 1);
+        announceElement(document.activeElement);
+        break;
+      case 'ArrowUp':
+      case 'ArrowLeft':
+        e.preventDefault();
+        focusAt(els, idx - 1);
+        announceElement(document.activeElement);
+        break;
+      case 'Home':
+        e.preventDefault();
+        focusAt(els, 0);
+        announceElement(document.activeElement);
+        break;
+      case 'End':
+        e.preventDefault();
+        focusAt(els, els.length - 1);
+        announceElement(document.activeElement);
+        break;
+      case 'Enter':
+      case ' ':
+        if (document.activeElement && document.activeElement !== document.body) {
+          // Space/Enter already trigger click natively on buttons/links,
+          // but for non-interactive elements we simulate it
+          if (!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+            e.preventDefault();
+            document.activeElement.click();
+          }
+        }
+        break;
+      case 'Escape':
+        // Close any open modal, dropdown or menu
+        const openMenus = document.querySelectorAll(
+          '.accessibility-menu[style*="block"], .user-dropdown.open, .modal.show, [aria-expanded="true"]'
+        );
+        openMenus.forEach(m => {
+          if (m.id === 'accessibility-menu') {
+            m.style.display = 'none';
+          } else {
+            m.classList.remove('open','show');
+            m.setAttribute('aria-expanded', 'false');
+          }
+        });
+        break;
+    }
+  }
+
+  function announceElement(el) {
+    if (!keyboardNavStatus) return;
+    const label = el.getAttribute('aria-label') || el.title || el.textContent?.trim().slice(0, 60) || el.tagName.toLowerCase();
+    keyboardNavStatus.textContent = `Enfocado: ${label}`;
+    keyboardNavStatus.style.display = 'block';
+  }
+
   if (keyboardNavBtn) {
     keyboardNavBtn.addEventListener('click', function () {
       keyboardNavActive = !keyboardNavActive;
       if (keyboardNavActive) {
         document.body.classList.add('keyboard-nav-mode');
-        keyboardNavBtn.innerHTML = '<i class="fa-solid fa-keyboard"></i> Quitar navegación por teclado';
-        keyboardNavStatus.textContent = 'Navegación por teclado activada. Usa Tab para moverte.';
+        document.addEventListener('keydown', onKeyDown);
+        keyboardNavBtn.innerHTML = '<i class="fa-solid fa-keyboard"></i> Quitar navegación';
+        keyboardNavStatus.innerHTML =
+          'Navegación por teclado activada.<br>' +
+          '<small>Tab/Shift+Tab · ↑↓←→ · Inicio/Fin · Enter/Espacio · Escape</small>';
         keyboardNavStatus.style.display = 'block';
-        // Lleva el foco al primer enlace o botón
         setTimeout(() => {
-          const first = document.querySelector('a, button, input, select, textarea');
+          const first = getFocusableElements()[0];
           if (first) first.focus();
         }, 100);
       } else {
         document.body.classList.remove('keyboard-nav-mode');
+        document.removeEventListener('keydown', onKeyDown);
         keyboardNavBtn.innerHTML = '<i class="fa-solid fa-keyboard"></i> Navegación por teclado';
         keyboardNavStatus.textContent = 'Navegación por teclado desactivada.';
         keyboardNavStatus.style.display = 'block';
-        setTimeout(()=>keyboardNavStatus.style.display='none', 2000);
+        setTimeout(() => keyboardNavStatus.style.display = 'none', 2000);
       }
     });
   }
@@ -108,15 +194,82 @@ document.addEventListener('DOMContentLoaded', function () {
   const ttsStatus = document.getElementById('voice-read-status');
   let ttsActive = false;
   let speakTimeout = null;
+  let bestVoice = null;
+
+  // Prioridad: voces neurales/online primero (suenan más naturales y claras)
+  const VOICE_PRIORITY = [
+    // Google (las más claras en navegadores modernos)
+    'Google español de Estados Unidos',
+    'Google español',
+    'Google español (Estados Unidos)',
+    // Microsoft Neural (las mejores en Edge/Windows)
+    'Microsoft Sabina Online (Natural) - Spanish (Mexico)',
+    'Microsoft Dalia Online (Natural) - Spanish (Mexico)',
+    'Microsoft Jorge Online (Natural) - Spanish (Spain)',
+    'Microsoft Elena Online (Natural) - Spanish (Spain)',
+    'Microsoft Helena Online (Natural) - Spanish (Spain)',
+    // Microsoft estándar
+    'Microsoft Sabina - Spanish (Mexico)',
+    'Microsoft Helena - Spanish (Spain)',
+    'Microsoft Laura - Spanish (Spain)',
+  ];
+
+  function pickBestVoice(voices) {
+    for (const name of VOICE_PRIORITY) {
+      const v = voices.find(v => v.name === name);
+      if (v) return v;
+    }
+    // Priorizar voces "online" (neurales) en español
+    const onlineES = voices.find(v => v.name.toLowerCase().includes('online') && v.lang.startsWith('es'));
+    if (onlineES) return onlineES;
+    // Cualquier Google en español
+    const googleES = voices.find(v => v.name.toLowerCase().includes('google') && v.lang.startsWith('es'));
+    if (googleES) return googleES;
+    // Cualquier Microsoft en español
+    const msES = voices.find(v => v.name.toLowerCase().includes('microsoft') && v.lang.startsWith('es'));
+    if (msES) return msES;
+    // Cualquier voz en español
+    return voices.find(v => v.lang.startsWith('es')) || null;
+  }
+
+  function loadVoice() {
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length) bestVoice = pickBestVoice(voices);
+  }
+
+  loadVoice();
+  window.speechSynthesis.addEventListener('voiceschanged', loadVoice);
+
+  // Limpia el texto para una lectura más clara
+  function cleanText(raw) {
+    return raw
+      .replace(/[\u{1F300}-\u{1FFFF}]/gu, '')  // quitar emojis
+      .replace(/[^\p{L}\p{N}\s.,;:¿?¡!()%-]/gu, ' ') // solo letras, números y puntuación básica
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 300); // limitar longitud para no leer parágrafos enormes
+  }
 
   function speakElement(el) {
     if (!window.speechSynthesis) return;
-    const text = el.innerText || el.textContent || el.getAttribute('placeholder') || el.getAttribute('aria-label') || '';
-    if (!text.trim()) return;
+    const raw = el.getAttribute('aria-label') || el.getAttribute('placeholder') ||
+                el.innerText || el.textContent || '';
+    const text = cleanText(raw);
+    if (!text) return;
+
     window.speechSynthesis.cancel();
-    const utterance = new window.SpeechSynthesisUtterance(text.trim());
-    utterance.lang = 'es-MX';
-    utterance.rate = 1;
+    if (!bestVoice) loadVoice();
+
+    const utterance = new window.SpeechSynthesisUtterance(text);
+    if (bestVoice) {
+      utterance.voice = bestVoice;
+      utterance.lang = bestVoice.lang;
+    } else {
+      utterance.lang = 'es-MX';
+    }
+    utterance.rate   = 0.82;  // más lento = más claro y fácil de entender
+    utterance.pitch  = 1.0;   // tono neutro = más natural
+    utterance.volume = 1.0;
     window.speechSynthesis.speak(utterance);
   }
 
@@ -126,7 +279,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const el = e.target.closest(VOICE_SELECTOR);
     if (!el) return;
     clearTimeout(speakTimeout);
-    speakTimeout = setTimeout(() => speakElement(el), 400);
+    speakTimeout = setTimeout(() => speakElement(el), 600);
   }
 
   function onMouseLeave() {
@@ -141,7 +294,8 @@ document.addEventListener('DOMContentLoaded', function () {
         document.addEventListener('mouseover', onMouseEnter);
         document.addEventListener('mouseout', onMouseLeave);
         ttsBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> Desactivar lectura de voz';
-        ttsStatus.textContent = 'Lectura de voz activada. Pasa el mouse sobre el texto.';
+        const voiceName = bestVoice ? bestVoice.name : 'voz del sistema';
+        ttsStatus.innerHTML = `Lectura de voz activada.<br><small>Voz: ${voiceName}</small>`;
         ttsStatus.style.display = 'block';
       } else {
         document.removeEventListener('mouseover', onMouseEnter);
@@ -160,23 +314,42 @@ document.addEventListener('DOMContentLoaded', function () {
   const btn = document.getElementById('accessibility-btn');
   const menu = document.getElementById('accessibility-menu');
   const range = document.getElementById('font-size-range');
-  const value = document.getElementById('font-size-value');
+  const valueLabel = document.getElementById('font-size-value');
 
-  if (btn && menu && range && value) {
+  // Persiste el zoom entre páginas
+  const ZOOM_KEY = 'gs-text-zoom';
+
+  function applyZoom(pct) {
+    const factor = pct / 100;
+    // zoom escala TODO el contenido (px, rem, imágenes, etc.)
+    document.documentElement.style.zoom = factor;
+    // Excluir el FAB del zoom para que no se desplace ni agrande
+    const fab = document.getElementById('accessibility-fab-container');
+    if (fab) fab.style.zoom = (1 / factor).toString();
+    if (valueLabel) valueLabel.textContent = pct + '%';
+    localStorage.setItem(ZOOM_KEY, pct);
+  }
+
+  function resetZoom() {
+    document.documentElement.style.zoom = '';
+    const fab = document.getElementById('accessibility-fab-container');
+    if (fab) fab.style.zoom = '';
+  }
+
+  if (btn && menu && range && valueLabel) {
     btn.addEventListener('click', function () {
       menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
     });
 
     range.addEventListener('input', function () {
-      let size = Math.min(Math.max(parseInt(range.value), 12), 200);
-      value.textContent = size + 'px';
-      document.body.style.setProperty('--accessibility-font-size', size + 'px');
-      document.body.classList.add('accessibility-large-text');
+      const pct = parseInt(range.value);
+      applyZoom(pct);
     });
 
-    // Inicializa con el valor por defecto
-    value.textContent = range.value + 'px';
-    document.body.style.setProperty('--accessibility-font-size', range.value + 'px');
+    // Restaurar zoom guardado o mostrar valor inicial
+    const saved = parseInt(localStorage.getItem(ZOOM_KEY)) || 100;
+    range.value = saved;
+    applyZoom(saved);
   }
 
   // Cierra el menú si se hace click fuera

@@ -1000,8 +1000,9 @@ class ThemeManager {
             }
 
             html[data-theme='light'] .barra_lateral {
-                background: linear-gradient(#d9b8ff, #ffffff) !important;
-                border-right: 1px solid #e6e8f0;
+                background: linear-gradient(180deg, #5b009e 0%, #3d0070 100%) !important;
+                border-right: 1px solid rgba(139,92,246,0.25) !important;
+                box-shadow: 4px 0 24px rgba(88,0,154,0.18) !important;
             }
 
             html[data-theme='light'] header,
@@ -1051,14 +1052,18 @@ class ThemeManager {
             }
 
             html[data-theme='light'] a,
-            html[data-theme='light'] .enlace_barra_lateral,
-            html[data-theme='light'] .enlace_barra_lateral_fijo,
-            html[data-theme='light'] nav h3,
             html[data-theme='light'] .dropdown-item i,
-            html[data-theme='light'] .barra_lateral i,
             html[data-theme='light'] .iconos > i,
             html[data-theme='light'] .user-menu-btn {
                 color: #1f0a47 !important;
+            }
+
+            html[data-theme='light'] .enlace_barra_lateral,
+            html[data-theme='light'] .enlace_barra_lateral_fijo,
+            html[data-theme='light'] .barra_lateral *,
+            html[data-theme='light'] nav.barra_lateral h3,
+            html[data-theme='light'] .barra_lateral i {
+                color: #f0e6ff !important;
             }
 
             html[data-theme='light'] .enlace_barra_lateral:hover,

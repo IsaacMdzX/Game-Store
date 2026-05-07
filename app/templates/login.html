@@ -16,41 +16,222 @@
     <title>Iniciar Sesión - Game Store</title>
     <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/stylee.css?v=3.11">
     <link rel="stylesheet" href="/static/css/responsive.css?v=2.2">
     <link rel="stylesheet" href="/static/css/mobile-aesthetic.css?v=2.2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        /* ── Login page overrides ── */
+        body {
+            background: radial-gradient(ellipse at 60% 20%, #2d0060 0%, #0f0d12 55%, #0a0a14 100%);
+            min-height: 100vh;
+        }
+
+        .main-content {
+            padding: 32px 16px;
+        }
+
+        .container {
+            max-width: 440px;
+            width: 100%;
+            background: rgba(30, 24, 42, 0.92);
+            border: 1px solid rgba(139, 92, 246, 0.28);
+            border-radius: 20px;
+            padding: 40px 36px 32px;
+            box-shadow:
+                0 0 0 1px rgba(139,92,246,0.08),
+                0 8px 40px rgba(0,0,0,0.55),
+                0 0 80px rgba(88,0,154,0.18);
+            backdrop-filter: blur(12px);
+        }
+
+        /* Logo / Brand */
+        .login-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        .login-brand img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        .login-brand-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: #e9d5ff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Title */
+        .container h1 {
+            font-size: 28px;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+        .description {
+            font-size: 14px;
+            margin-bottom: 28px;
+            color: #9ca3af;
+        }
+
+        /* Form fields stacked */
+        .form-line {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0;
+            border-bottom: none;
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+        .label {
+            width: 100%;
+            font-size: 13px;
+            color: #c4b5fd;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .input-field {
+            border-radius: 10px;
+            border: 1px solid rgba(139,92,246,0.3);
+            background: rgba(255,255,255,0.05);
+            font-size: 15px;
+            padding: 12px 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-field:focus {
+            border-color: #8b5cf6;
+            background: rgba(139,92,246,0.08);
+            box-shadow: 0 0 0 3px rgba(139,92,246,0.18);
+        }
+
+        /* Main CTA button — full width */
+        .register-section { margin-top: 28px; }
+        .buttons-container {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .register-btn {
+            width: 100%;
+            padding: 14px 24px;
+            font-size: 15px;
+            border-radius: 12px;
+            letter-spacing: 0.8px;
+        }
+        .register-btn.back-btn {
+            background: transparent;
+            border: 1px solid rgba(139,92,246,0.35);
+            color: #c4b5fd;
+            box-shadow: none;
+        }
+        .register-btn.back-btn:hover {
+            background: rgba(139,92,246,0.12);
+            border-color: #8b5cf6;
+            color: #fff;
+            box-shadow: none;
+            transform: translateY(-1px);
+        }
+
+        /* Footer divider + links */
+        .login-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0 20px;
+            color: #4b5563;
+            font-size: 13px;
+        }
+        .login-divider::before,
+        .login-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(139,92,246,0.18);
+        }
+
+        .sidebar-register-section { padding-top: 0; }
+        .login-footer-links {
+            gap: 0;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        .compact-link-btn {
+            width: auto;
+            min-width: unset;
+            flex: 1;
+            padding: 11px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 10px;
+            text-align: center;
+        }
+        /* Crear cuenta — púrpura suave */
+        .sidebar-register-btn:not(.sidebar-secondary-btn) {
+            background: rgba(139,92,246,0.15);
+            color: #c4b5fd;
+            border: 1px solid rgba(139,92,246,0.3);
+            box-shadow: none;
+        }
+        .sidebar-register-btn:not(.sidebar-secondary-btn):hover {
+            background: rgba(139,92,246,0.28);
+            color: #fff;
+            border-color: #8b5cf6;
+            transform: translateY(-1px);
+        }
+        /* Olvidé mi contraseña — azul más apagado */
+        .sidebar-secondary-btn {
+            background: rgba(29,78,216,0.18);
+            color: #93c5fd;
+            border: 1px solid rgba(29,78,216,0.3);
+            box-shadow: none;
+        }
+        .sidebar-secondary-btn:hover {
+            background: rgba(29,78,216,0.32);
+            color: #fff;
+            border-color: #3b82f6;
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
 
 <body>
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N9LMPQBM"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
     <!-- Contenido Principal -->
     <div class="main-content">
         <div class="container">
-            <h1>Iniciar Sesión</h1>
 
-            <p class="description">Ingresa el nombre de usuario o correo registrado.</p>
+            <!-- Brand -->
+            <div class="login-brand">
+                <img src="/static/img/Icon.png" alt="Game Store">
+                <span class="login-brand-name">Game Store</span>
+            </div>
+
+            <h1>Iniciar Sesión</h1>
+            <p class="description">Ingresa tu usuario o correo registrado.</p>
 
             <form id="login-form" class="form-section">
                 <div class="form-line">
-                                                <label class="label" for="login-input">Nombre de usuario o Correo</label>
-                                        <input type="text" id="login-input" name="login_input" class="input-field"
-                                                    placeholder="Ingresa tu usuario o correo" required aria-describedby="login-input-error">
-                      <span class="error-message" id="login-input-error" aria-live="polite"></span>
+                    <label class="label" for="login-input"><i class="fa-solid fa-user" style="margin-right:5px;opacity:.7;"></i>Usuario o Correo</label>
+                    <input type="text" id="login-input" name="login_input" class="input-field"
+                           placeholder="usuario@ejemplo.com" required aria-describedby="login-input-error">
+                    <span class="error-message" id="login-input-error" aria-live="polite"></span>
                 </div>
 
                 <div class="form-line">
-                      <label class="label" for="login-password">Contraseña</label>
+                    <label class="label" for="login-password"><i class="fa-solid fa-lock" style="margin-right:5px;opacity:.7;"></i>Contraseña</label>
                     <div class="password-field-wrapper">
                         <input type="password" id="login-password" name="password" class="input-field"
-                              placeholder="Ingresa tu contraseña" required aria-describedby="password-error">
+                               placeholder="••••••••" required aria-describedby="password-error">
                         <button type="button" id="toggle-login-password-btn" class="toggle-password-btn" aria-label="Mostrar contraseña" title="Mostrar contraseña">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
-                      <span class="error-message" id="password-error" aria-live="polite"></span>
+                    <span class="error-message" id="password-error" aria-live="polite"></span>
                 </div>
 
                 <div class="register-section">
@@ -65,10 +246,16 @@
                 </div>
             </form>
 
+            <div class="login-divider">o</div>
+
             <div class="sidebar-register-section">
                 <div class="sidebar-actions-row login-footer-links">
-                    <a class="sidebar-register-btn compact-link-btn" href="/registro">Crear cuenta</a>
-                    <a class="sidebar-register-btn sidebar-secondary-btn compact-link-btn" href="/recuperar-contrasena">Olvidé mi contraseña</a>
+                    <a class="sidebar-register-btn compact-link-btn" href="/registro">
+                        <i class="fa-solid fa-user-plus" style="margin-right:5px;"></i>Crear cuenta
+                    </a>
+                    <a class="sidebar-register-btn sidebar-secondary-btn compact-link-btn" href="/recuperar-contrasena" style="margin-left:8px;">
+                        <i class="fa-solid fa-key" style="margin-right:5px;"></i>Olvidé mi contraseña
+                    </a>
                 </div>
             </div>
         </div>
@@ -76,6 +263,37 @@
 
     <script src="/static/js/menu-system.js?v=2.4"></script>
     <script src="/static/js/login.js"></script>
+
+    <!-- Accesibilidad FAB -->
+    <div id="accessibility-fab-container" style="position: fixed; bottom: 100px; right: 16px; z-index: 1300; display: flex; flex-direction: column; align-items: flex-end;">
+        <div id="accessibility-menu" class="accessibility-menu" style="display:none; margin-bottom: 12px;">
+            <h4>Accesibilidad</h4>
+            <label for="font-size-range">Tamaño de texto</label>
+            <input type="range" id="font-size-range" min="70" max="150" value="100">
+            <span id="font-size-value">100%</span>
+            <hr style="margin:1rem 0;border:0;border-top:1px solid #8b5cf6;">
+            <button id="tts-toggle-btn" class="accessibility-menu-btn" aria-label="Lectura guiada" title="Lectura guiada">
+                <i class="fa-solid fa-book-open"></i> Lectura guiada
+            </button>
+            <div id="tts-status" style="margin-top:0.5rem;color:#b19cd9;font-size:0.95em;display:none;"></div>
+            <button id="voice-read-btn" class="accessibility-menu-btn" aria-label="Lectura de voz" title="Lectura de voz">
+                <i class="fa-solid fa-volume-high"></i> Lectura de voz
+            </button>
+            <div id="voice-read-status" style="margin-top:0.5rem;color:#b19cd9;font-size:0.95em;display:none;"></div>
+            <button id="grayscale-toggle-btn" class="accessibility-menu-btn" aria-label="Escala de grises" title="Escala de grises">
+                <i class="fa-solid fa-adjust"></i> Escala de grises
+            </button>
+            <div id="grayscale-status" style="margin-top:0.5rem;color:#b19cd9;font-size:0.95em;display:none;"></div>
+            <button id="keyboard-nav-toggle-btn" class="accessibility-menu-btn" aria-label="Navegación por teclado" title="Navegación por teclado">
+                <i class="fa-solid fa-keyboard"></i> Navegación por teclado
+            </button>
+            <div id="keyboard-nav-status" style="margin-top:0.5rem;color:#b19cd9;font-size:0.95em;display:none;"></div>
+        </div>
+        <button id="accessibility-btn" aria-label="Accesibilidad" title="Accesibilidad">
+            <i class="fa-solid fa-universal-access"></i>
+        </button>
+    </div>
+    <script src="/static/js/script.js"></script>
 </body>
 
 </html>

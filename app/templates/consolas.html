@@ -122,6 +122,37 @@
         });
     </script>
 
+
+    <!-- Accesibilidad FAB -->
+    <div id="accessibility-fab-container" style="position: fixed; bottom: 100px; right: 16px; z-index: 1300; display: flex; flex-direction: column; align-items: flex-end;">
+        <div id="accessibility-menu" class="accessibility-menu" style="display:none; margin-bottom: 12px;">
+            <h4>Accesibilidad</h4>
+            <label for="font-size-range">Tamaño de texto</label>
+            <input type="range" id="font-size-range" min="70" max="150" value="100">
+            <span id="font-size-value">100%</span>
+            <hr style="margin:1rem 0;border:0;border-top:1px solid #8b5cf6;">
+            <button id="tts-toggle-btn" class="accessibility-menu-btn" aria-label="Lectura guiada" title="Lectura guiada">
+                <i class="fa-solid fa-book-open"></i> Lectura guiada
+            </button>
+            <div id="tts-status" style="margin-top:0.5rem;color:#b19cd9;font-size:0.95em;display:none;"></div>
+            <button id="voice-read-btn" class="accessibility-menu-btn" aria-label="Lectura de voz" title="Lectura de voz">
+                <i class="fa-solid fa-volume-high"></i> Lectura de voz
+            </button>
+            <div id="voice-read-status" style="margin-top:0.5rem;color:#b19cd9;font-size:0.95em;display:none;"></div>
+            <button id="grayscale-toggle-btn" class="accessibility-menu-btn" aria-label="Escala de grises" title="Escala de grises">
+                <i class="fa-solid fa-adjust"></i> Escala de grises
+            </button>
+            <div id="grayscale-status" style="margin-top:0.5rem;color:#b19cd9;font-size:0.95em;display:none;"></div>
+            <button id="keyboard-nav-toggle-btn" class="accessibility-menu-btn" aria-label="Navegación por teclado" title="Navegación por teclado">
+                <i class="fa-solid fa-keyboard"></i> Navegación por teclado
+            </button>
+            <div id="keyboard-nav-status" style="margin-top:0.5rem;color:#b19cd9;font-size:0.95em;display:none;"></div>
+        </div>
+        <button id="accessibility-btn" aria-label="Accesibilidad" title="Accesibilidad">
+            <i class="fa-solid fa-universal-access"></i>
+        </button>
+    </div>
+    <script src="/static/js/script.js"></script>
 </body>
 
 </html>
