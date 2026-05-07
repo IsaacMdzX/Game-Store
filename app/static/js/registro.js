@@ -138,10 +138,24 @@ var RegistroView = Backbone.View.extend({
         this.limpiarTodosErrores();
         this.usuario.set(datos);
 
-        if (this.usuario.isValid()) {
-            this.mostrarCargando(true);
-            this.usuario.save();
+        if (!this.usuario.isValid()) {
+            return;
         }
+
+        this.mostrarCargando(true);
+        var self = this;
+        $.ajax({
+            url: '/api/registro',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(datos),
+            success: function() {
+                self.registroExitoso();
+            },
+            error: function(xhr) {
+                self.registroFallido(null, xhr);
+            }
+        });
     },
 
     mostrarAlertaCamposRequeridos: function() {
