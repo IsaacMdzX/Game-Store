@@ -321,38 +321,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function applyZoom(pct) {
     const factor = pct / 100;
-    // zoom escala TODO el contenido (px, rem, imágenes, etc.)
-    document.documentElement.style.zoom = factor;
-    // Excluir TODOS los FABs del zoom para que no se desplacen ni agranden
-    const fabs = [
+    // Aplicar zoom solo al body, no al html
+    document.body.style.zoom = factor;
+    // Contra-zoom a los FABs flotantes para mantener tamaño y posición
+    const floatingEls = [
       document.getElementById('accessibility-fab-container'),
-      document.getElementById('chatbot-container'),
-      ...document.querySelectorAll('[class*="fab-container"]'),
-      ...document.querySelectorAll('[class*="floating-container"]')
+      ...document.querySelectorAll('.chatbot-toggle-btn'),
+      ...document.querySelectorAll('.chatbot-panel')
     ];
-    fabs.forEach(fab => {
-      if (fab) {
-        fab.style.zoom = (1 / factor).toString();
-        fab.style.position = 'fixed';
-      }
+    floatingEls.forEach(el => {
+      if (el) el.style.zoom = (1 / factor).toString();
     });
     if (valueLabel) valueLabel.textContent = pct + '%';
     localStorage.setItem(ZOOM_KEY, pct);
   }
 
   function resetZoom() {
-    document.documentElement.style.zoom = '';
-    const fabs = [
+    document.body.style.zoom = '';
+    const floatingEls = [
       document.getElementById('accessibility-fab-container'),
-      document.getElementById('chatbot-container'),
-      ...document.querySelectorAll('[class*="fab-container"]'),
-      ...document.querySelectorAll('[class*="floating-container"]')
+      ...document.querySelectorAll('.chatbot-toggle-btn'),
+      ...document.querySelectorAll('.chatbot-panel')
     ];
-    fabs.forEach(fab => {
-      if (fab) {
-        fab.style.zoom = '';
-        fab.style.position = 'fixed';
-      }
+    floatingEls.forEach(el => {
+      if (el) el.style.zoom = '';
     });
   }
 

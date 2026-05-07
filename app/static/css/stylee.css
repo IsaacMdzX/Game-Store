@@ -7,27 +7,19 @@ body.grayscale-mode, .grayscale-mode body {
     filter: grayscale(1) !important;
 }
 
-/* Excluir botones flotantes del filtro de escala de grises y mantener posición fija */
+/* Excluir botones flotantes del filtro de escala de grises */
 body.grayscale-mode #accessibility-fab-container,
-body.grayscale-mode #accessibility-btn,
-body.grayscale-mode .accessibility-menu,
-body.grayscale-mode #chatbot-container,
-body.grayscale-mode #chatbot-btn,
-body.grayscale-mode .chatbot-widget,
-body.grayscale-mode [class*="fab"],
-body.grayscale-mode [class*="floating"] {
+body.grayscale-mode .chatbot-toggle-btn,
+body.grayscale-mode .chatbot-panel {
     filter: none !important;
 }
 
-/* Forzar posición fija de FABs sin importar transformaciones */
+/* Forzar posición fija de FABs */
 #accessibility-fab-container,
-#chatbot-container,
-[class*="fab-container"],
-[class*="floating-container"] {
+.chatbot-toggle-btn,
+.chatbot-panel {
     position: fixed !important;
     z-index: 9999 !important;
-    transform: none !important;
-    transform-origin: top right !important;
 }
 
 .accessibility-menu-btn {
