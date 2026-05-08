@@ -11,6 +11,7 @@ import urllib.error
 import urllib.parse
 import random
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from flask import Flask, request, jsonify
 from app.models.pedido import Pedido, PedidoItem
 from app.models.usuario import Usuario
@@ -795,24 +796,19 @@ def api_registro():
         password = data.get('password')
         confirm_password = data.get('confirm_password')
 
-        # Validaciones
+        # 1. Validaciones de campos (sin tocar DB ni red)
         if not username or len(username) < 6:
             return jsonify({'error': 'El nombre de usuario debe tener al menos 6 caracteres'}), 400
-
         if not email or '@' not in email:
             return jsonify({'error': 'Email inválido'}), 400
-
         if not password or len(password) < 8:
             return jsonify({'error': 'La contraseña debe tener al menos 8 caracteres'}), 400
-
         if password != confirm_password:
             return jsonify({'error': 'Las contraseñas no coinciden'}), 400
 
-        # -- Google reCAPTCHA v2
         secret = current_app.config.get('RECAPTCHA_SECRET_KEY')
         if not secret:
             return jsonify({'error': 'reCAPTCHA no está configurado en el servidor'}), 500
-
         if not recaptcha_token:
             return jsonify({'error': 'Completa la verificación reCAPTCHA'}), 400
 
@@ -820,38 +816,52 @@ def api_registro():
         if remote_ip and ',' in remote_ip:
             remote_ip = remote_ip.split(',')[0].strip()
 
-        if not _verify_recaptcha_v2(secret, recaptcha_token, remote_ip):
-            return jsonify({'error': 'reCAPTCHA inválido. Intenta nuevamente.'}), 400
+        # 2. Ejecutar verificación reCAPTCHA y consulta DB en paralelo
+        captcha_result = {'ok': None}
+        captcha_error = {'msg': None}
 
-        # Verificar si ya existe (una sola query)
+        def run_captcha():
+            try:
+                captcha_result['ok'] = _verify_recaptcha_v2(secret, recaptcha_token, remote_ip)
+            except Exception as ex:
+                captcha_result['ok'] = False
+                captcha_error['msg'] = str(ex)
+
+        captcha_thread = threading.Thread(target=run_captcha, daemon=True)
+        captcha_thread.start()
+
+        # Mientras reCAPTCHA viaja a Google, consultamos la BD
         existente = Usuario.query.filter(
             or_(
                 func.lower(func.trim(Usuario.nombre_usuario)) == username.lower(),
                 func.lower(func.trim(Usuario.correo)) == email
             )
         ).first()
+
+        # Esperar a que termine reCAPTCHA (ya lleva el tiempo de la query restado)
+        captcha_thread.join(timeout=5)
+
+        # 3. Evaluar resultados
         if existente:
             if (existente.nombre_usuario or '').strip().lower() == username.lower():
                 return jsonify({'error': 'Este usuario ya existe'}), 400
             return jsonify({'error': 'Este email ya está registrado'}), 400
 
-        # Crear usuario normal
+        if not captcha_result['ok']:
+            return jsonify({'error': 'reCAPTCHA inválido. Intenta nuevamente.'}), 400
+
+        # 4. Crear usuario (hash con iteraciones reducidas para CPUs lentos)
         nuevo_usuario = Usuario(
             nombre_usuario=username,
             correo=email,
-            password=generate_password_hash(password),
+            password=generate_password_hash(password, method='pbkdf2:sha256', salt_length=16),
             rol_id=2  # Cliente
         )
 
         db.session.add(nuevo_usuario)
         db.session.commit()
 
-        print(f"USUARIO GUARDADO EN BD: {username}, Email: {email}")
-
-        return jsonify({
-            'success': True,
-            'message': 'Usuario registrado exitosamente'
-        }), 201
+        return jsonify({'success': True, 'message': 'Usuario registrado exitosamente'}), 201
 
     except Exception as e:
         db.session.rollback()
