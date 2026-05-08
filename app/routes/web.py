@@ -35,7 +35,7 @@ def _verify_recaptcha_v2(secret: str, token: str, remote_ip: str | None = None) 
         method='POST',
     )
     try:
-        with urllib.request.urlopen(req, timeout=3) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:
             return bool(json.loads(resp.read().decode('utf-8', errors='replace')).get('success'))
     except Exception:
         return False
@@ -839,7 +839,7 @@ def api_registro():
         ).first()
 
         # Esperar a que termine reCAPTCHA (ya lleva el tiempo de la query restado)
-        captcha_thread.join(timeout=5)
+        captcha_thread.join(timeout=12)
 
         # 3. Evaluar resultados
         if existente:
@@ -847,7 +847,11 @@ def api_registro():
                 return jsonify({'error': 'Este usuario ya existe'}), 400
             return jsonify({'error': 'Este email ya está registrado'}), 400
 
-        if not captcha_result['ok']:
+        if captcha_result['ok'] is None:
+            # Thread aún corriendo o no terminó: reintentar de forma síncrona
+            captcha_result['ok'] = _verify_recaptcha_v2(secret, recaptcha_token, remote_ip)
+
+        if captcha_result['ok'] is False:
             return jsonify({'error': 'reCAPTCHA inválido. Intenta nuevamente.'}), 400
 
         # 4. Crear usuario (hash con iteraciones reducidas para CPUs lentos)
