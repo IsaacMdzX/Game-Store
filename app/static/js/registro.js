@@ -160,21 +160,27 @@ var RegistroView = Backbone.View.extend({
 
     _setDisponibilidadIcon: function(inputSelector, estado) {
         var $input = this.$(inputSelector);
-        var $wrapper = $input.closest('.form-col');
+
+        // Crear wrapper flex-row la primera vez
+        if (!$input.parent().hasClass('input-con-estado')) {
+            $input.wrap('<div class="input-con-estado"></div>');
+        }
+        var $wrapper = $input.parent();
         $wrapper.find('.disponibilidad-icon').remove();
         if (!estado) return;
+
         var isUsername = inputSelector === '#username';
         var html = '';
         if (estado === 'loading') {
             html = '<span class="disponibilidad-icon checking"><i class="fa-solid fa-spinner fa-spin"></i> Verificando...</span>';
         } else if (estado === 'ok') {
-            var msg = isUsername ? 'Nombre disponible' : 'Email disponible';
+            var msg = isUsername ? 'Disponible' : 'Disponible';
             html = '<span class="disponibilidad-icon available"><i class="fa-solid fa-circle-check"></i> ' + msg + '</span>';
         } else if (estado === 'error') {
-            var msg = isUsername ? 'Nombre no disponible' : 'Email no disponible';
+            var msg = isUsername ? 'No disponible' : 'No disponible';
             html = '<span class="disponibilidad-icon taken"><i class="fa-solid fa-circle-xmark"></i> ' + msg + '</span>';
         }
-        $input.after(html);
+        $wrapper.append(html);
     },
 
     notificar: function(message, type) {

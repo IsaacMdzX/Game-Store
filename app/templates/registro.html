@@ -86,11 +86,22 @@
             box-shadow: 0 0 0 3px rgba(139,92,246,0.18);
         }
 
-        /* Icono de disponibilidad en tiempo real */
+        /* Wrapper flex para input + indicador de disponibilidad */
+        .input-con-estado {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .input-con-estado .input-field {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Icono + texto de disponibilidad en tiempo real */
         .disponibilidad-icon {
-            display: flex; align-items: center; gap: 5px;
-            font-size: 12px; font-weight: 600; margin-top: 5px;
-            letter-spacing: 0.2px; transition: color 0.2s;
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 11px; font-weight: 700; white-space: nowrap;
+            flex-shrink: 0; letter-spacing: 0.2px;
         }
         .disponibilidad-icon i { font-size: 13px; }
         .disponibilidad-icon.checking { color: #a78bfa; }
@@ -263,7 +274,7 @@
     <script src="/static/js/libs/backbone.min.js"></script>
     <script src="/static/js/menu-system.js?v=2.5"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <script src="/static/js/registro.js?v=3.2"></script>
+    <script src="/static/js/registro.js?v=3.3"></script>
 
 
     <!-- Accesibilidad FAB -->
