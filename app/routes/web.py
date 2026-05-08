@@ -756,6 +756,31 @@ def api_actualizar_direccion():
 
 # ----------------------------------------- REGISTROS ---------------------------------------- #
 
+@web_bp.route('/api/check-disponibilidad', methods=['GET'])
+def api_check_disponibilidad():
+    """Verifica en tiempo real si un username o email ya está en uso."""
+    campo = (request.args.get('campo') or '').strip().lower()
+    valor = (request.args.get('valor') or '').strip().lower()
+
+    if campo not in ('username', 'email') or not valor:
+        return jsonify({'disponible': False, 'error': 'Parámetros inválidos'}), 400
+
+    if campo == 'username':
+        if len(valor) < 6:
+            return jsonify({'disponible': None})  # demasiado corto, no verificar aún
+        existe = Usuario.query.filter(
+            func.lower(func.trim(Usuario.nombre_usuario)) == valor
+        ).first() is not None
+    else:
+        if '@' not in valor:
+            return jsonify({'disponible': None})
+        existe = Usuario.query.filter(
+            func.lower(func.trim(Usuario.correo)) == valor
+        ).first() is not None
+
+    return jsonify({'disponible': not existe})
+
+
 @web_bp.route('/api/registro', methods=['POST'])
 def api_registro():
     try:

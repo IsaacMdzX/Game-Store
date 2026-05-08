@@ -83,8 +83,8 @@ var RegistroView = Backbone.View.extend({
 
     events: {
         'submit': 'registrarUsuario',
-        'input #username': 'limpiarError',
-        'input #email': 'limpiarError',
+        'input #username': 'onUsernameInput',
+        'input #email': 'onEmailInput',
         'input #password': 'limpiarError',
         'input #confirm-password': 'limpiarError',
         'click #toggle-registro-password-btn': 'togglePasswordPrincipal',
@@ -94,9 +94,84 @@ var RegistroView = Backbone.View.extend({
     initialize: function() {
         this.usuario = new Usuario();
         this.alertTimeout = null;
+        this._usernameTimer = null;
+        this._emailTimer = null;
+        this._disponibilidad = { username: null, email: null }; // null=sin verificar, true=disponible, false=ocupado
         this.listenTo(this.usuario, 'invalid', this.mostrarErrores);
         this.listenTo(this.usuario, 'sync', this.registroExitoso);
         this.listenTo(this.usuario, 'error', this.registroFallido);
+    },
+
+    onUsernameInput: function() {
+        this.limpiarError({ target: this.$('#username')[0] });
+        this._disponibilidad.username = null;
+        clearTimeout(this._usernameTimer);
+        var val = (this.$('#username').val() || '').trim();
+        if (val.length < 6) {
+            this._setDisponibilidadIcon('#username', null);
+            return;
+        }
+        this._setDisponibilidadIcon('#username', 'loading');
+        var self = this;
+        this._usernameTimer = setTimeout(function() {
+            self._checkDisponibilidad('username', val);
+        }, 600);
+    },
+
+    onEmailInput: function() {
+        this.limpiarError({ target: this.$('#email')[0] });
+        this._disponibilidad.email = null;
+        clearTimeout(this._emailTimer);
+        var val = (this.$('#email').val() || '').trim();
+        if (!val || val.indexOf('@') === -1) {
+            this._setDisponibilidadIcon('#email', null);
+            return;
+        }
+        this._setDisponibilidadIcon('#email', 'loading');
+        var self = this;
+        this._emailTimer = setTimeout(function() {
+            self._checkDisponibilidad('email', val);
+        }, 600);
+    },
+
+    _checkDisponibilidad: function(campo, valor) {
+        var self = this;
+        $.ajax({
+            url: '/api/check-disponibilidad',
+            method: 'GET',
+            data: { campo: campo, valor: valor },
+            success: function(data) {
+                if (data.disponible === null || data.disponible === undefined) return;
+                self._disponibilidad[campo] = data.disponible;
+                var selector = campo === 'username' ? '#username' : '#email';
+                self._setDisponibilidadIcon(selector, data.disponible ? 'ok' : 'error');
+                if (!data.disponible) {
+                    var msg = campo === 'username' ? 'Este usuario ya existe.' : 'Este email ya está registrado.';
+                    self.marcarCampoError(selector);
+                    var errorId = campo === 'username' ? '#username-error' : '#email-error';
+                    self.$(errorId).text(msg);
+                }
+            },
+            error: function() {
+                self._setDisponibilidadIcon(campo === 'username' ? '#username' : '#email', null);
+            }
+        });
+    },
+
+    _setDisponibilidadIcon: function(inputSelector, estado) {
+        var $input = this.$(inputSelector);
+        var $wrapper = $input.closest('.form-col');
+        $wrapper.find('.disponibilidad-icon').remove();
+        if (!estado) return;
+        var icon = '';
+        if (estado === 'loading') {
+            icon = '<span class="disponibilidad-icon checking"><i class="fa-solid fa-spinner fa-spin"></i></span>';
+        } else if (estado === 'ok') {
+            icon = '<span class="disponibilidad-icon available"><i class="fa-solid fa-circle-check"></i></span>';
+        } else if (estado === 'error') {
+            icon = '<span class="disponibilidad-icon taken"><i class="fa-solid fa-circle-xmark"></i></span>';
+        }
+        $input.after(icon);
     },
 
     notificar: function(message, type) {
@@ -139,6 +214,18 @@ var RegistroView = Backbone.View.extend({
         this.usuario.set(datos);
 
         if (!this.usuario.isValid()) {
+            return;
+        }
+
+        // Si ya sabemos que username o email están ocupados, mostrar error de inmediato
+        if (this._disponibilidad.username === false) {
+            this.marcarCampoError('#username');
+            this.notificar('Este usuario ya existe.', 'error');
+            return;
+        }
+        if (this._disponibilidad.email === false) {
+            this.marcarCampoError('#email');
+            this.notificar('Este email ya está registrado.', 'error');
             return;
         }
 
