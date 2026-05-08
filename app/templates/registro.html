@@ -88,11 +88,12 @@
 
         /* Icono de disponibilidad en tiempo real */
         .disponibilidad-icon {
-            display: inline-flex; align-items: center;
-            font-size: 15px; margin-left: 6px;
-            vertical-align: middle; transition: color 0.2s;
+            display: flex; align-items: center; gap: 5px;
+            font-size: 12px; font-weight: 600; margin-top: 5px;
+            letter-spacing: 0.2px; transition: color 0.2s;
         }
-        .disponibilidad-icon.checking { color: #8b5cf6; }
+        .disponibilidad-icon i { font-size: 13px; }
+        .disponibilidad-icon.checking { color: #a78bfa; }
         .disponibilidad-icon.available { color: #22c55e; }
         .disponibilidad-icon.taken    { color: #ef4444; }
 
@@ -262,7 +263,7 @@
     <script src="/static/js/libs/backbone.min.js"></script>
     <script src="/static/js/menu-system.js?v=2.5"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <script src="/static/js/registro.js?v=3.1"></script>
+    <script src="/static/js/registro.js?v=3.2"></script>
 
 
     <!-- Accesibilidad FAB -->

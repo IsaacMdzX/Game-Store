@@ -163,15 +163,18 @@ var RegistroView = Backbone.View.extend({
         var $wrapper = $input.closest('.form-col');
         $wrapper.find('.disponibilidad-icon').remove();
         if (!estado) return;
-        var icon = '';
+        var isUsername = inputSelector === '#username';
+        var html = '';
         if (estado === 'loading') {
-            icon = '<span class="disponibilidad-icon checking"><i class="fa-solid fa-spinner fa-spin"></i></span>';
+            html = '<span class="disponibilidad-icon checking"><i class="fa-solid fa-spinner fa-spin"></i> Verificando...</span>';
         } else if (estado === 'ok') {
-            icon = '<span class="disponibilidad-icon available"><i class="fa-solid fa-circle-check"></i></span>';
+            var msg = isUsername ? 'Nombre disponible' : 'Email disponible';
+            html = '<span class="disponibilidad-icon available"><i class="fa-solid fa-circle-check"></i> ' + msg + '</span>';
         } else if (estado === 'error') {
-            icon = '<span class="disponibilidad-icon taken"><i class="fa-solid fa-circle-xmark"></i></span>';
+            var msg = isUsername ? 'Nombre no disponible' : 'Email no disponible';
+            html = '<span class="disponibilidad-icon taken"><i class="fa-solid fa-circle-xmark"></i> ' + msg + '</span>';
         }
-        $input.after(icon);
+        $input.after(html);
     },
 
     notificar: function(message, type) {
