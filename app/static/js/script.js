@@ -195,10 +195,19 @@ document.addEventListener('DOMContentLoaded', function () {
   let guidedActive = false;
   let lastHighlighted = null;
 
-  const HIGHLIGHT_SELECTOR = 'p, h1, h2, h3, h4, h5, h6, li, span, a, label, button, td, th, .producto, .card, .nombre-producto, .titulo-producto, input[placeholder], textarea';
+  const HIGHLIGHT_SELECTOR = 'p, h1, h2, h3, h4, h5, h6, li, span, a, label, button, td, th, .producto, .card, .nombre-producto, .titulo-producto, input[placeholder], textarea, input[type="number"], input[type="text"], input[type="email"], input[type="tel"], .precio, .producto-precio, .stat-value, .badge, .carrito-count, .numero-cliente, dd, dt, [class*="precio"], [class*="price"], [class*="monto"], [class*="total"], [class*="cantidad"], [class*="stat-value"], [class*="count"]';
+
+  // Detecta si un elemento es básicamente un "cuadro de número"
+  function isNumericElement(el) {
+    const text = (el.innerText || el.textContent || '').trim();
+    // Texto que es principalmente un número (precio, cantidad, stat, etc.)
+    return /^[\$€MXN\s]*[\d,.\s]+[\$€MXN%\s]*$/.test(text) && text.length > 0 && text.length < 30;
+  }
 
   function onMouseOver(e) {
-    const el = e.target.closest(HIGHLIGHT_SELECTOR);
+    let el = e.target.closest(HIGHLIGHT_SELECTOR);
+    // Si no coincide con el selector pero contiene solo números, también resaltar
+    if (!el && isNumericElement(e.target)) el = e.target;
     if (!el || el === lastHighlighted) return;
     if (lastHighlighted) lastHighlighted.classList.remove('guided-reading-highlight');
     el.classList.add('guided-reading-highlight');
