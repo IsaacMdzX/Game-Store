@@ -35,10 +35,10 @@ def _verify_recaptcha_v2(secret: str, token: str, remote_ip: str | None = None) 
         method='POST',
     )
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=8) as resp:
             return bool(json.loads(resp.read().decode('utf-8', errors='replace')).get('success'))
     except Exception:
-        return False
+        return None  # None = timeout/error de red (distinto de False = token inválido)
 from app.models.password_reset import PasswordResetCode
 from sqlalchemy import func, or_
 from sqlalchemy.orm import selectinload
@@ -824,7 +824,7 @@ def api_registro():
             try:
                 captcha_result['ok'] = _verify_recaptcha_v2(secret, recaptcha_token, remote_ip)
             except Exception as ex:
-                captcha_result['ok'] = False
+                captcha_result['ok'] = None
                 captcha_error['msg'] = str(ex)
 
         captcha_thread = threading.Thread(target=run_captcha, daemon=True)
@@ -839,7 +839,7 @@ def api_registro():
         ).first()
 
         # Esperar a que termine reCAPTCHA (ya lleva el tiempo de la query restado)
-        captcha_thread.join(timeout=12)
+        captcha_thread.join(timeout=8)
 
         # 3. Evaluar resultados
         if existente:
@@ -847,10 +847,9 @@ def api_registro():
                 return jsonify({'error': 'Este usuario ya existe'}), 400
             return jsonify({'error': 'Este email ya está registrado'}), 400
 
-        if captcha_result['ok'] is None:
-            # Thread aún corriendo o no terminó: reintentar de forma síncrona
-            captcha_result['ok'] = _verify_recaptcha_v2(secret, recaptcha_token, remote_ip)
-
+        # Si Google no respondió a tiempo (None) → fail open: el captcha fue resuelto
+        # en el cliente; no bloqueamos al usuario por latencia de red.
+        # Solo rechazamos si Google dijo explícitamente False (token inválido).
         if captcha_result['ok'] is False:
             return jsonify({'error': 'reCAPTCHA inválido. Intenta nuevamente.'}), 400
 
