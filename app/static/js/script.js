@@ -131,23 +131,59 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('DOMContentLoaded', function () {
   const grayscaleBtn = document.getElementById('grayscale-toggle-btn');
   const grayscaleStatus = document.getElementById('grayscale-status');
-  let grayscaleActive = false;
+  const GRAYSCALE_KEY = 'gs-grayscale';
+  let grayscaleActive = localStorage.getItem(GRAYSCALE_KEY) === '1';
+
+  function applyGrayscale(active) {
+    if (active) {
+      document.body.classList.add('grayscale-mode');
+      if (grayscaleBtn) grayscaleBtn.innerHTML = '<i class="fa-solid fa-adjust"></i> Quitar escala de grises';
+      if (grayscaleStatus) { grayscaleStatus.textContent = 'Escala de grises activada.'; grayscaleStatus.style.display = 'block'; }
+    } else {
+      document.body.classList.remove('grayscale-mode');
+      if (grayscaleBtn) grayscaleBtn.innerHTML = '<i class="fa-solid fa-adjust"></i> Escala de grises';
+      if (grayscaleStatus) { grayscaleStatus.textContent = 'Escala de grises desactivada.'; grayscaleStatus.style.display = 'block'; setTimeout(()=>grayscaleStatus.style.display='none', 2000); }
+    }
+    localStorage.setItem(GRAYSCALE_KEY, active ? '1' : '0');
+  }
+
+  // Restaurar estado guardado
+  if (grayscaleActive) applyGrayscale(true);
 
   if (grayscaleBtn) {
     grayscaleBtn.addEventListener('click', function () {
       grayscaleActive = !grayscaleActive;
-      if (grayscaleActive) {
-        document.body.classList.add('grayscale-mode');
-        grayscaleBtn.innerHTML = '<i class="fa-solid fa-adjust"></i> Quitar escala de grises';
-        grayscaleStatus.textContent = 'Escala de grises activada.';
-        grayscaleStatus.style.display = 'block';
-      } else {
-        document.body.classList.remove('grayscale-mode');
-        grayscaleBtn.innerHTML = '<i class="fa-solid fa-adjust"></i> Escala de grises';
-        grayscaleStatus.textContent = 'Escala de grises desactivada.';
-        grayscaleStatus.style.display = 'block';
-        setTimeout(()=>grayscaleStatus.style.display='none', 2000);
-      }
+      applyGrayscale(grayscaleActive);
+    });
+  }
+});
+// ================= ALTO CONTRASTE ===================
+document.addEventListener('DOMContentLoaded', function () {
+  const contrastBtn = document.getElementById('high-contrast-toggle-btn');
+  const contrastStatus = document.getElementById('high-contrast-status');
+  const HIGH_CONTRAST_KEY = 'gs-high-contrast';
+  let contrastActive = localStorage.getItem(HIGH_CONTRAST_KEY) === '1';
+
+  function applyContrast(active) {
+    if (active) {
+      document.body.classList.add('high-contrast-mode');
+      if (contrastBtn) contrastBtn.innerHTML = '<i class="fa-solid fa-circle-half-stroke"></i> Quitar alto contraste';
+      if (contrastStatus) { contrastStatus.textContent = 'Alto contraste activado.'; contrastStatus.style.display = 'block'; }
+    } else {
+      document.body.classList.remove('high-contrast-mode');
+      if (contrastBtn) contrastBtn.innerHTML = '<i class="fa-solid fa-circle-half-stroke"></i> Alto contraste';
+      if (contrastStatus) { contrastStatus.textContent = 'Alto contraste desactivado.'; contrastStatus.style.display = 'block'; setTimeout(()=>contrastStatus.style.display='none', 2000); }
+    }
+    localStorage.setItem(HIGH_CONTRAST_KEY, active ? '1' : '0');
+  }
+
+  // Restaurar estado guardado
+  if (contrastActive) applyContrast(true);
+
+  if (contrastBtn) {
+    contrastBtn.addEventListener('click', function () {
+      contrastActive = !contrastActive;
+      applyContrast(contrastActive);
     });
   }
 });
@@ -155,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('DOMContentLoaded', function () {
   const guidedBtn = document.getElementById('tts-toggle-btn');
   const guidedStatus = document.getElementById('tts-status');
+  const GUIDED_KEY = 'gs-guided-reading';
   let guidedActive = false;
   let lastHighlighted = null;
 
@@ -174,24 +211,29 @@ document.addEventListener('DOMContentLoaded', function () {
     lastHighlighted = null;
   }
 
+  function setGuidedActive(active) {
+    guidedActive = active;
+    if (active) {
+      document.addEventListener('mouseover', onMouseOver);
+      document.addEventListener('mouseout', onMouseOut);
+      if (guidedBtn) guidedBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Desactivar lectura guiada';
+      if (guidedStatus) { guidedStatus.textContent = 'Lectura guiada activada. Pasa el mouse sobre el texto.'; guidedStatus.style.display = 'block'; }
+    } else {
+      document.removeEventListener('mouseover', onMouseOver);
+      document.removeEventListener('mouseout', onMouseOut);
+      if (lastHighlighted) { lastHighlighted.classList.remove('guided-reading-highlight'); lastHighlighted = null; }
+      if (guidedBtn) guidedBtn.innerHTML = '<i class="fa-solid fa-book-open"></i> Lectura guiada';
+      if (guidedStatus) { guidedStatus.textContent = 'Lectura guiada desactivada.'; guidedStatus.style.display = 'block'; setTimeout(()=>guidedStatus.style.display='none', 2000); }
+    }
+    localStorage.setItem(GUIDED_KEY, active ? '1' : '0');
+  }
+
+  // Restaurar estado guardado
+  if (localStorage.getItem(GUIDED_KEY) === '1') setGuidedActive(true);
+
   if (guidedBtn) {
     guidedBtn.addEventListener('click', function () {
-      guidedActive = !guidedActive;
-      if (guidedActive) {
-        document.addEventListener('mouseover', onMouseOver);
-        document.addEventListener('mouseout', onMouseOut);
-        guidedBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Desactivar lectura guiada';
-        guidedStatus.textContent = 'Lectura guiada activada. Pasa el mouse sobre el texto.';
-        guidedStatus.style.display = 'block';
-      } else {
-        document.removeEventListener('mouseover', onMouseOver);
-        document.removeEventListener('mouseout', onMouseOut);
-        if (lastHighlighted) { lastHighlighted.classList.remove('guided-reading-highlight'); lastHighlighted = null; }
-        guidedBtn.innerHTML = '<i class="fa-solid fa-book-open"></i> Lectura guiada';
-        guidedStatus.textContent = 'Lectura guiada desactivada.';
-        guidedStatus.style.display = 'block';
-        setTimeout(()=>guidedStatus.style.display='none', 2000);
-      }
+      setGuidedActive(!guidedActive);
     });
   }
 });
@@ -199,9 +241,12 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('DOMContentLoaded', function () {
   const ttsBtn = document.getElementById('voice-read-btn');
   const ttsStatus = document.getElementById('voice-read-status');
+  const TTS_KEY = 'gs-voice-read';
   let ttsActive = false;
   let speakTimeout = null;
   let bestVoice = null;
+  let currentUtterance = null;
+  let keepAliveInterval = null;  // anti-stutter Chrome bug
 
   // Prioridad: voces neurales/online primero (suenan más naturales y claras)
   const VOICE_PRIORITY = [
@@ -226,16 +271,12 @@ document.addEventListener('DOMContentLoaded', function () {
       const v = voices.find(v => v.name === name);
       if (v) return v;
     }
-    // Priorizar voces "online" (neurales) en español
     const onlineES = voices.find(v => v.name.toLowerCase().includes('online') && v.lang.startsWith('es'));
     if (onlineES) return onlineES;
-    // Cualquier Google en español
     const googleES = voices.find(v => v.name.toLowerCase().includes('google') && v.lang.startsWith('es'));
     if (googleES) return googleES;
-    // Cualquier Microsoft en español
     const msES = voices.find(v => v.name.toLowerCase().includes('microsoft') && v.lang.startsWith('es'));
     if (msES) return msES;
-    // Cualquier voz en español
     return voices.find(v => v.lang.startsWith('es')) || null;
   }
 
@@ -247,14 +288,69 @@ document.addEventListener('DOMContentLoaded', function () {
   loadVoice();
   window.speechSynthesis.addEventListener('voiceschanged', loadVoice);
 
-  // Limpia el texto para una lectura más clara
+  // Convierte un número entero a palabras en español
+  function _intToSpanish(n) {
+    if (n === 0) return 'cero';
+    if (n < 0) return 'menos ' + _intToSpanish(-n);
+    const unidades = ['','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve',
+                      'diez','once','doce','trece','catorce','quince','dieciséis','diecisiete',
+                      'dieciocho','diecinueve'];
+    const decenas  = ['','','veinte','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'];
+    const centenas = ['','ciento','doscientos','trescientos','cuatrocientos','quinientos',
+                      'seiscientos','setecientos','ochocientos','novecientos'];
+
+    if (n <= 19) return unidades[n];
+    if (n < 30)  return n === 20 ? 'veinte' : 'veinti' + unidades[n - 20];
+    if (n < 100) return decenas[Math.floor(n/10)] + (n % 10 ? ' y ' + unidades[n % 10] : '');
+    if (n === 100) return 'cien';
+    if (n < 1000) return centenas[Math.floor(n/100)] + (n % 100 ? ' ' + _intToSpanish(n % 100) : '');
+    if (n < 2000) return 'mil' + (n % 1000 ? ' ' + _intToSpanish(n % 1000) : '');
+    if (n < 1000000) {
+      const miles = Math.floor(n / 1000);
+      const resto = n % 1000;
+      return _intToSpanish(miles) + ' mil' + (resto ? ' ' + _intToSpanish(resto) : '');
+    }
+    if (n < 2000000) return 'un millón' + (n % 1000000 ? ' ' + _intToSpanish(n % 1000000) : '');
+    const millones = Math.floor(n / 1000000);
+    const resto = n % 1000000;
+    return _intToSpanish(millones) + ' millones' + (resto ? ' ' + _intToSpanish(resto) : '');
+  }
+
+  function numerosALetras(text) {
+    // Reemplaza números con decimales (ej: 19.99 → "diecinueve punto noventa y nueve")
+    return text.replace(/\d+(\.\d+)?/g, function(match) {
+      const parts = match.split('.');
+      let result = _intToSpanish(parseInt(parts[0], 10));
+      if (parts[1]) result += ' punto ' + _intToSpanish(parseInt(parts[1], 10));
+      return result;
+    });
+  }
+
+  // Limpia el texto y convierte números para una lectura natural
   function cleanText(raw) {
-    return raw
+    let text = raw
       .replace(/[\u{1F300}-\u{1FFFF}]/gu, '')  // quitar emojis
-      .replace(/[^\p{L}\p{N}\s.,;:¿?¡!()%-]/gu, ' ') // solo letras, números y puntuación básica
+      .replace(/[^\p{L}\p{N}\s.,;:¿?¡!()%-]/gu, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .slice(0, 300); // limitar longitud para no leer parágrafos enormes
+      .slice(0, 400);
+    return numerosALetras(text);
+  }
+
+  // Anti-stutter: Chrome pausa speechSynthesis silenciosamente luego de ~15s.
+  // Solución: pausar+resumir periódicamente mientras hay voz activa.
+  function startKeepAlive() {
+    stopKeepAlive();
+    keepAliveInterval = setInterval(function() {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      }
+    }, 10000);
+  }
+
+  function stopKeepAlive() {
+    if (keepAliveInterval) { clearInterval(keepAliveInterval); keepAliveInterval = null; }
   }
 
   function speakElement(el) {
@@ -264,7 +360,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const text = cleanText(raw);
     if (!text) return;
 
-    window.speechSynthesis.cancel();
+    // Solo cancelar si hay voz activa (evita interrumpir nada innecesariamente)
+    if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
     if (!bestVoice) loadVoice();
 
     const utterance = new window.SpeechSynthesisUtterance(text);
@@ -274,45 +371,76 @@ document.addEventListener('DOMContentLoaded', function () {
     } else {
       utterance.lang = 'es-MX';
     }
-    utterance.rate   = 0.82;  // más lento = más claro y fácil de entender
-    utterance.pitch  = 1.0;   // tono neutro = más natural
+    utterance.rate   = 0.85;
+    utterance.pitch  = 1.0;
     utterance.volume = 1.0;
+    utterance.onend = stopKeepAlive;
+    utterance.onerror = stopKeepAlive;
+    currentUtterance = utterance;
+    startKeepAlive();
     window.speechSynthesis.speak(utterance);
   }
 
   const VOICE_SELECTOR = 'p, h1, h2, h3, h4, h5, h6, li, a, label, button, span, td, th, .nombre-producto, .titulo-producto, input, textarea';
 
+  let lastVoiceEl = null;
+
   function onMouseEnter(e) {
     const el = e.target.closest(VOICE_SELECTOR);
-    if (!el) return;
+    if (!el || el === lastVoiceEl) return;
+    lastVoiceEl = el;
     clearTimeout(speakTimeout);
-    speakTimeout = setTimeout(() => speakElement(el), 600);
+    // Delay reducido a 300ms para respuesta más ágil
+    speakTimeout = setTimeout(() => speakElement(el), 300);
   }
 
-  function onMouseLeave() {
+  function onMouseLeave(e) {
+    // Solo cancelar el timeout pendiente; NO interrumpir la voz si ya empezó
     clearTimeout(speakTimeout);
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    lastVoiceEl = null;
+    // Si el nuevo destino no es un elemento legible, sí cancelar
+    const to = e.relatedTarget ? e.relatedTarget.closest(VOICE_SELECTOR) : null;
+    if (!to && window.speechSynthesis.speaking) {
+      // Dejar que termine; solo limpiar si el texto es largo (>100 chars)
+      const currentText = currentUtterance ? currentUtterance.text : '';
+      if (currentText.length > 120) {
+        window.speechSynthesis.cancel();
+        stopKeepAlive();
+      }
+    }
+  }
+
+  function setTtsActive(active) {
+    ttsActive = active;
+    if (active) {
+      document.addEventListener('mouseover', onMouseEnter);
+      document.addEventListener('mouseout', onMouseLeave);
+      if (ttsBtn) ttsBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> Desactivar lectura de voz';
+      const voiceName = bestVoice ? bestVoice.name : 'voz del sistema';
+      if (ttsStatus) { ttsStatus.innerHTML = `Lectura de voz activada.<br><small>Voz: ${voiceName}</small>`; ttsStatus.style.display = 'block'; }
+    } else {
+      document.removeEventListener('mouseover', onMouseEnter);
+      document.removeEventListener('mouseout', onMouseLeave);
+      clearTimeout(speakTimeout);
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      stopKeepAlive();
+      if (ttsBtn) ttsBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Lectura de voz';
+      if (ttsStatus) { ttsStatus.textContent = 'Lectura de voz desactivada.'; ttsStatus.style.display = 'block'; setTimeout(()=>ttsStatus.style.display='none', 2000); }
+    }
+    localStorage.setItem(TTS_KEY, active ? '1' : '0');
+  }
+
+  // Restaurar estado guardado
+  if (localStorage.getItem(TTS_KEY) === '1') {
+    // Esperar a que voces carguen antes de activar
+    const tryRestore = () => { loadVoice(); setTtsActive(true); };
+    if (window.speechSynthesis.getVoices().length) tryRestore();
+    else window.speechSynthesis.addEventListener('voiceschanged', tryRestore, { once: true });
   }
 
   if (ttsBtn) {
     ttsBtn.addEventListener('click', function () {
-      ttsActive = !ttsActive;
-      if (ttsActive) {
-        document.addEventListener('mouseover', onMouseEnter);
-        document.addEventListener('mouseout', onMouseLeave);
-        ttsBtn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> Desactivar lectura de voz';
-        const voiceName = bestVoice ? bestVoice.name : 'voz del sistema';
-        ttsStatus.innerHTML = `Lectura de voz activada.<br><small>Voz: ${voiceName}</small>`;
-        ttsStatus.style.display = 'block';
-      } else {
-        document.removeEventListener('mouseover', onMouseEnter);
-        document.removeEventListener('mouseout', onMouseLeave);
-        if (window.speechSynthesis) window.speechSynthesis.cancel();
-        ttsBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Lectura de voz';
-        ttsStatus.textContent = 'Lectura de voz desactivada.';
-        ttsStatus.style.display = 'block';
-        setTimeout(()=>ttsStatus.style.display='none', 2000);
-      }
+      setTtsActive(!ttsActive);
     });
   }
 });

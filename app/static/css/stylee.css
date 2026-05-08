@@ -8,6 +8,20 @@ body.keyboard-nav-mode a, body.keyboard-nav-mode button, body.keyboard-nav-mode 
 body.grayscale-mode > *:not(#accessibility-fab-container):not(.chatbot-toggle-btn):not(.chatbot-panel) {
     filter: grayscale(1) !important;
 }
+/* Alto contraste */
+body.high-contrast-mode > *:not(#accessibility-fab-container):not(.chatbot-toggle-btn):not(.chatbot-panel) {
+    filter: contrast(1.8) brightness(1.1) !important;
+}
+body.high-contrast-mode {
+    background: #000 !important;
+}
+body.high-contrast-mode *:not(#accessibility-fab-container):not(#accessibility-fab-container *):not(.chatbot-toggle-btn):not(.chatbot-panel) {
+    border-color: #fff !important;
+}
+/* No mezclar ambos modos */
+body.grayscale-mode.high-contrast-mode > *:not(#accessibility-fab-container):not(.chatbot-toggle-btn):not(.chatbot-panel) {
+    filter: grayscale(1) contrast(1.8) !important;
+}
 
 .accessibility-menu-btn {
     background: linear-gradient(135deg, #8b5cf6 0%, #58009A 100%);
