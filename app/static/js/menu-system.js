@@ -9,7 +9,7 @@ class MenuManager {
         this.body = document.body;
         this.hamburgerBtn = null;
         this.overlay = null;
-        this.isMobile = window.innerWidth <= 575;
+        this.isMobile = window.innerWidth <= 768;
         this.isMenuOpen = false;
         this.resizeTimer = null;
 
@@ -159,7 +159,7 @@ class MenuManager {
     }
 
     handleInitialLoad() {
-        this.isMobile = window.innerWidth <= 575;
+        this.isMobile = window.innerWidth <= 768;
         this.updateMenuVisibility();
     }
 
@@ -168,7 +168,7 @@ class MenuManager {
         clearTimeout(this.resizeTimer);
         this.resizeTimer = setTimeout(() => {
             const wasMobile = this.isMobile;
-            this.isMobile = window.innerWidth <= 575;
+            this.isMobile = window.innerWidth <= 768;
 
             if (wasMobile !== this.isMobile) {
                 this.closeMenu();
@@ -323,7 +323,7 @@ class SearchManager {
 
         // Focus smoothscroll (solo móvil)
         this.searchInput.addEventListener('focus', () => {
-            if (window.innerWidth <= 575) {
+            if (window.innerWidth <= 768) {
                 setTimeout(() => {
                     this.searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }, 300);
