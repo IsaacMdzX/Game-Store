@@ -20,6 +20,7 @@ class MenuManager {
         if (!this.sidebar || !this.header) return;
 
         this.setupElements();
+        this.setupSearchToggle();
         this.highlightAdminFaqLink();
         this.optimizeImages();
         this.observeNewImages();
@@ -114,6 +115,61 @@ class MenuManager {
         this.updateMenuVisibility();
     }
 
+    setupSearchToggle() {
+        const searchBar = this.header.querySelector('.buscador');
+        const iconContainer = this.header.querySelector('.iconos');
+        if (!searchBar || !iconContainer) return;
+
+        const input = searchBar.querySelector('input');
+        if (input && !input.id) input.id = 'buscar-input';
+        if (!searchBar.id) searchBar.id = 'product-search-panel';
+
+        let toggle = iconContainer.querySelector('.search-toggle-btn');
+        if (!toggle) {
+            toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'search-toggle-btn';
+            toggle.innerHTML = '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>';
+            toggle.setAttribute('aria-label', 'Abrir búsqueda');
+            toggle.setAttribute('title', 'Buscar productos');
+            toggle.setAttribute('aria-controls', searchBar.id);
+            toggle.setAttribute('aria-expanded', 'false');
+            iconContainer.appendChild(toggle);
+        }
+
+        const setSearchOpen = (isOpen, focusInput = false) => {
+            this.header.classList.toggle('search-open', isOpen);
+            searchBar.hidden = !isOpen;
+            searchBar.setAttribute('aria-hidden', String(!isOpen));
+            toggle.setAttribute('aria-expanded', String(isOpen));
+            toggle.setAttribute('aria-label', isOpen ? 'Cerrar búsqueda' : 'Abrir búsqueda');
+            toggle.setAttribute('title', isOpen ? 'Cerrar búsqueda' : 'Buscar productos');
+            const icon = toggle.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-magnifying-glass', !isOpen);
+                icon.classList.toggle('fa-xmark', isOpen);
+            }
+            if (focusInput && input) input.focus();
+        };
+
+        setSearchOpen(false);
+        toggle.addEventListener('click', event => {
+            setSearchOpen(!this.header.classList.contains('search-open'), true);
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && this.header.classList.contains('search-open')) {
+                setSearchOpen(false);
+                toggle.focus();
+            }
+        });
+        document.addEventListener('click', event => {
+            const clickedSearch = searchBar.contains(event.target) || toggle.contains(event.target);
+            if (this.header.classList.contains('search-open') && !clickedSearch) {
+                setSearchOpen(false);
+            }
+        });
+    }
+
     attachEventListeners() {
         // Click en hamburguesa
         if (this.hamburgerBtn) {
@@ -178,7 +234,6 @@ class MenuManager {
     }
 
     toggleMenu(e) {
-        e.stopPropagation();
         if (this.isMenuOpen) {
             this.closeMenu();
         } else {
@@ -271,7 +326,6 @@ class UserMenuManager {
     }
 
     toggle(e) {
-        e.stopPropagation();
         if (this.isOpen) {
             this.close();
         } else {
@@ -404,6 +458,326 @@ class ThemeManager {
         this.injectThemeStyles();
         this.applyTheme(this.currentTheme);
         this.createToggleButton();
+        this.injectBlueBrandStyles();
+    }
+
+    injectBlueBrandStyles() {
+        if (document.getElementById('gamestore-blue-brand-styles')) return;
+
+        const style = document.createElement('style');
+        style.id = 'gamestore-blue-brand-styles';
+        style.textContent = `
+            body,
+            body > main,
+            main,
+            .principal,
+            .contenido,
+            .principal-carrito,
+            .main-content {
+                color: #eaf3ff !important;
+                background: linear-gradient(145deg, #05080d 0%, #091526 58%, #0b1c2f 100%) !important;
+            }
+
+            header.encabezado,
+            .encabezado {
+                color: #f2f8ff !important;
+                background: linear-gradient(115deg, #0b1f3b, #123968 54%, #08111f) !important;
+                border-bottom: 1px solid rgba(98, 176, 255, 0.38) !important;
+            }
+
+            .barra_lateral {
+                background: linear-gradient(180deg, #102d54, #09182b 58%, #050a12) !important;
+                border-right-color: rgba(98, 176, 255, 0.55) !important;
+            }
+
+            .producto,
+            .card,
+            .form-card,
+            .dashboard-card,
+            .pedido-card,
+            .pedido-item,
+            .resumen-card,
+            .card-informacion,
+            .card-ubicacion,
+            .perfil-card-centrado {
+                color: #eaf3ff !important;
+                background: linear-gradient(145deg, #111e30, #0a111d) !important;
+                border-color: rgba(98, 176, 255, 0.3) !important;
+                box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35) !important;
+            }
+
+            .producto h3,
+            .producto p,
+            .card h3,
+            .card p {
+                color: #e4efff !important;
+            }
+
+            .precio,
+            .precio-producto,
+            .producto .precio {
+                color: #79c7ff !important;
+                -webkit-text-fill-color: #79c7ff !important;
+            }
+
+            .carousel-slide.slide-purple,
+            .carousel-slide.slide-red,
+            .carousel-slide.slide-blue {
+                background: linear-gradient(135deg, #174b85, #0b1c34 58%, #050a12) !important;
+            }
+
+            .btn-primary,
+            .btn-secondary,
+            .btn-producto,
+            .btn_agregar,
+            .btn-agregar-carrito,
+            .btn-agregar-favorito,
+            .btn-comprar,
+            .btn_buscar,
+            .accessibility-menu-btn,
+            .chatbot-menu-toggle,
+            .chatbot-action-btn {
+                color: #f3f8ff !important;
+                background: linear-gradient(135deg, #1d65ca, #0c2d58) !important;
+                border-color: rgba(112, 190, 255, 0.48) !important;
+            }
+
+            .btn_notificaciones,
+            .carrito-link,
+            .user-menu-btn,
+            .hamburger-btn,
+            .search-toggle-btn,
+            #accessibility-btn,
+            .chatbot-toggle-btn {
+                color: #eaf4ff !important;
+                background: linear-gradient(145deg, #173b70, #0a1a31) !important;
+                border-color: rgba(115, 184, 255, 0.38) !important;
+            }
+
+            .carrito-count {
+                color: #ffffff !important;
+                background: linear-gradient(135deg, #287fe0, #103d76) !important;
+            }
+
+            .carousel-slide .btn-comprar {
+                color: #f3f8ff !important;
+                background: linear-gradient(135deg, #1d65ca, #0c2d58) !important;
+                border: 1px solid rgba(112, 190, 255, 0.5) !important;
+                box-shadow: 0 6px 16px rgba(8, 41, 83, 0.32) !important;
+            }
+
+            .user-dropdown,
+            .dropdown-menu,
+            .accessibility-menu,
+            .chatbot-panel,
+            .modal-content,
+            .modal-dialog {
+                background: linear-gradient(155deg, #101e31, #070d17) !important;
+                border-color: rgba(89, 161, 239, 0.4) !important;
+            }
+
+            .chatbot-header {
+                background: linear-gradient(115deg, #12396a, #08182e) !important;
+            }
+
+            .chatbot-message.bot {
+                background: rgba(37, 111, 203, 0.2) !important;
+                border-color: rgba(98, 176, 255, 0.38) !important;
+            }
+
+            .chatbot-message.user {
+                background: rgba(8, 121, 209, 0.26) !important;
+                border-color: rgba(79, 181, 255, 0.42) !important;
+            }
+
+            .chatbot-chip,
+            .chatbot-subchip {
+                background: rgba(31, 111, 235, 0.12) !important;
+                border-color: rgba(98, 176, 255, 0.3) !important;
+                color: #e9f4ff !important;
+            }
+
+            header.encabezado .hamburger-btn i,
+            header.encabezado .theme-toggle-btn i,
+            header.encabezado .carrito-link i,
+            header.encabezado .user-menu-btn i,
+            header.encabezado .search-toggle-btn i {
+                color: #f2f8ff !important;
+            }
+
+            header.encabezado .carrito-count {
+                color: #ffffff !important;
+                background: linear-gradient(135deg, #287fe0, #103d76) !important;
+            }
+
+            .carousel-slide .slide-content h2,
+            .carousel-slide .slide-content p,
+            .carousel-slide .slide-content span {
+                color: #f3f8ff !important;
+            }
+
+            html[data-theme='dark'] body main h1,
+            html[data-theme='dark'] body main h2,
+            html[data-theme='dark'] body main h3,
+            html[data-theme='dark'] body main h4,
+            html[data-theme='dark'] body main p,
+            html[data-theme='dark'] body main label,
+            html[data-theme='dark'] body main .categoria,
+            html[data-theme='dark'] body main .description {
+                color: #e5efff !important;
+            }
+
+            input:not([type='range']),
+            textarea,
+            select {
+                color: #edf5ff !important;
+                background: #0b1524 !important;
+                border-color: rgba(89, 161, 239, 0.48) !important;
+            }
+
+            html[data-theme='dark'] body header.encabezado,
+            html[data-theme='dark'] body .encabezado {
+                background: linear-gradient(115deg, #0b1f3b, #123968 54%, #08111f) !important;
+                border-bottom-color: rgba(98, 176, 255, 0.38) !important;
+            }
+
+            html[data-theme='dark'] body .barra_lateral {
+                background: linear-gradient(180deg, #102d54, #09182b 58%, #050a12) !important;
+                border-right-color: rgba(98, 176, 255, 0.55) !important;
+            }
+
+            html[data-theme='dark'] body .producto,
+            html[data-theme='dark'] body .card,
+            html[data-theme='dark'] body .dashboard-card,
+            html[data-theme='dark'] body .form-card,
+            html[data-theme='dark'] body .pedido-card,
+            html[data-theme='dark'] body .pedido-item,
+            html[data-theme='dark'] body .resumen-card {
+                color: #eaf3ff !important;
+                background: linear-gradient(145deg, #111e30, #0a111d) !important;
+                border-color: rgba(98, 176, 255, 0.3) !important;
+            }
+
+            html[data-theme='dark'] body .producto h3,
+            html[data-theme='dark'] body .producto p,
+            html[data-theme='dark'] body .card h3,
+            html[data-theme='dark'] body .card p {
+                color: #e4efff !important;
+            }
+
+            html[data-theme='dark'] body .producto .precio,
+            html[data-theme='dark'] body .precio,
+            html[data-theme='dark'] body .precio-producto {
+                color: #79c7ff !important;
+                -webkit-text-fill-color: #79c7ff !important;
+            }
+
+            html[data-theme='dark'] body .carousel-slide.slide-purple,
+            html[data-theme='dark'] body .carousel-slide.slide-red,
+            html[data-theme='dark'] body .carousel-slide.slide-blue {
+                background: linear-gradient(135deg, #174b85, #0b1c34 58%, #050a12) !important;
+            }
+
+            html[data-theme='dark'] body .chatbot-panel,
+            html[data-theme='dark'] body .user-dropdown,
+            html[data-theme='dark'] body .accessibility-menu {
+                background: linear-gradient(155deg, #101e31, #070d17) !important;
+                border-color: rgba(89, 161, 239, 0.4) !important;
+            }
+
+            html[data-theme='light'] body,
+            html[data-theme='light'] body > main,
+            html[data-theme='light'] body main,
+            html[data-theme='light'] body .principal {
+                color: #10233d !important;
+                background: linear-gradient(145deg, #eaf3ff, #f5f9ff 55%, #dceaff) !important;
+            }
+
+            html[data-theme='light'] body header.encabezado,
+            html[data-theme='light'] body .encabezado,
+            html[data-theme='light'] body .barra_lateral {
+                color: #f2f8ff !important;
+                background: linear-gradient(115deg, #12396a, #08182e) !important;
+                border-bottom-color: rgba(98, 176, 255, 0.38) !important;
+                border-right-color: rgba(98, 176, 255, 0.55) !important;
+            }
+
+            html[data-theme='light'] body .encabezado .btn_notificaciones,
+            html[data-theme='light'] body .encabezado .carrito-link,
+            html[data-theme='light'] body .encabezado .user-menu-btn,
+            html[data-theme='light'] body .encabezado .hamburger-btn,
+            html[data-theme='light'] body .encabezado .search-toggle-btn {
+                color: #f2f8ff !important;
+                background: linear-gradient(145deg, #173b70, #0a1a31) !important;
+                border-color: rgba(115, 184, 255, 0.5) !important;
+            }
+
+            html[data-theme='light'] body .encabezado .btn_notificaciones i,
+            html[data-theme='light'] body .encabezado .carrito-link i,
+            html[data-theme='light'] body .encabezado .user-menu-btn i,
+            html[data-theme='light'] body .encabezado .hamburger-btn i,
+            html[data-theme='light'] body .encabezado .search-toggle-btn i {
+                color: #f2f8ff !important;
+            }
+
+            html[data-theme='light'] body .encabezado .theme-switch-thumb i {
+                color: #174b85 !important;
+            }
+
+            html[data-theme='light'] body .encabezado .carrito-count {
+                color: #ffffff !important;
+            }
+
+            html[data-theme='light'] body .carousel-slide .btn-comprar {
+                color: #f3f8ff !important;
+                background: linear-gradient(135deg, #1d65ca, #0c2d58) !important;
+            }
+
+            html[data-theme='light'] body .producto,
+            html[data-theme='light'] body .card,
+            html[data-theme='light'] body .form-card,
+            html[data-theme='light'] body .dashboard-card,
+            html[data-theme='light'] body .pedido-card,
+            html[data-theme='light'] body .pedido-item,
+            html[data-theme='light'] body .resumen-card {
+                color: #122541 !important;
+                background: linear-gradient(145deg, #f8fbff, #e7f1ff) !important;
+                border-color: #9dc7f2 !important;
+                box-shadow: 0 8px 22px rgba(24, 70, 120, 0.1) !important;
+            }
+
+            html[data-theme='light'] body .producto h3,
+            html[data-theme='light'] body .producto p,
+            html[data-theme='light'] body .card h3,
+            html[data-theme='light'] body .card p {
+                color: #122541 !important;
+            }
+
+            html[data-theme='light'] body .precio,
+            html[data-theme='light'] body .precio-producto,
+            html[data-theme='light'] body .producto .precio {
+                color: #145da0 !important;
+                -webkit-text-fill-color: #145da0 !important;
+            }
+
+            html[data-theme='light'] body input:not([type='range']),
+            html[data-theme='light'] body textarea,
+            html[data-theme='light'] body select {
+                color: #122541 !important;
+                background: #ffffff !important;
+                border-color: #8eb9e8 !important;
+            }
+
+            html[data-theme='light'] body .user-dropdown,
+            html[data-theme='light'] body .accessibility-menu,
+            html[data-theme='light'] body .chatbot-panel {
+                color: #122541 !important;
+                background: linear-gradient(155deg, #f8fbff, #eaf3ff) !important;
+                border-color: #91b9e5 !important;
+            }
+        `;
+
+        document.head.appendChild(style);
     }
 
     getStoredTheme() {
@@ -1650,9 +2024,17 @@ class ThemeManager {
                 .chatbot-toggle-btn {
                     right: 10px;
                     bottom: calc(10px + env(safe-area-inset-bottom));
-                    padding: 12px 15px;
-                    font-size: 15px;
+                    width: 52px;
+                    height: 52px;
+                    min-width: 52px;
+                    padding: 0;
+                    justify-content: center;
+                    border-radius: 50%;
                     min-height: 52px;
+                }
+
+                .chatbot-toggle-btn span {
+                    display: none;
                 }
 
                 .chatbot-panel {
@@ -1841,6 +2223,143 @@ class ThemeManager {
                 .chatbot-subchip {
                     font-size: 14px;
                     padding: 9px 7px;
+                }
+            }
+
+            @media (max-width: 575px) {
+                .chatbot-panel {
+                    top: max(12px, env(safe-area-inset-top)) !important;
+                    right: 12px !important;
+                    bottom: auto !important;
+                    left: 12px !important;
+                    width: auto !important;
+                    height: min(68dvh, 520px) !important;
+                    max-height: min(68dvh, 520px) !important;
+                    border-radius: 14px !important;
+                }
+
+                .chatbot-header {
+                    gap: 8px;
+                    padding: 10px 12px;
+                }
+
+                .chatbot-title {
+                    gap: 8px;
+                    font-size: 15px;
+                }
+
+                .chatbot-header-actions {
+                    gap: 6px;
+                }
+
+                .chatbot-font-btn,
+                .chatbot-reset-btn,
+                .chatbot-close {
+                    width: 40px;
+                    height: 40px;
+                    min-width: 40px;
+                    min-height: 40px;
+                    border-radius: 9px;
+                }
+
+                .chatbot-messages {
+                    min-height: 0;
+                    padding: 12px;
+                    gap: 8px;
+                }
+
+                .chatbot-message {
+                    max-width: 94%;
+                    padding: 10px 12px;
+                    border-radius: 12px;
+                    font-size: 15px;
+                    line-height: 1.45;
+                }
+
+                .chatbot-menu-toggle-wrap {
+                    padding: 0 12px 8px;
+                }
+
+                .chatbot-menu-toggle {
+                    min-height: 40px;
+                    padding: 8px 13px;
+                    border-radius: 8px;
+                    font-size: 13px;
+                }
+
+                .chatbot-suggestions {
+                    display: none !important;
+                    height: 132px;
+                    min-height: 132px;
+                    max-height: 132px;
+                    flex: 0 0 132px;
+                }
+
+                .chatbot-suggestions.show {
+                    display: grid !important;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    align-content: start;
+                    gap: 7px;
+                    overflow-y: auto;
+                    margin-top: 0;
+                    padding: 8px 12px 10px;
+                }
+
+                .chatbot-menu-group {
+                    gap: 6px;
+                    padding: 7px;
+                    border-radius: 9px;
+                }
+
+                .chatbot-chip {
+                    min-height: 38px;
+                    gap: 7px;
+                    padding: 8px 9px;
+                    border-radius: 8px;
+                    font-size: 13px;
+                    line-height: 1.25;
+                }
+
+                .chatbot-chip::before {
+                    font-size: 14px;
+                }
+
+                .chatbot-submenu.show {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 6px;
+                }
+
+                .chatbot-subchip {
+                    min-width: 0;
+                    min-height: 36px;
+                    gap: 6px;
+                    padding: 7px 8px;
+                    border-radius: 8px;
+                    font-size: 12px;
+                    line-height: 1.25;
+                }
+
+                .chatbot-subchip::before {
+                    font-size: 13px;
+                }
+
+                .chatbot-input-wrap {
+                    gap: 8px;
+                    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+                }
+
+                .chatbot-input {
+                    min-width: 0;
+                    padding: 10px 12px;
+                    font-size: 16px;
+                }
+
+                .chatbot-send {
+                    min-width: 44px;
+                    min-height: 44px;
+                    flex: 0 0 44px;
+                    border-radius: 9px;
                 }
             }
         `;
@@ -2055,6 +2574,15 @@ class ChatbotManager {
 
                 parentBtn.addEventListener('click', () => {
                     const willShow = !submenu.classList.contains('show');
+                    container.querySelectorAll('.chatbot-menu-group').forEach((otherGroup) => {
+                        const otherSubmenu = otherGroup.querySelector('.chatbot-submenu');
+                        const otherButton = otherGroup.querySelector('.chatbot-chip-parent');
+                        if (otherSubmenu && otherSubmenu !== submenu) {
+                            otherSubmenu.classList.remove('show');
+                            otherButton.classList.remove('expanded');
+                            otherButton.setAttribute('aria-expanded', 'false');
+                        }
+                    });
                     submenu.classList.toggle('show', willShow);
                     parentBtn.classList.toggle('expanded', willShow);
                     parentBtn.setAttribute('aria-expanded', willShow ? 'true' : 'false');
@@ -3876,7 +4404,7 @@ class AccessibilityManager {
                 top: 8px;
                 left: 8px;
                 transform: translateY(-140%);
-                background: #58009A;
+                background: linear-gradient(135deg, #1d65ca, #0c2d58);
                 color: #ffffff;
                 padding: 10px 14px;
                 border-radius: 8px;

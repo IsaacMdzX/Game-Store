@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -19,7 +20,9 @@ def _get_database_uri():
 
 
 def _get_engine_options(database_uri):
-    if database_uri.startswith("postgres") and "localhost" not in database_uri:
+    parsed_uri = urlparse(database_uri)
+    local_hosts = {None, "", "localhost", "127.0.0.1", "::1"}
+    if parsed_uri.scheme.startswith("postgres") and parsed_uri.hostname not in local_hosts:
         return {"connect_args": {"sslmode": "require"}}
     return {}
 

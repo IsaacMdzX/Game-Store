@@ -26,36 +26,14 @@
         // Mostrar menú por defecto inmediatamente
         showDefaultMenu();
 
-        // ===== EVENT LISTENERS =====
-        // Toggle dropdown al hacer click en botón
-        userMenuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            userDropdown.classList.toggle('show');
-        });
-
-        // Cerrar dropdown al hacer click fuera
-        document.addEventListener('click', (e) => {
-            if (userDropdown.classList.contains('show') &&
-                !userDropdown.contains(e.target) &&
-                !userMenuBtn.contains(e.target)) {
-                userDropdown.classList.remove('show');
-            }
-        });
-
-        // Cerrar con ESC
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && userDropdown.classList.contains('show')) {
-                userDropdown.classList.remove('show');
-            }
-        });
-
-        // Cerrar al hacer click en un link
+        // UserMenuManager owns toggling, outside-click handling and Escape.
         dropdownContent.addEventListener('click', (e) => {
-            const link = e.target.closest('a');
-            if (link) {
-                setTimeout(() => {
-                    userDropdown.classList.remove('show');
-                }, 100);
+            if (!e.target.closest('a, button')) return;
+            if (window.userMenuManager && typeof window.userMenuManager.close === 'function') {
+                window.userMenuManager.close();
+            } else {
+                userDropdown.classList.remove('show');
+                userMenuBtn.setAttribute('aria-expanded', 'false');
             }
         });
 
