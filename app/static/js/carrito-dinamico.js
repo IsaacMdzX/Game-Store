@@ -95,17 +95,13 @@ class CarritoDinamico {
         const recomendaciones = this.carritoData.recomendaciones || [];
         if (!recomendaciones.length) return '';
         const basadasEnCompras = recomendaciones.some(producto => producto.metodo === 'apriori');
-        const titulo = basadasEnCompras ? 'Recomendados por plataforma y compras' : 'Productos compatibles';
-        const descripcion = basadasEnCompras
-            ? 'Filtrados por plataforma y tipo; ordenados con compras históricas.'
-            : 'Productos disponibles compatibles con la plataforma y el tipo de tu selección.';
+            const titulo = 'Recomendaciones';
 
         return `
             <section class="recomendaciones-carrito" aria-labelledby="recomendaciones-titulo">
                 <div class="recomendaciones-cabecera">
                     <div>
                         <h3 id="recomendaciones-titulo">${titulo}</h3>
-                        <p>${descripcion}</p>
                     </div>
                 </div>
                 <div class="recomendaciones-grid">
