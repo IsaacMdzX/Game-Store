@@ -95,10 +95,10 @@ class CarritoDinamico {
         const recomendaciones = this.carritoData.recomendaciones || [];
         if (!recomendaciones.length) return '';
         const basadasEnCompras = recomendaciones.some(producto => producto.metodo === 'apriori');
-        const titulo = basadasEnCompras ? 'También suelen comprar' : 'Productos relacionados';
+        const titulo = basadasEnCompras ? 'Recomendados por plataforma y compras' : 'Productos compatibles';
         const descripcion = basadasEnCompras
-            ? 'Basado en compras completadas relacionadas con tu carrito.'
-            : 'Alternativas disponibles de las categorías de tu carrito.';
+            ? 'Filtrados por plataforma y tipo; ordenados con compras históricas.'
+            : 'Productos disponibles compatibles con la plataforma y el tipo de tu selección.';
 
         return `
             <section class="recomendaciones-carrito" aria-labelledby="recomendaciones-titulo">
@@ -118,7 +118,7 @@ class CarritoDinamico {
                                 <h4>${this.escaparHTML(producto.nombre)}</h4>
                                 <p class="recomendacion-confianza">${producto.metodo === 'apriori'
                                     ? `Comprado junto en ${Math.round(producto.confianza * 100)}% de los casos`
-                                    : `Categoría: ${this.escaparHTML(producto.categoria || 'Relacionada')}`}</p>
+                                    : `Compatible${producto.plataforma ? ` con ${this.escaparHTML(producto.plataforma)}` : ''} · ${this.escaparHTML(producto.categoria || 'Relacionada')}`}</p>
                                 <strong>$${Number(producto.precio).toFixed(2)}</strong>
                             </div>
                             <button class="btn-agregar-recomendacion" data-producto-id="${producto.producto_id}"

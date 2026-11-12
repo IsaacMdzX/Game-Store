@@ -1420,76 +1420,120 @@ def api_carrito_detalles():
                 'stock': item.producto.stock
             })
 
-        from app.utils.recomendaciones import generar_recomendaciones
+        from app.utils.recomendaciones import (
+            clasificar_producto,
+            generar_recomendaciones,
+            nombre_plataforma,
+            puntuar_compatibilidad,
+        )
+        from app.utils.compras_simuladas import TRANSACCIONES_SIMULADAS
 
         pedidos_completados = Pedido.query.filter_by(estado='completado').options(
             selectinload(Pedido.items)
         ).all()
-        transacciones = [
+        transacciones = list(TRANSACCIONES_SIMULADAS) + [
             [pedido_item.producto_id for pedido_item in pedido.items]
             for pedido in pedidos_completados
             if pedido.items
         ]
+        productos_en_carrito = {item.producto_id for item in carrito.items}
+        catalogo_candidatos = Producto.query.filter(
+            Producto.id_producto.notin_(productos_en_carrito),
+            Producto.activo.is_(True),
+            Producto.stock > 0,
+        ).all()
+        candidatos_por_id = {producto.id_producto: producto for producto in catalogo_candidatos}
+        perfiles_carrito = [
+            clasificar_producto(
+                item.producto.nombre,
+                item.producto.categoria.nombre if item.producto.categoria else None,
+                item.producto.descripcion,
+                item.producto.imagen,
+            )
+            for item in carrito.items
+            if item.producto
+        ]
+
         sugerencias = generar_recomendaciones(
             transacciones,
-            [item.producto_id for item in carrito.items],
+            productos_en_carrito,
+            soporte_minimo=0.02,
+            limite=max(4, len(catalogo_candidatos)),
         )
-        productos_sugeridos = {}
-        if sugerencias:
-            productos_sugeridos = {
-                producto.id_producto: producto
-                for producto in Producto.query.filter(
-                    Producto.id_producto.in_(
-                        [sugerencia['producto_id'] for sugerencia in sugerencias]
-                    ),
-                    Producto.activo.is_(True),
-                    Producto.stock > 0,
-                ).all()
-            }
-        recomendaciones = [
-            {
-                'producto_id': sugerencia['producto_id'],
-                'nombre': productos_sugeridos[sugerencia['producto_id']].nombre,
-                'imagen': productos_sugeridos[sugerencia['producto_id']].imagen,
-                'precio': float(productos_sugeridos[sugerencia['producto_id']].precio),
-                'stock': productos_sugeridos[sugerencia['producto_id']].stock,
+        compatibilidad = {}
+        for producto in catalogo_candidatos:
+            perfil_candidato = clasificar_producto(
+                producto.nombre,
+                producto.categoria.nombre if producto.categoria else None,
+                producto.descripcion,
+                producto.imagen,
+            )
+            puntuaciones = [
+                puntuar_compatibilidad(perfil_origen, perfil_candidato)
+                for perfil_origen in perfiles_carrito
+            ]
+            puntuaciones_validas = [puntuacion for puntuacion in puntuaciones if puntuacion is not None]
+            if puntuaciones_validas:
+                compatibilidad[producto.id_producto] = (
+                    max(puntuaciones_validas),
+                    nombre_plataforma(perfil_candidato[1]),
+                )
+
+        recomendaciones = []
+        ids_recomendados = set()
+        sugerencias_compatibles = [
+            sugerencia for sugerencia in sugerencias
+            if sugerencia['producto_id'] in compatibilidad
+        ]
+        sugerencias_compatibles.sort(
+            key=lambda sugerencia: (
+                -sugerencia['confianza'],
+                -sugerencia['soporte'],
+                -compatibilidad[sugerencia['producto_id']][0],
+            )
+        )
+        for sugerencia in sugerencias_compatibles:
+            producto = candidatos_por_id[sugerencia['producto_id']]
+            recomendaciones.append({
+                'producto_id': producto.id_producto,
+                'nombre': producto.nombre,
+                'imagen': producto.imagen,
+                'precio': float(producto.precio),
+                'stock': producto.stock,
                 'confianza': sugerencia['confianza'],
                 'soporte': sugerencia['soporte'],
                 'metodo': 'apriori',
-            }
-            for sugerencia in sugerencias
-            if sugerencia['producto_id'] in productos_sugeridos
-        ]
+                'categoria': producto.categoria.nombre if producto.categoria else '',
+                'plataforma': compatibilidad[producto.id_producto][1],
+            })
+            ids_recomendados.add(producto.id_producto)
+            if len(recomendaciones) == 4:
+                break
 
-        if not recomendaciones:
-            productos_en_carrito = {item.producto_id for item in carrito.items}
-            categorias_en_carrito = {
-                item.producto.categoria_id
-                for item in carrito.items
-                if item.producto and item.producto.categoria_id is not None
-            }
-            if categorias_en_carrito:
-                productos_relacionados = Producto.query.filter(
-                    Producto.categoria_id.in_(categorias_en_carrito),
-                    Producto.id_producto.notin_(productos_en_carrito),
-                    Producto.activo.is_(True),
-                    Producto.stock > 0,
-                ).order_by(
-                    Producto.destacado.desc(),
-                    Producto.id_producto.asc(),
-                ).limit(4).all()
-                recomendaciones = [
-                    {
-                        'producto_id': producto.id_producto,
-                        'nombre': producto.nombre,
-                        'imagen': producto.imagen,
-                        'precio': float(producto.precio),
-                        'stock': producto.stock,
-                        'metodo': 'categoria',
-                        'categoria': producto.categoria.nombre if producto.categoria else '',
-                    }
-                    for producto in productos_relacionados
-                ]
+        candidatos_relacionados = [
+            producto for producto in catalogo_candidatos
+            if producto.id_producto in compatibilidad and producto.id_producto not in ids_recomendados
+        ]
+        candidatos_relacionados.sort(
+            key=lambda producto: (
+                -compatibilidad[producto.id_producto][0],
+                not producto.destacado,
+                producto.id_producto,
+            )
+        )
+        for producto in candidatos_relacionados:
+            recomendaciones.append({
+                'producto_id': producto.id_producto,
+                'nombre': producto.nombre,
+                'imagen': producto.imagen,
+                'precio': float(producto.precio),
+                'stock': producto.stock,
+                'metodo': 'compatibilidad',
+                'categoria': producto.categoria.nombre if producto.categoria else '',
+                'plataforma': compatibilidad[producto.id_producto][1],
+            })
+            if len(recomendaciones) == 4:
+                break
 
         return jsonify({
             'success': True,
