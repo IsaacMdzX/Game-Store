@@ -1397,7 +1397,8 @@ def api_carrito_detalles():
                     'items': [],
                     'subtotal': 0,
                     'total': 0,
-                    'count': 0
+                    'count': 0,
+                    'recomendaciones': []
                 }
             })
 
@@ -1419,13 +1420,85 @@ def api_carrito_detalles():
                 'stock': item.producto.stock
             })
 
+        from app.utils.recomendaciones import generar_recomendaciones
+
+        pedidos_completados = Pedido.query.filter_by(estado='completado').options(
+            selectinload(Pedido.items)
+        ).all()
+        transacciones = [
+            [pedido_item.producto_id for pedido_item in pedido.items]
+            for pedido in pedidos_completados
+            if pedido.items
+        ]
+        sugerencias = generar_recomendaciones(
+            transacciones,
+            [item.producto_id for item in carrito.items],
+        )
+        productos_sugeridos = {}
+        if sugerencias:
+            productos_sugeridos = {
+                producto.id_producto: producto
+                for producto in Producto.query.filter(
+                    Producto.id_producto.in_(
+                        [sugerencia['producto_id'] for sugerencia in sugerencias]
+                    ),
+                    Producto.activo.is_(True),
+                    Producto.stock > 0,
+                ).all()
+            }
+        recomendaciones = [
+            {
+                'producto_id': sugerencia['producto_id'],
+                'nombre': productos_sugeridos[sugerencia['producto_id']].nombre,
+                'imagen': productos_sugeridos[sugerencia['producto_id']].imagen,
+                'precio': float(productos_sugeridos[sugerencia['producto_id']].precio),
+                'stock': productos_sugeridos[sugerencia['producto_id']].stock,
+                'confianza': sugerencia['confianza'],
+                'soporte': sugerencia['soporte'],
+                'metodo': 'apriori',
+            }
+            for sugerencia in sugerencias
+            if sugerencia['producto_id'] in productos_sugeridos
+        ]
+
+        if not recomendaciones:
+            productos_en_carrito = {item.producto_id for item in carrito.items}
+            categorias_en_carrito = {
+                item.producto.categoria_id
+                for item in carrito.items
+                if item.producto and item.producto.categoria_id is not None
+            }
+            if categorias_en_carrito:
+                productos_relacionados = Producto.query.filter(
+                    Producto.categoria_id.in_(categorias_en_carrito),
+                    Producto.id_producto.notin_(productos_en_carrito),
+                    Producto.activo.is_(True),
+                    Producto.stock > 0,
+                ).order_by(
+                    Producto.destacado.desc(),
+                    Producto.id_producto.asc(),
+                ).limit(4).all()
+                recomendaciones = [
+                    {
+                        'producto_id': producto.id_producto,
+                        'nombre': producto.nombre,
+                        'imagen': producto.imagen,
+                        'precio': float(producto.precio),
+                        'stock': producto.stock,
+                        'metodo': 'categoria',
+                        'categoria': producto.categoria.nombre if producto.categoria else '',
+                    }
+                    for producto in productos_relacionados
+                ]
+
         return jsonify({
             'success': True,
             'carrito': {
                 'items': items_data,
                 'subtotal': subtotal,
                 'total': subtotal,
-                'count': len(carrito.items)
+                'count': len(carrito.items),
+                'recomendaciones': recomendaciones
             }
         })
 

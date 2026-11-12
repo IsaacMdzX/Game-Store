@@ -24,13 +24,14 @@ class CarritoDinamico {
 
             if (data.success) {
                 this.carritoData = data.carrito;
+                this.carritoData.recomendaciones = this.carritoData.recomendaciones || [];
             } else {
                 console.error('Error cargando carrito:', data.error);
-                this.carritoData = { items: [], subtotal: 0, total: 0, count: 0 };
+                this.carritoData = { items: [], subtotal: 0, total: 0, count: 0, recomendaciones: [] };
             }
         } catch (error) {
             console.error('Error:', error);
-            this.carritoData = { items: [], subtotal: 0, total: 0, count: 0 };
+            this.carritoData = { items: [], subtotal: 0, total: 0, count: 0, recomendaciones: [] };
         }
     }
 
@@ -71,10 +72,64 @@ class CarritoDinamico {
                     ${this.carritoData.items.map(item => this.crearItemHTML(item)).join('')}
                 </div>
 
+                ${this.crearRecomendacionesHTML()}
+
                 <div class="carrito-resumen">
                     ${this.crearResumenHTML()}
                 </div>
             </div>
+        `;
+    }
+
+    escaparHTML(valor) {
+        return String(valor ?? '').replace(/[&<>"']/g, caracter => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        })[caracter]);
+    }
+
+    crearRecomendacionesHTML() {
+        const recomendaciones = this.carritoData.recomendaciones || [];
+        if (!recomendaciones.length) return '';
+        const basadasEnCompras = recomendaciones.some(producto => producto.metodo === 'apriori');
+        const titulo = basadasEnCompras ? 'También suelen comprar' : 'Productos relacionados';
+        const descripcion = basadasEnCompras
+            ? 'Basado en compras completadas relacionadas con tu carrito.'
+            : 'Alternativas disponibles de las categorías de tu carrito.';
+
+        return `
+            <section class="recomendaciones-carrito" aria-labelledby="recomendaciones-titulo">
+                <div class="recomendaciones-cabecera">
+                    <div>
+                        <h3 id="recomendaciones-titulo">${titulo}</h3>
+                        <p>${descripcion}</p>
+                    </div>
+                </div>
+                <div class="recomendaciones-grid">
+                    ${recomendaciones.map(producto => `
+                        <article class="recomendacion-card">
+                            <img src="${this.escaparHTML(producto.imagen || '/static/img/placeholder.jpg')}"
+                                 alt="${this.escaparHTML(producto.nombre)}"
+                                 onerror="this.src='/static/img/placeholder.jpg'">
+                            <div class="recomendacion-info">
+                                <h4>${this.escaparHTML(producto.nombre)}</h4>
+                                <p class="recomendacion-confianza">${producto.metodo === 'apriori'
+                                    ? `Comprado junto en ${Math.round(producto.confianza * 100)}% de los casos`
+                                    : `Categoría: ${this.escaparHTML(producto.categoria || 'Relacionada')}`}</p>
+                                <strong>$${Number(producto.precio).toFixed(2)}</strong>
+                            </div>
+                            <button class="btn-agregar-recomendacion" data-producto-id="${producto.producto_id}"
+                                    aria-label="Agregar ${this.escaparHTML(producto.nombre)} al carrito">
+                                <i class="fa-solid fa-cart-plus" aria-hidden="true"></i>
+                                <span>Agregar</span>
+                            </button>
+                        </article>
+                    `).join('')}
+                </div>
+            </section>
         `;
     }
 
@@ -152,6 +207,12 @@ class CarritoDinamico {
 
     initEventListeners() {
         document.addEventListener('click', async (e) => {
+            const recomendacion = e.target.closest('.btn-agregar-recomendacion');
+            if (recomendacion) {
+                await this.agregarAlCarrito(recomendacion.dataset.productoId);
+                return;
+            }
+
             const target = e.target.closest('[data-item-id]');
             if (!target) return;
 

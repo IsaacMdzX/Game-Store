@@ -1,0 +1,9 @@
+ id_producto |                            nombre                             | categoria_id | activo | stock | categoria 
+-------------+---------------------------------------------------------------+--------------+--------+-------+-----------
+          45 | CONSOLA PLAYSTATION 5 MEGAPACK BUNDLE GT7 Y ASTROBOT DIGITAL  |            1 | t      |    16 | Consolas
+          32 | CONTROL XBOX INALAMBRICO PULSE RED PARA XBOX ONE SERIES X Y S |            1 | t      |    25 | Consolas
+          27 | CONSOLA NINTENDO SWITCH LITE HYRULE EDITION                   |            1 | t      |    19 | Consolas
+          26 | CONSOLA PLAYSTATION 5 EDICION LIMITADA ORO GHOST OF YOTEI     |            1 | t      |    21 | Consolas
+          25 | PLAYSTATION PORTAL 30 ANIVERSARIO                             |            1 | t      |    12 | Consolas
+(5 rows)
+

@@ -635,6 +635,166 @@ class ThemeManager {
                 border-color: rgba(89, 161, 239, 0.48) !important;
             }
 
+            .main-content > .container:has(form),
+            .container:has(> form),
+            .form-card,
+            .formulario-contacto,
+            .perfil-form,
+            .datos-usuario,
+            .pago-contenedor {
+                color: #eaf3ff !important;
+                background: linear-gradient(145deg, #10243d 0%, #091321 100%) !important;
+                border: 1px solid rgba(98, 176, 255, 0.34) !important;
+                box-shadow: 0 16px 38px rgba(0, 0, 0, 0.38), inset 0 1px rgba(255, 255, 255, 0.04) !important;
+            }
+
+            .main-content form,
+            .formulario-contacto form,
+            .perfil-form {
+                color: #eaf3ff !important;
+            }
+
+            .main-content form label,
+            .main-content form .label,
+            .formulario-contacto form label,
+            .perfil-form label,
+            .form-group label {
+                color: #c8def7 !important;
+            }
+
+            .main-content form input:not([type='checkbox']):not([type='radio']):not([type='range']),
+            .main-content form textarea,
+            .main-content form select,
+            .formulario-contacto form input,
+            .formulario-contacto form textarea,
+            .perfil-form input,
+            .perfil-form textarea,
+            .perfil-form select,
+            .input-field {
+                color: #f1f7ff !important;
+                background: linear-gradient(145deg, #09182a, #07111e) !important;
+                border: 1px solid rgba(104, 170, 235, 0.42) !important;
+                border-radius: 9px !important;
+                box-shadow: inset 0 1px rgba(255, 255, 255, 0.025) !important;
+            }
+
+            .main-content form input::placeholder,
+            .main-content form textarea::placeholder,
+            .formulario-contacto form input::placeholder,
+            .formulario-contacto form textarea::placeholder,
+            .input-field::placeholder {
+                color: #91a9c5 !important;
+                opacity: 1;
+            }
+
+            .main-content form input:focus,
+            .main-content form textarea:focus,
+            .main-content form select:focus,
+            .formulario-contacto form input:focus,
+            .formulario-contacto form textarea:focus,
+            .perfil-form input:focus,
+            .perfil-form textarea:focus,
+            .perfil-form select:focus,
+            .input-field:focus {
+                color: #ffffff !important;
+                background: linear-gradient(145deg, #0d2340, #09182b) !important;
+                border-color: #62b0ff !important;
+                box-shadow: 0 0 0 3px rgba(49, 132, 220, 0.23) !important;
+                outline: none;
+            }
+
+            .register-btn,
+            .btn-enviar,
+            .btn-confirmar-pago,
+            .formulario-contacto button[type='submit'],
+            .perfil-form button[type='submit'] {
+                color: #f5f9ff !important;
+                background: linear-gradient(135deg, #2679d8 0%, #12477f 58%, #0a2749 100%) !important;
+                border: 1px solid rgba(116, 190, 255, 0.45) !important;
+                box-shadow: 0 8px 20px rgba(7, 42, 84, 0.34) !important;
+            }
+
+            .register-btn:hover,
+            .btn-enviar:hover,
+            .btn-confirmar-pago:hover,
+            .formulario-contacto button[type='submit']:hover,
+            .perfil-form button[type='submit']:hover {
+                color: #ffffff !important;
+                background: linear-gradient(135deg, #3489ec 0%, #175895 58%, #0d345e 100%) !important;
+                border-color: #8bcaff !important;
+            }
+
+            .register-btn.back-btn,
+            .sidebar-register-btn:not(.sidebar-secondary-btn) {
+                color: #b9dcff !important;
+                background: rgba(31, 111, 235, 0.12) !important;
+                border: 1px solid rgba(98, 176, 255, 0.34) !important;
+                box-shadow: none !important;
+            }
+
+            .error-message,
+            .help-text,
+            .form-text {
+                color: #a9bfd9 !important;
+            }
+
+            .input-error,
+            .error-message:not(:empty) {
+                color: #ff9a9a !important;
+            }
+
+            .disponibilidad-icon.checking {
+                color: #83c4ff !important;
+            }
+
+            .login-brand-name,
+            .description,
+            .login-divider,
+            .password-field-wrapper,
+            .captcha-label-text {
+                color: #bfd5ef !important;
+            }
+
+            .login-divider::before,
+            .login-divider::after {
+                background: rgba(98, 176, 255, 0.32) !important;
+            }
+
+            .register-btn,
+            .btn-enviar,
+            .btn-confirmar-pago,
+            .formulario-contacto button[type='submit'],
+            .perfil-form button[type='submit'] {
+                box-shadow: 0 8px 20px rgba(8, 41, 83, 0.34) !important;
+            }
+
+            .sidebar-secondary-btn {
+                color: #b9dcff !important;
+                background: rgba(31, 111, 235, 0.12) !important;
+                border: 1px solid rgba(98, 176, 255, 0.34) !important;
+                box-shadow: none !important;
+            }
+
+            .main-content .register-btn:hover,
+            .main-content .sidebar-register-btn:hover,
+            .main-content .sidebar-secondary-btn:hover,
+            .formulario-contacto button[type='submit']:hover,
+            .perfil-form button[type='submit']:hover {
+                color: #ffffff !important;
+                background: linear-gradient(135deg, #3489ec, #14508f 58%, #0d345e) !important;
+                border-color: #75c4ff !important;
+                box-shadow: 0 8px 18px rgba(20, 77, 139, 0.3) !important;
+            }
+
+            .main-content .register-btn.back-btn:hover,
+            .main-content .sidebar-register-btn:not(.sidebar-secondary-btn):hover,
+            .main-content .sidebar-secondary-btn:hover {
+                color: #ffffff !important;
+                background: linear-gradient(135deg, #1d65ca, #0c2d58) !important;
+                border-color: #75c4ff !important;
+                box-shadow: 0 7px 16px rgba(20, 77, 139, 0.25) !important;
+            }
+
             html[data-theme='dark'] body header.encabezado,
             html[data-theme='dark'] body .encabezado {
                 background: linear-gradient(115deg, #0b1f3b, #123968 54%, #08111f) !important;
@@ -766,6 +926,163 @@ class ThemeManager {
                 color: #122541 !important;
                 background: #ffffff !important;
                 border-color: #8eb9e8 !important;
+            }
+
+            html[data-theme='light'] body .main-content > .container:has(form),
+            html[data-theme='light'] body .container:has(> form),
+            html[data-theme='light'] body .form-card,
+            html[data-theme='light'] body .formulario-contacto,
+            html[data-theme='light'] body .perfil-form,
+            html[data-theme='light'] body .datos-usuario,
+            html[data-theme='light'] body .pago-contenedor {
+                color: #17314f !important;
+                background: linear-gradient(145deg, #f8fbff 0%, #e8f2ff 100%) !important;
+                border-color: #a6c8ed !important;
+                box-shadow: 0 14px 32px rgba(24, 70, 120, 0.12) !important;
+            }
+
+            html[data-theme='light'] body .main-content form,
+            html[data-theme='light'] body .formulario-contacto form,
+            html[data-theme='light'] body .perfil-form {
+                color: #17314f !important;
+            }
+
+            html[data-theme='light'] body .main-content form label,
+            html[data-theme='light'] body .main-content form .label,
+            html[data-theme='light'] body .formulario-contacto form label,
+            html[data-theme='light'] body .perfil-form label,
+            html[data-theme='light'] body .form-group label {
+                color: #274c73 !important;
+            }
+
+            html[data-theme='light'] body .main-content form input:not([type='checkbox']):not([type='radio']):not([type='range']),
+            html[data-theme='light'] body .main-content form textarea,
+            html[data-theme='light'] body .main-content form select,
+            html[data-theme='light'] body .formulario-contacto form input,
+            html[data-theme='light'] body .formulario-contacto form textarea,
+            html[data-theme='light'] body .perfil-form input,
+            html[data-theme='light'] body .perfil-form textarea,
+            html[data-theme='light'] body .perfil-form select,
+            html[data-theme='light'] body .input-field {
+                color: #17314f !important;
+                background: linear-gradient(145deg, #ffffff, #f1f7ff) !important;
+                border-color: #9abce2 !important;
+                box-shadow: inset 0 1px rgba(19, 62, 107, 0.04) !important;
+            }
+
+            html[data-theme='light'] body .main-content form input::placeholder,
+            html[data-theme='light'] body .main-content form textarea::placeholder,
+            html[data-theme='light'] body .formulario-contacto form input::placeholder,
+            html[data-theme='light'] body .formulario-contacto form textarea::placeholder,
+            html[data-theme='light'] body .input-field::placeholder {
+                color: #687f99 !important;
+            }
+
+            html[data-theme='light'] body .main-content form input:focus,
+            html[data-theme='light'] body .main-content form textarea:focus,
+            html[data-theme='light'] body .main-content form select:focus,
+            html[data-theme='light'] body .formulario-contacto form input:focus,
+            html[data-theme='light'] body .formulario-contacto form textarea:focus,
+            html[data-theme='light'] body .perfil-form input:focus,
+            html[data-theme='light'] body .perfil-form textarea:focus,
+            html[data-theme='light'] body .perfil-form select:focus,
+            html[data-theme='light'] body .input-field:focus {
+                color: #102b49 !important;
+                background: #ffffff !important;
+                border-color: #347fd1 !important;
+                box-shadow: 0 0 0 3px rgba(49, 132, 220, 0.18) !important;
+            }
+
+            html[data-theme='light'] body .register-btn.back-btn,
+            html[data-theme='light'] body .sidebar-register-btn:not(.sidebar-secondary-btn) {
+                color: #174f87 !important;
+                background: rgba(31, 111, 235, 0.08) !important;
+                border-color: #a1c5eb !important;
+            }
+
+            html[data-theme='light'] body .login-brand-name,
+            html[data-theme='light'] body .description,
+            html[data-theme='light'] body .login-divider,
+            html[data-theme='light'] body .password-field-wrapper,
+            html[data-theme='light'] body .captcha-label-text {
+                color: #44617f !important;
+            }
+
+            html[data-theme='light'] body .login-divider::before,
+            html[data-theme='light'] body .login-divider::after {
+                background: rgba(65, 125, 188, 0.28) !important;
+            }
+
+            html[data-theme='light'] body .sidebar-secondary-btn {
+                color: #174f87 !important;
+                background: rgba(31, 111, 235, 0.08) !important;
+                border-color: #a1c5eb !important;
+            }
+
+            html[data-theme='dark'] body .main-content > .container .login-brand-name,
+            html[data-theme='dark'] body .main-content > .container .description,
+            html[data-theme='dark'] body .main-content > .container .login-divider {
+                color: #c9def5 !important;
+            }
+
+            html[data-theme='dark'] body #login-form .input-field,
+            html[data-theme='dark'] body .main-content form input:not([type='checkbox']):not([type='radio']):not([type='range']),
+            html[data-theme='dark'] body .main-content form textarea,
+            html[data-theme='dark'] body .main-content form select {
+                color: #f1f7ff !important;
+                background-color: #091525 !important;
+                background-image: linear-gradient(145deg, #0d1d31, #081321) !important;
+                border-color: rgba(104, 170, 235, 0.5) !important;
+            }
+
+            html[data-theme='light'] body #login-form .input-field,
+            html[data-theme='light'] body .main-content form input:not([type='checkbox']):not([type='radio']):not([type='range']),
+            html[data-theme='light'] body .main-content form textarea,
+            html[data-theme='light'] body .main-content form select {
+                color: #17314f !important;
+                background-color: #ffffff !important;
+                background-image: linear-gradient(145deg, #ffffff, #f1f7ff) !important;
+                border-color: #9abce2 !important;
+            }
+
+            html[data-theme='dark'] body .main-content .register-btn,
+            html[data-theme='dark'] body .main-content .btn-enviar,
+            html[data-theme='dark'] body .main-content .btn-confirmar-pago {
+                color: #f5f9ff !important;
+                background: linear-gradient(135deg, #2679d8, #12477f 58%, #0a2749) !important;
+                border: 1px solid rgba(116, 190, 255, 0.45) !important;
+                box-shadow: 0 8px 20px rgba(7, 42, 84, 0.34) !important;
+            }
+
+            html[data-theme='light'] body .main-content .register-btn,
+            html[data-theme='light'] body .main-content .btn-enviar,
+            html[data-theme='light'] body .main-content .btn-confirmar-pago {
+                color: #f5f9ff !important;
+                background: linear-gradient(135deg, #2679d8, #12477f 58%, #0a2749) !important;
+                border: 1px solid rgba(72, 137, 199, 0.52) !important;
+                box-shadow: 0 7px 17px rgba(24, 70, 120, 0.22) !important;
+            }
+
+            html[data-theme='dark'] body .main-content .register-btn.back-btn,
+            html[data-theme='dark'] body .main-content .sidebar-register-btn:not(.sidebar-secondary-btn) {
+                color: #c8e2ff !important;
+                background: linear-gradient(145deg, rgba(31, 111, 235, 0.2), rgba(8, 29, 53, 0.7)) !important;
+                border-color: rgba(98, 176, 255, 0.42) !important;
+                box-shadow: none !important;
+            }
+
+            html[data-theme='light'] body .main-content .register-btn.back-btn,
+            html[data-theme='light'] body .main-content .sidebar-register-btn:not(.sidebar-secondary-btn),
+            html[data-theme='light'] body .main-content .sidebar-secondary-btn {
+                color: #174f87 !important;
+                background: linear-gradient(145deg, #f3f8ff, #e4f0ff) !important;
+                border-color: #9fc2e8 !important;
+                box-shadow: none !important;
+            }
+
+            html[data-theme='dark'] body .main-content .register-btn,
+            html[data-theme='light'] body .main-content .register-btn {
+                box-shadow: 0 7px 18px rgba(20, 77, 139, 0.28) !important;
             }
 
             html[data-theme='light'] body .user-dropdown,

@@ -11,13 +11,14 @@
     <!-- End Google Tag Manager -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Store</title>
+    <title>Dashboard | Game Store Admin</title>
     <link rel="stylesheet" href="/static/css/stylee.css">
+        <link rel="stylesheet" href="/static/css/admin-dashboard.css?v=1.8">
     <link rel="icon" type="image/x-icon" href="/static/img/Icon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
-<body>
+<body class="admin-dashboard">
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N9LMPQBM"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -56,33 +57,35 @@
         </header>
 
         <section class="principal" aria-label="Contenido principal del dashboard">
-            <div>
+            <div class="dashboard-intro">
+                <div>
                 <h1>Dashboard</h1>
-                <p style="color: #a0a0a0; font-size: 16px;">Panel de control y analíticas en tiempo real</p>
+                    <p class="dashboard-subtitle">Panel de control y analíticas en tiempo real</p>
+                </div>
             </div>
 
             <!-- KPIs Principales -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon">💵</div>
+                    <div class="stat-icon" aria-hidden="true"><i class="fa-solid fa-dollar-sign"></i></div>
                     <div class="stat-label">Ventas del Día</div>
                     <div class="stat-value" data-stat="daily-sales">$2,450</div>
                     <div class="stat-change positive">↑ 12% vs ayer</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon">📦</div>
+                    <div class="stat-icon" aria-hidden="true"><i class="fa-solid fa-box"></i></div>
                     <div class="stat-label">Pedidos Pendientes</div>
                     <div class="stat-value" data-stat="pending-orders">24</div>
                     <div class="stat-change negative">↑ 3 nuevos</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-icon" aria-hidden="true"><i class="fa-solid fa-triangle-exclamation"></i></div>
                     <div class="stat-label">Stock Bajo</div>
                     <div class="stat-value" data-stat="low-stock">8</div>
                     <div class="stat-change negative">Requiere atención</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon">👥</div>
+                    <div class="stat-icon" aria-hidden="true"><i class="fa-solid fa-users"></i></div>
                     <div class="stat-label">Clientes Activos</div>
                     <div class="stat-value" data-stat="active-customers">892</div>
                     <div class="stat-change positive">↑ 15% este mes</div>
@@ -101,6 +104,7 @@
                         </select>
                     </div>
                     <canvas id="salesChart"></canvas>
+                    <p id="salesChartEmpty" class="chart-empty" hidden>Sin ventas registradas para este período.</p>
                     <div id="salesLegend" class="chart-legend" aria-label="Leyenda de ventas"></div>
                 </div>
 
@@ -109,6 +113,7 @@
                         <h3>Productos Más Vendidos</h3>
                     </div>
                     <canvas id="topProductsChart"></canvas>
+                    <p id="topProductsEmpty" class="chart-empty" hidden>No hay productos vendidos en este período.</p>
                     <div id="topProductsLegend" class="chart-legend" aria-label="Leyenda de productos"></div>
                 </div>
             </div>
@@ -152,14 +157,14 @@
                 <h2>Preguntas Frecuentes (Chatbot)</h2>
             </div>
 
-            <div class="filtros-container" style="margin-bottom: 12px; display: flex; gap: 10px; flex-wrap: wrap; align-items: end;">
-                <input type="text" id="faqSearch" class="search-input" placeholder="Buscar pregunta..." style="min-width: 220px;">
+            <div class="admin-filterbar">
+                <input type="text" id="faqSearch" class="search-input" placeholder="Buscar pregunta...">
 
-                <select id="faqIntent" class="filtro-select" style="min-width: 180px;">
+                <select id="faqIntent" class="filtro-select">
                     <option value="">Todas las intenciones</option>
                 </select>
 
-                <select id="faqPage" class="filtro-select" style="min-width: 180px;">
+                <select id="faqPage" class="filtro-select">
                     <option value="">Todas las páginas</option>
                 </select>
 
@@ -189,14 +194,13 @@
                 </table>
             </div>
         </section>
-        </div>
 
-        <script src="/static/js/menu-system.js?v=2.5"></script>
-        <script src="/static/js/user-menu-loader.js"></script>
+        <script src="/static/js/menu-system.js?v=3.11"></script>
+        <script src="/static/js/user-menu-loader.js?v=3.0"></script>
 
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="/static/js/script.js?v=2.6"></script>
-        <script src="/static/js/dashboard.js"></script>
+        <script src="/static/js/dashboard.js?v=1.1"></script>
 </body>
 
 </html>

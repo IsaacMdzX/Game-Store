@@ -2,6 +2,29 @@
 
 let salesChartInstance = null
 let topProductsChartInstance = null
+let salesChartState = null
+let topProductsChartState = null
+
+function getDashboardChartTheme() {
+  const isLight = document.documentElement.dataset.theme === "light"
+  return isLight
+    ? {
+        text: "#35516d",
+        value: "#17314f",
+        grid: "rgba(50, 91, 132, 0.13)",
+        border: "#d2e0ed",
+        tooltipBackground: "#ffffff",
+        tooltipText: "#17314f",
+      }
+    : {
+        text: "#a9c5e2",
+        value: "#eaf3ff",
+        grid: "rgba(150, 185, 225, 0.12)",
+        border: "#20354d",
+        tooltipBackground: "#0b1727",
+        tooltipText: "#f2f7ff",
+      }
+}
 
 const topProductsValuePlugin = {
   id: "topProductsValuePlugin",
@@ -24,12 +47,13 @@ const topProductsValuePlugin = {
       const text = value.toLocaleString()
       let x = bar.x + 8
       let align = "left"
-      let color = "#f3f4f6"
+      const theme = getDashboardChartTheme()
+      let color = theme.value
 
       if (x > chartArea.right - 22) {
         x = bar.x - 8
         align = "right"
-        color = "#f9fafb"
+        color = theme.value
       }
 
       ctx.textAlign = align
@@ -54,6 +78,15 @@ document.addEventListener("DOMContentLoaded", () => {
   cargarPedidosRecientes()
   configurarFiltrosFaqChatbot()
   cargarFaqsChatbot()
+
+  const chartThemeObserver = new MutationObserver(() => {
+    if (salesChartState) renderSalesChart(salesChartState.labels, salesChartState.data)
+    if (topProductsChartState) renderTopProductsChart(topProductsChartState.labels, topProductsChartState.data)
+  })
+  chartThemeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme"],
+  })
 
   const periodSelect = document.getElementById("salesPeriod")
   if (periodSelect) {
@@ -297,11 +330,27 @@ function renderSalesChart(labels, data) {
   const ctx = document.getElementById("salesChart")
   if (!ctx) return
 
+  salesChartState = { labels: [...labels], data: [...data] }
+
   if (salesChartInstance) salesChartInstance.destroy()
 
   const prepared = prepareSalesPieData(labels, data)
+  const emptyState = document.getElementById("salesChartEmpty")
+  const legend = document.getElementById("salesLegend")
+
+  if (!prepared.data.some((value) => Number(value) > 0)) {
+    ctx.hidden = true
+    if (legend) legend.replaceChildren()
+    if (emptyState) emptyState.hidden = false
+    salesChartInstance = null
+    return
+  }
+
+  ctx.hidden = false
+  if (emptyState) emptyState.hidden = true
 
   const pieColors = generateChartColors(prepared.data.length)
+  const theme = getDashboardChartTheme()
 
   salesChartInstance = new Chart(ctx, {
     type: "pie",
@@ -312,7 +361,7 @@ function renderSalesChart(labels, data) {
           label: "Ventas",
           data: prepared.data,
           backgroundColor: pieColors,
-          borderColor: "#2a2a2a",
+          borderColor: theme.border,
           borderWidth: 1,
         },
       ],
@@ -326,6 +375,11 @@ function renderSalesChart(labels, data) {
           display: false,
         },
         tooltip: {
+          backgroundColor: theme.tooltipBackground,
+          titleColor: theme.tooltipText,
+          bodyColor: theme.tooltipText,
+          borderColor: theme.border,
+          borderWidth: 1,
           callbacks: {
             label: (context) => {
               const label = context.label || ""
@@ -345,12 +399,26 @@ function renderTopProductsChart(labels, data) {
   const ctx = document.getElementById("topProductsChart")
   if (!ctx) return
 
+  topProductsChartState = { labels: [...labels], data: [...data] }
+
   if (topProductsChartInstance) topProductsChartInstance.destroy()
 
   const prepared = prepareTopProductsBarData(labels, data)
+  const emptyState = document.getElementById("topProductsEmpty")
+  if (!prepared.data.some((value) => Number(value) > 0)) {
+    ctx.hidden = true
+    if (emptyState) emptyState.hidden = false
+    topProductsChartInstance = null
+    return
+  }
+
+  ctx.hidden = false
+  if (emptyState) emptyState.hidden = true
+
   const barColors = generateChartColors(prepared.data.length)
+  const theme = getDashboardChartTheme()
   if (barColors.length) {
-    barColors[0] = "#f59e0b"
+    barColors[0] = "#62b0ff"
   }
 
   topProductsChartInstance = new Chart(ctx, {
@@ -363,7 +431,7 @@ function renderTopProductsChart(labels, data) {
           label: "Unidades Vendidas",
           data: prepared.data,
           backgroundColor: barColors,
-          borderColor: "rgba(255,255,255,0.10)",
+          borderColor: theme.border,
           borderWidth: 1,
           borderRadius: 6,
           borderSkipped: false,
@@ -387,6 +455,11 @@ function renderTopProductsChart(labels, data) {
           display: false,
         },
         tooltip: {
+          backgroundColor: theme.tooltipBackground,
+          titleColor: theme.tooltipText,
+          bodyColor: theme.tooltipText,
+          borderColor: theme.border,
+          borderWidth: 1,
           callbacks: {
             title: (items) => {
               const index = items?.[0]?.dataIndex ?? 0
@@ -403,10 +476,10 @@ function renderTopProductsChart(labels, data) {
         x: {
           beginAtZero: true,
           grid: {
-            color: "rgba(255,255,255,0.08)",
+            color: theme.grid,
           },
           ticks: {
-            color: "#d1d5db",
+            color: theme.text,
             font: {
               size: 11,
             },
@@ -417,7 +490,7 @@ function renderTopProductsChart(labels, data) {
             display: false,
           },
           ticks: {
-            color: "#f3f4f6",
+            color: theme.text,
             font: {
               size: 11,
               weight: "600",
@@ -496,7 +569,7 @@ function renderCustomLegend(containerId, labels, data, colors, valueFormatter) {
 
   legend.innerHTML = labels
     .map((label, index) => {
-      const color = colors[index] || "#a21caf"
+      const color = colors[index] || "#62b0ff"
       const rawValue = Number(data[index] || 0)
       const valueText = valueFormatter ? valueFormatter(rawValue) : rawValue.toLocaleString()
 
@@ -513,16 +586,16 @@ function renderCustomLegend(containerId, labels, data, colors, valueFormatter) {
 
 function generateChartColors(count) {
   const palette = [
-    "#a21caf",
-    "#c026d3",
-    "#d946ef",
-    "#e879f9",
-    "#f0abfc",
-    "#86198f",
-    "#701a75",
-    "#9333ea",
-    "#7e22ce",
-    "#6b21a8",
+    "#2f7ddd",
+    "#55a9ed",
+    "#19a7c9",
+    "#7ac7e8",
+    "#1766b1",
+    "#66d9e8",
+    "#2d4d73",
+    "#9ac8ef",
+    "#3183a6",
+    "#4d8ec4",
   ]
 
   return Array.from({ length: count }, (_, index) => palette[index % palette.length])

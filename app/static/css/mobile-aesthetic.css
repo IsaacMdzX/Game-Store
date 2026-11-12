@@ -3359,3 +3359,242 @@ html[data-theme='light'] body .resumen-card {
     background: linear-gradient(145deg, #f8fbff, #e7f1ff) !important;
     border-color: #9dc7f2 !important;
 }
+
+/* Blue theme for every form page, including the standalone password reset page. */
+body:has(.main-content form),
+body:has(.formulario-contacto form),
+body:has(.perfil-form) {
+    background: linear-gradient(145deg, #05080d 0%, #091526 58%, #0b1c2f 100%) !important;
+}
+
+body:not([data-theme='light']) .main-content > .container:has(form),
+body:not([data-theme='light']) .container:has(> form),
+body:not([data-theme='light']) .formulario-contacto,
+body:not([data-theme='light']) .perfil-form,
+body:not([data-theme='light']) .datos-usuario,
+body:not([data-theme='light']) .pago-contenedor {
+    color: #eaf3ff !important;
+    background: linear-gradient(145deg, #10243d 0%, #091321 100%) !important;
+    border-color: rgba(98, 176, 255, 0.34) !important;
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.38), inset 0 1px rgba(255, 255, 255, 0.04) !important;
+}
+
+body:not([data-theme='light']) .login-brand-name,
+body:not([data-theme='light']) .main-content .description,
+body:not([data-theme='light']) .main-content h1 {
+    color: #d7e8fb !important;
+}
+
+html[data-theme='dark'] body .main-content .login-brand-name,
+html:not([data-theme='light']) body .main-content .login-brand-name {
+    color: #d7e8fb !important;
+}
+
+body:not([data-theme='light']) .main-content form label,
+body:not([data-theme='light']) .main-content form .label,
+body:not([data-theme='light']) .formulario-contacto form label,
+body:not([data-theme='light']) .perfil-form label,
+body:not([data-theme='light']) .form-group label {
+    color: #c8def7 !important;
+}
+
+body:not([data-theme='light']) .main-content form input:not([type='checkbox']):not([type='radio']):not([type='range']),
+body:not([data-theme='light']) .main-content form textarea,
+body:not([data-theme='light']) .main-content form select,
+body:not([data-theme='light']) .formulario-contacto form input,
+body:not([data-theme='light']) .formulario-contacto form textarea,
+body:not([data-theme='light']) .perfil-form input,
+body:not([data-theme='light']) .perfil-form textarea,
+body:not([data-theme='light']) .perfil-form select,
+body:not([data-theme='light']) .input-field {
+    color: #f1f7ff !important;
+    background-color: #091525 !important;
+    background-image: linear-gradient(145deg, #0d1d31, #081321) !important;
+    border: 1px solid rgba(104, 170, 235, 0.5) !important;
+}
+
+body:not([data-theme='light']) .main-content form input::placeholder,
+body:not([data-theme='light']) .main-content form textarea::placeholder,
+body:not([data-theme='light']) .formulario-contacto form input::placeholder,
+body:not([data-theme='light']) .formulario-contacto form textarea::placeholder,
+body:not([data-theme='light']) .input-field::placeholder {
+    color: #91a9c5 !important;
+    opacity: 1;
+}
+
+body:not([data-theme='light']) .main-content form input:focus,
+body:not([data-theme='light']) .main-content form textarea:focus,
+body:not([data-theme='light']) .main-content form select:focus,
+body:not([data-theme='light']) .formulario-contacto form input:focus,
+body:not([data-theme='light']) .formulario-contacto form textarea:focus,
+body:not([data-theme='light']) .perfil-form input:focus,
+body:not([data-theme='light']) .perfil-form textarea:focus,
+body:not([data-theme='light']) .perfil-form select:focus,
+body:not([data-theme='light']) .input-field:focus {
+    border-color: #62b0ff !important;
+    box-shadow: 0 0 0 3px rgba(49, 132, 220, 0.23) !important;
+}
+
+body:not([data-theme='light']) .main-content .register-btn,
+body:not([data-theme='light']) .main-content .btn-enviar,
+body:not([data-theme='light']) .main-content .btn-confirmar-pago,
+body:not([data-theme='light']) .formulario-contacto button[type='submit'],
+body:not([data-theme='light']) .perfil-form button[type='submit'] {
+    color: #f5f9ff !important;
+    background: linear-gradient(135deg, #2679d8, #12477f 58%, #0a2749) !important;
+    border: 1px solid rgba(116, 190, 255, 0.45) !important;
+    box-shadow: 0 8px 20px rgba(7, 42, 84, 0.34) !important;
+}
+
+body:not([data-theme='light']) .main-content .register-btn.back-btn,
+body:not([data-theme='light']) .main-content .sidebar-register-btn:not(.sidebar-secondary-btn) {
+    color: #c8e2ff !important;
+    background: linear-gradient(145deg, rgba(31, 111, 235, 0.2), rgba(8, 29, 53, 0.7)) !important;
+    border-color: rgba(98, 176, 255, 0.42) !important;
+    box-shadow: none !important;
+}
+
+html[data-theme='light'] body:has(.main-content form),
+html[data-theme='light'] body:has(.formulario-contacto form),
+html[data-theme='light'] body:has(.perfil-form) {
+    background: linear-gradient(145deg, #eaf3ff 0%, #f5f9ff 55%, #dceaff 100%) !important;
+}
+
+html[data-theme='light'] body .main-content > .container:has(form),
+html[data-theme='light'] body .container:has(> form),
+html[data-theme='light'] body .formulario-contacto,
+html[data-theme='light'] body .perfil-form,
+html[data-theme='light'] body .datos-usuario,
+html[data-theme='light'] body .pago-contenedor {
+    color: #17314f !important;
+    background: linear-gradient(145deg, #f8fbff 0%, #e8f2ff 100%) !important;
+    border-color: #a6c8ed !important;
+    box-shadow: 0 14px 32px rgba(24, 70, 120, 0.12) !important;
+}
+
+html[data-theme='light'] body .login-brand-name {
+    color: #245783 !important;
+}
+
+html[data-theme='light'] body .main-content .description {
+    color: #526b85 !important;
+}
+
+html[data-theme='light'] body .main-content h1 {
+    color: #17314f !important;
+}
+
+html[data-theme='light'] body .main-content form label,
+html[data-theme='light'] body .main-content form .label,
+html[data-theme='light'] body .formulario-contacto form label,
+html[data-theme='light'] body .perfil-form label,
+html[data-theme='light'] body .form-group label {
+    color: #274c73 !important;
+}
+
+html[data-theme='light'] body .main-content form input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html[data-theme='light'] body .main-content form textarea,
+html[data-theme='light'] body .main-content form select,
+html[data-theme='light'] body .formulario-contacto form input,
+html[data-theme='light'] body .formulario-contacto form textarea,
+html[data-theme='light'] body .perfil-form input,
+html[data-theme='light'] body .perfil-form textarea,
+html[data-theme='light'] body .perfil-form select,
+html[data-theme='light'] body .input-field {
+    color: #17314f !important;
+    background-color: #ffffff !important;
+    background-image: linear-gradient(145deg, #ffffff, #f1f7ff) !important;
+    border: 1px solid #9abce2 !important;
+}
+
+html[data-theme='light'] body .main-content form input::placeholder,
+html[data-theme='light'] body .main-content form textarea::placeholder,
+html[data-theme='light'] body .formulario-contacto form input::placeholder,
+html[data-theme='light'] body .formulario-contacto form textarea::placeholder,
+html[data-theme='light'] body .input-field::placeholder {
+    color: #687f99 !important;
+}
+
+html[data-theme='light'] body .main-content form input:focus,
+html[data-theme='light'] body .main-content form textarea:focus,
+html[data-theme='light'] body .main-content form select:focus,
+html[data-theme='light'] body .formulario-contacto form input:focus,
+html[data-theme='light'] body .formulario-contacto form textarea:focus,
+html[data-theme='light'] body .perfil-form input:focus,
+html[data-theme='light'] body .perfil-form textarea:focus,
+html[data-theme='light'] body .perfil-form select:focus,
+html[data-theme='light'] body .input-field:focus {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    border-color: #347fd1 !important;
+    box-shadow: 0 0 0 3px rgba(49, 132, 220, 0.18) !important;
+}
+
+html[data-theme='light'] body .main-content .register-btn,
+html[data-theme='light'] body .main-content .btn-enviar,
+html[data-theme='light'] body .main-content .btn-confirmar-pago,
+html[data-theme='light'] body .formulario-contacto button[type='submit'],
+html[data-theme='light'] body .perfil-form button[type='submit'] {
+    color: #f5f9ff !important;
+    background: linear-gradient(135deg, #2679d8, #12477f 58%, #0a2749) !important;
+    border: 1px solid rgba(72, 137, 199, 0.52) !important;
+    box-shadow: 0 7px 17px rgba(24, 70, 120, 0.22) !important;
+}
+
+html[data-theme='light'] body .main-content .register-btn.back-btn,
+html[data-theme='light'] body .main-content .sidebar-register-btn:not(.sidebar-secondary-btn) {
+    color: #174f87 !important;
+    background: linear-gradient(145deg, #f3f8ff, #e4f0ff) !important;
+    border-color: #9fc2e8 !important;
+    box-shadow: none !important;
+}
+
+.main-content .login-footer-links {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+}
+
+.main-content .login-footer-links .compact-link-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 56px !important;
+    height: 100% !important;
+    flex: none !important;
+    margin: 0 !important;
+    padding: 10px 8px !important;
+    gap: 6px !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+    letter-spacing: 0 !important;
+    text-align: center !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere !important;
+}
+
+.main-content .login-footer-links .compact-link-btn i {
+    flex: 0 0 auto;
+    margin-right: 0 !important;
+    padding: 0 !important;
+    font-size: 14px !important;
+}
+
+@media (max-width: 360px) {
+    .main-content .login-footer-links {
+        gap: 8px !important;
+    }
+
+    .main-content .login-footer-links .compact-link-btn {
+        min-height: 58px !important;
+        padding: 8px 6px !important;
+        font-size: 12px !important;
+    }
+}
